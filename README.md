@@ -16,13 +16,13 @@ Here is the main MCBO ontology diagram:
 >  
 > Chrome allows you to zoom and pan easily, so you can inspect all details of the graph.
 
-# Competency questions
-CQ1: Under what culture conditions (pH, dissolved oxygen, temperature) do the cells reach peak recombinant protein productivity?
-CQ2: Which cell lines have been engineered to overexpress gene Y?
-CQ3: Which nutrient concentrations in cell line K are most associated with viable cell density above Z at day 6 of culture?
-CQ4: How does the expression of gene X vary between clone A and clone B?
-CQ5: What pathways are differentially expressed under Fed-batch vs Perfusion in cell line K?
-CQ6: Which are the top genes correlated with recombinant protein productivity in the stationary phase of all experiments?
-CQ7: Which genes have the highest fold change between cells with viability (>90%) and those without (<50%)? 
-CQ8: Which cell lines or subclones are best suited for glycosylation profiles required for therapeutic protein X?
+# Competency questions:
+- CQ1: Under what culture conditions (pH, dissolved oxygen, temperature) do the cells reach peak recombinant protein productivity?
+- CQ2: Which cell lines have been engineered to overexpress gene Y?
+- CQ3: Which nutrient concentrations in cell line K are most associated with viable cell density above Z at day 6 of culture?
+- CQ4: How does the expression of gene X vary between clone A and clone B?
+- CQ5: What pathways are differentially expressed under Fed-batch vs Perfusion in cell line K?
+- CQ6: Which are the top genes correlated with recombinant protein productivity in the stationary phase of all experiments?
+- CQ7: Which genes have the highest fold change between cells with viability (>90%) and those without (<50%)? 
+- CQ8: Which cell lines or subclones are best suited for glycosylation profiles required for therapeutic protein X?
 
