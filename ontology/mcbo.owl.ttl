@@ -371,7 +371,7 @@ mcbo:BatchCultureProcess rdf:type owl:Class ;
 
 ###  http://example.org/mcbo#FedBatchCultureProcess
 mcbo:FedBatchCultureProcess rdf:type owl:Class ;
-                            rdfs:subClassOf mcbo:CellCultureProcess ;
+                            rdfs:subClassOf mcbo:BatchCultureProcess ;
                             rdfs:label "Fed-batch culture process" .
 
 ###  http://example.org/mcbo#PerfusionCultureProcess
@@ -381,8 +381,13 @@ mcbo:PerfusionCultureProcess rdf:type owl:Class ;
 
 ###  http://example.org/mcbo#ChemostatCultureProcess
 mcbo:ChemostatCultureProcess rdf:type owl:Class ;
-                             rdfs:subClassOf mcbo:CellCultureProcess ;
+                             rdfs:subClassOf mcbo:PerfusionCultureProcess ;
                              rdfs:label "Chemostat culture process" .
+
+###  http://example.org/mcbo#ChemostatCultureProcess
+mcbo:UnknownCultureProcess rdf:type owl:Class ;
+                             rdfs:subClassOf mcbo:CellCultureProcess ;
+                             rdfs:label "Unknown culture process: not identifiable from source data" .
 
 ###  http://example.org/mcbo#BioprocessSample
 mcbo:BioprocessSample rdf:type owl:Class ;

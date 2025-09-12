@@ -50,9 +50,17 @@ def map_process_type(process_type_str):
         'Perfusion': MCBO.PerfusionCultureProcess,
         'Pefusion': MCBO.PerfusionCultureProcess, # account for typos
         'Chemostat': MCBO.ChemostatCultureProcess,
+        'Unknown': MCBO.UnknownCultureProcess,
+        'NA': MCBO.UnknownCultureProcess,
+        'nan': MCBO.UnknownCultureProcess,
+        'NAN': MCBO.UnknownCultureProcess,
+        'Plate': MCBO.UnknownCultureProcess,
+        '': MCBO.UnknownCultureProcess,
         # Add more mappings as needed
     }
-    return mapping.get(process_type_str, MCBO.CellCultureProcess)
+    if process_type_str not in mapping:
+        print(f"Unknown process type: {process_type_str}")
+    return mapping.get(process_type_str, MCBO.UnknownCultureProcess)
 
 def map_cell_line(cell_line_str):
     """Map cell line strings to ontology classes"""
@@ -182,7 +190,7 @@ def validate_conversion(graph):
     print("\nValidation Results:")
     
     process_count = len(list(graph.subjects(RDF.type, MCBO.CellCultureProcess)))
-    print(f"Total processes: {process_count}")
+    print(f"Total CellCultureProcess processes: {process_count}")
     
     sample_count = len(list(graph.subjects(RDF.type, MCBO.BioprocessSample)))
     print(f"Total samples: {sample_count}")
