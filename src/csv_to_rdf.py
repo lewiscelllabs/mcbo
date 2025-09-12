@@ -44,9 +44,11 @@ def create_graph():
 def map_process_type(process_type_str):
     """Map CSV process type strings to ontology classes"""
     mapping = {
-        'Fed-batch': MCBO.FedBatchCultureProcess,
+        'FedBatch': MCBO.FedBatchCultureProcess,  # Updated to match CSV data
+        'Fed-batch': MCBO.FedBatchCultureProcess,  # Keep for backwards compatibility
         'Batch': MCBO.BatchCultureProcess, 
         'Perfusion': MCBO.PerfusionCultureProcess,
+        'Pefusion': MCBO.PerfusionCultureProcess, # account for typos
         'Chemostat': MCBO.ChemostatCultureProcess,
         # Add more mappings as needed
     }
@@ -100,6 +102,13 @@ def convert_csv_to_rdf(csv_file_path, output_file):
             cell_line_class = map_cell_line(row['CellLine'])
             g.add((cell_line_uri, RDF.type, cell_line_class))
             g.add((run_uri, MCBO.usesCellLine, cell_line_uri))
+            
+            # Add product type to cell line if it produces something
+            if pd.notna(row.get('ProductType')) and row.get('ProductType') not in ['NA', 'na']:
+                # If producing mAb, infer antibody gene overexpression
+                if row['ProductType'].lower() == 'mab':
+                    g.add((cell_line_uri, MCBO.overexpressesGene, MCBO.antibodyGene))
+                    g.add((cell_line_uri, MCBO.producesProduct, Literal('mAb')))
         
         # Add culture phase if available
         if pd.notna(row.get('CulturePhase')):

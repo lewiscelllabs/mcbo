@@ -6,9 +6,11 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix uo: <http://purl.obolibrary.org/obo/> .
 @base <http://example.org/mcbo#> .
 
 <http://example.org/mcbo> rdf:type owl:Ontology ;
+                           owl:imports <http://purl.obolibrary.org/obo/uo.owl> ;
                            rdfs:comment "Comprehensive ontology for mammalian cell bioprocessing: anchors to IOF/BFO and reuses OBO ontologies; designed for RNA-seq analysis, culture condition optimization, and product development." ;
                            rdfs:label "MCBO – Mammalian Cell Bioprocessing Ontology" ;
                            owl:versionInfo "0.2.0-comprehensive" .
@@ -81,6 +83,7 @@ mcbo:hasNutrientConcentration rdf:type owl:ObjectProperty ;
                               rdfs:range mcbo:NutrientConcentration ;
                               rdfs:label "has nutrient concentration" .
 
+
 ###  http://example.org/mcbo#inCulturePhase
 mcbo:inCulturePhase rdf:type owl:ObjectProperty ;
                     rdfs:domain mcbo:BioprocessSample ;
@@ -99,7 +102,7 @@ mcbo:hasQualityMeasurement rdf:type owl:ObjectProperty ;
                            rdfs:range mcbo:QualityMeasurement ;
                            rdfs:label "has quality measurement" .
 
-# Add to your TTL file
+
 mcbo:hasProductivityCategory rdf:type owl:DatatypeProperty ;
     rdfs:domain mcbo:ProductivityMeasurement ;
     rdfs:range xsd:string ;
@@ -174,6 +177,12 @@ obo:OBI_0000299 rdfs:domain obo:OBI_0001271 ;
 iof:hasOutput rdf:type owl:ObjectProperty ;
               rdfs:label "has output" .
 
+###  http://example.org/mcbo#hasUnit
+mcbo:hasUnit rdf:type owl:ObjectProperty ;
+             rdfs:domain mcbo:QuantityValue ;
+             rdfs:comment "Object property to a UO unit class (e.g., uo:UO_0000027 for degree Celsius)." ;
+             rdfs:label "has unit (UO)" .
+
 #################################################################
 #    Data Properties
 #################################################################
@@ -182,7 +191,13 @@ iof:hasOutput rdf:type owl:ObjectProperty ;
 mcbo:hasTemperature rdf:type owl:DatatypeProperty ;
                     rdfs:domain mcbo:CultureConditions ;
                     rdfs:range xsd:decimal ;
-                    rdfs:label "has temperature (°C)" .
+                    rdfs:label "has temperature" .
+
+###  http://example.org/mcbo#hasTemperatureUnit
+mcbo:hasTemperatureUnit rdf:type owl:ObjectProperty ;
+                        rdfs:domain mcbo:CultureConditions ;
+                        rdfs:comment "UO unit for temperature (e.g., uo:UO_0000027 for Celsius, uo:UO_0000195 for Fahrenheit)" ;
+                        rdfs:label "has temperature unit" .
 
 ###  http://example.org/mcbo#hasPH
 mcbo:hasPH rdf:type owl:DatatypeProperty ;
@@ -196,11 +211,23 @@ mcbo:hasDissolvedOxygen rdf:type owl:DatatypeProperty ;
                         rdfs:range xsd:decimal ;
                         rdfs:label "has dissolved oxygen (%)" .
 
+###  http://example.org/mcbo#hasDissolvedOxygenUnit
+mcbo:hasDissolvedOxygenUnit rdf:type owl:ObjectProperty ;
+                            rdfs:domain mcbo:CultureConditions ;
+                            rdfs:comment "UO unit for dissolved oxygen (e.g., uo:UO_0000273 for mg/L)" ;
+                            rdfs:label "has dissolved oxygen unit" .
+
 ###  http://example.org/mcbo#hasCO2Concentration
 mcbo:hasCO2Concentration rdf:type owl:DatatypeProperty ;
                          rdfs:domain mcbo:CultureConditions ;
                          rdfs:range xsd:decimal ;
                          rdfs:label "has CO2 concentration (%)" .
+
+###  http://example.org/mcbo#hasCO2ConcentrationUnit
+mcbo:hasCO2ConcentrationUnit rdf:type owl:ObjectProperty ;
+                             rdfs:domain mcbo:CultureConditions ;
+                             rdfs:comment "UO unit for CO2 concentration (e.g., uo:UO_0000169 for ppm)" ;
+                             rdfs:label "has CO2 concentration unit" .
 
 ###  http://example.org/mcbo#hasHumidity
 mcbo:hasHumidity rdf:type owl:DatatypeProperty ;
@@ -231,6 +258,12 @@ mcbo:hasViableCellDensity rdf:type owl:DatatypeProperty ;
                           rdfs:domain mcbo:CellViabilityMeasurement ;
                           rdfs:range xsd:decimal ;
                           rdfs:label "has viable cell density (cells/mL)" .
+
+###  http://example.org/mcbo#hasViableCellDensityUnit
+mcbo:hasViableCellDensityUnit rdf:type owl:ObjectProperty ;
+                              rdfs:domain mcbo:CellViabilityMeasurement ;
+                              rdfs:comment "UO unit for viable cell density (e.g., uo:UO_0000201 for cells/mL)" ;
+                              rdfs:label "has viable cell density unit" .
 
 ###  http://example.org/mcbo#hasExpressionValue
 mcbo:hasExpressionValue rdf:type owl:DatatypeProperty ;
@@ -309,6 +342,8 @@ mcbo:hasGeneID rdf:type owl:DatatypeProperty ;
                rdfs:domain mcbo:Gene ;
                rdfs:range xsd:string ;
                rdfs:label "has gene ID" .
+
+
 
 #################################################################
 #    Classes
@@ -549,6 +584,9 @@ obo:IAO_0000100 rdfs:label "dataset" .
 ###  http://purl.obolibrary.org/obo/IAO_0000109
 obo:IAO_0000109 rdfs:label "measurement datum" .
 
+###  http://purl.obolibrary.org/obo/IAO_0000136
+obo:IAO_0000136 rdfs:label "is about" .
+
 ###  http://purl.obolibrary.org/obo/IAO_0000311
 obo:IAO_0000311 rdfs:label "publication" .
 
@@ -558,9 +596,22 @@ obo:OBI_0001271 rdfs:label "RNA sequencing assay" .
 ###  http://purl.obolibrary.org/obo/SO_0000704
 obo:SO_0000704 rdfs:label "gene" .
 
+###  http://purl.obolibrary.org/obo/UO_0000027
+obo:UO_0000027 rdfs:label "degree Celsius" .
+
+###  http://purl.obolibrary.org/obo/UO_0000273
+obo:UO_0000273 rdfs:label "milligram per liter" .
+
+###  http://purl.obolibrary.org/obo/UO_0000169
+obo:UO_0000169 rdfs:label "parts per million" .
+
+###  http://purl.obolibrary.org/obo/UO_0000201
+obo:UO_0000201 rdfs:label "cells per milliliter" .
+
 ###  https://spec.industrialontologies.org/ontology/core/Core/ProductProductionProcess
 iof:ProductProductionProcess rdf:type owl:Class ;
                              rdfs:label "product production process" .
+
 
 #################################################################
 #    Individuals
@@ -604,7 +655,7 @@ mcbo:Sample_D7 rdf:type owl:NamedIndividual ,
                mcbo:sampleContainsProduct mcbo:Product_mAb ;
                mcbo:hasCollectionDay 7 ;
                mcbo:inCulturePhase mcbo:StationaryPhase_001 ;
-               mcbo:hasCellViabilityMeasurement mcbo:Viability_D7 ;
+               mcbo:hasCellViabilityMeasurement mcbo:Viability_72h ;
                rdfs:label "Day 7 aliquot" .
 
 ###  http://example.org/mcbo#CHO_K1
@@ -616,10 +667,14 @@ mcbo:CHO_K1 rdf:type owl:NamedIndividual ,
 mcbo:Conditions_001 rdf:type owl:NamedIndividual ,
                              mcbo:CultureConditions ;
                     mcbo:hasTemperature 37.0 ;
+                    mcbo:hasTemperatureUnit uo:UO_0000027 ;  # degree Celsius
                     mcbo:hasPH 7.0 ;
-                    mcbo:hasDissolvedOxygen 50.0 ;
-                    mcbo:hasCO2Concentration 5.0 ;
+                    mcbo:hasDissolvedOxygen 8.5 ;
+                    mcbo:hasDissolvedOxygenUnit uo:UO_0000273 ;  # mg/L
+                    mcbo:hasCO2Concentration 50000 ;
+                    mcbo:hasCO2ConcentrationUnit uo:UO_0000169 ;  # ppm
                     rdfs:label "Standard culture conditions" .
+
 
 ###  http://example.org/mcbo#ExponentialPhase_001
 mcbo:ExponentialPhase_001 rdf:type owl:NamedIndividual ,
@@ -631,6 +686,7 @@ mcbo:Viability_72h rdf:type owl:NamedIndividual ,
                            mcbo:CellViabilityMeasurement ;
                    mcbo:hasViabilityPercentage 85.0 ;
                    mcbo:hasViableCellDensity 8500000.0 ;
+                   mcbo:hasViableCellDensityUnit uo:UO_0000201 ;  # cells/mL
                    rdfs:label "Viability measurement at 72h" .
 
 ###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

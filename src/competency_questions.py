@@ -108,18 +108,38 @@ class MCBOQueryEngine:
     def execute_cq2_cho_engineering(self):
         """
         CQ2: Which CHO cell lines have been engineered to overexpress gene Y?
+        CQ2-ish: Which cell lines are high producers of mAb?
+        Modified to infer gene overexpression from mAb production
         """
         
         query_str = """
         PREFIX mcbo: <http://example.org/mcbo#>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         
-        SELECT ?choLine ?gene WHERE {
+        SELECT DISTINCT ?choLine ?gene ?product ?maxProductivity ?categoryAtMax WHERE {
+            # Find CHO cell lines that produce mAb
             ?choLine a ?cellLineType .
             ?cellLineType rdfs:subClassOf* mcbo:CHOCellLine .
-            
             ?choLine mcbo:overexpressesGene ?gene .
+            ?choLine mcbo:producesProduct ?product .
+            
+            # Get the maximum productivity for each cell line
+            {
+                SELECT ?choLine (MAX(?prodVal) as ?maxProductivity) WHERE {
+                    ?proc mcbo:usesCellLine ?choLine .
+                    ?proc mcbo:hasProductivityMeasurement ?pm .
+                    ?pm mcbo:hasProductivityValue ?prodVal .
+                }
+                GROUP BY ?choLine
+            }
+            
+            # Get the category corresponding to max productivity
+            ?process mcbo:usesCellLine ?choLine .
+            ?process mcbo:hasProductivityMeasurement ?prodMeasure .
+            ?prodMeasure mcbo:hasProductivityValue ?maxProductivity .
+            OPTIONAL { ?prodMeasure mcbo:hasProductivityCategory ?categoryAtMax }
         }
+        ORDER BY DESC(?maxProductivity) ?choLine
         """
         
         return self._execute_query(query_str, "CQ2: CHO Engineering")
