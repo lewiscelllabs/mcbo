@@ -374,14 +374,19 @@ mcbo:FedBatchCultureProcess rdf:type owl:Class ;
                             rdfs:subClassOf mcbo:BatchCultureProcess ;
                             rdfs:label "Fed-batch culture process" .
 
+###  http://example.org/mcbo#ContinuousCultureProcess
+mcbo:ContinuousCultureProcess rdf:type owl:Class ;
+                             rdfs:subClassOf mcbo:CellCultureProcess ;
+                             rdfs:label "Continuous culture process" .
+
 ###  http://example.org/mcbo#PerfusionCultureProcess
 mcbo:PerfusionCultureProcess rdf:type owl:Class ;
-                             rdfs:subClassOf mcbo:CellCultureProcess ;
+                             rdfs:subClassOf mcbo:ContinuousCultureProcess ;
                              rdfs:label "Perfusion culture process" .
 
 ###  http://example.org/mcbo#ChemostatCultureProcess
 mcbo:ChemostatCultureProcess rdf:type owl:Class ;
-                             rdfs:subClassOf mcbo:PerfusionCultureProcess ;
+                             rdfs:subClassOf mcbo:ContinuousCultureProcess ;
                              rdfs:label "Chemostat culture process" .
 
 ###  http://example.org/mcbo#ChemostatCultureProcess

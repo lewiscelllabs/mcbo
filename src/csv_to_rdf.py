@@ -3,7 +3,6 @@
 Convert bioprocessing metadata CSV to RDF instances for MCBO ontology
 Assumes CSV with columns like: RunAccession, SampleAccession, CellLine, ProcessType, etc.
 """
-
 import pandas as pd
 import rdflib
 from rdflib import Graph, Namespace, URIRef, Literal, BNode
@@ -44,9 +43,12 @@ def create_graph():
 def map_process_type(process_type_str):
     """Map CSV process type strings to ontology classes"""
     mapping = {
+        'Batch': MCBO.BatchCultureProcess, 
+        'Plate': MCBO.BatchCultureProcess,
         'FedBatch': MCBO.FedBatchCultureProcess,  # Updated to match CSV data
         'Fed-batch': MCBO.FedBatchCultureProcess,  # Keep for backwards compatibility
-        'Batch': MCBO.BatchCultureProcess, 
+        'Continuous': MCBO.ContinuousCultureProcess,
+        'Continuous culture': MCBO.ContinuousCultureProcess,
         'Perfusion': MCBO.PerfusionCultureProcess,
         'Pefusion': MCBO.PerfusionCultureProcess, # account for typos
         'Chemostat': MCBO.ChemostatCultureProcess,
@@ -54,12 +56,9 @@ def map_process_type(process_type_str):
         'NA': MCBO.UnknownCultureProcess,
         'nan': MCBO.UnknownCultureProcess,
         'NAN': MCBO.UnknownCultureProcess,
-        'Plate': MCBO.UnknownCultureProcess,
         '': MCBO.UnknownCultureProcess,
         # Add more mappings as needed
     }
-    if process_type_str not in mapping:
-        print(f"Unknown process type: {process_type_str}")
     return mapping.get(process_type_str, MCBO.UnknownCultureProcess)
 
 def map_cell_line(cell_line_str):
@@ -79,7 +78,8 @@ def convert_csv_to_rdf(csv_file_path, output_file):
     
     # Create RDF graph
     g = create_graph()
-    
+
+    created_samples = set()  # Track samples to avoid duplicates
     # Process each row
     for idx, row in df.iterrows():
         # Create unique URIs for instances
@@ -97,9 +97,12 @@ def convert_csv_to_rdf(csv_file_path, output_file):
             g.add((conditions_uri, MCBO.hasTemperature, Literal(row['Temperature'], datatype=XSD.decimal)))
             g.add((run_uri, MCBO.hasCultureConditions, conditions_uri))
         
-        # Create sample instance
-        g.add((sample_uri, RDF.type, MCBO.BioprocessSample))
-        g.add((sample_uri, MCBO.hasSampleId, Literal(row.get('SampleAccession', f'sample_{idx}'))))
+        # Create sample instance (only once per sample)
+        if sample_uri not in created_samples:
+            g.add((sample_uri, RDF.type, MCBO.BioprocessSample))
+            g.add((sample_uri, MCBO.hasSampleId, Literal(row.get('SampleAccession', f'sample_{idx}'))))
+            created_samples.add(sample_uri)
+
         
         # Link process to sample
         g.add((run_uri, MCBO.hasProcessOutput, sample_uri))
@@ -180,7 +183,6 @@ def convert_csv_to_rdf(csv_file_path, output_file):
     # Serialize to file
     g.serialize(destination=output_file, format='turtle')
     print(f"Converted {len(df)} rows to RDF. Output: {output_file}")
-    
     return g
 
 def validate_conversion(graph):
