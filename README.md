@@ -1,20 +1,21 @@
 # mcbo
-Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities. [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YTvCv-l0ia4)
+Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities; designed for RNA-seq analysis, culture condition optimization, and product development. 
+
+**Please cite:**
+
+Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology [Short talk]. 16th International Conference on Biomedical Ontology (ICBO 2025), Virtual conference. Short talk published on conference website. https://icbo-conference.github.io/icbo2025/
+
+[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YTvCv-l0ia4)
 
 # MCBO Project
 
-Here is the main MCBO ontology diagram:
+Main MCBO ontology diagram below (click to get github doc, then right-click and open in new tab to zoom in).
 
-![MCBO TTL Ontology Diagram](docs/figures/mcbo.ttl.svg)
+- Competency question source code under `src/`
+- Ontology under `ontology/`
+- Slightly more implementation details under `docs/`
 
-# **Download and View in Browser To Zoom**  
-[mcbo.ttl.svg](./docs/figures/mcbo.ttl.svg)
-*Open the file in Chrome (or another modern browser) to zoom and pan the image easily.*
-
-> **To view and zoom in:**  
-> Download the SVG above (right-click, **Save Link As...**), then open it in Chrome or another modern browser.  
->  
-> Chrome allows you to zoom and pan easily, so you can inspect all details of the graph.
+![MCBO TTL Ontology Diagram](docs/figures/mcbo.owl.ttl.svg)
 
 # Competency questions:
 - CQ1: Under what culture conditions (pH, dissolved oxygen, temperature) do the cells reach peak recombinant protein productivity?
