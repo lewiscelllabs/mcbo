@@ -1,5 +1,5 @@
 # mcbo
-Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities; designed for RNA-seq analysis, culture condition optimization, and product development.
+Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities. [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YTvCv-l0ia4)
 
 # MCBO Project
 
@@ -25,4 +25,3 @@ Here is the main MCBO ontology diagram:
 - CQ6: Which are the top genes correlated with recombinant protein productivity in the stationary phase of all experiments?
 - CQ7: Which genes have the highest fold change between cells with viability (>90%) and those without (<50%)? 
 - CQ8: Which cell lines or subclones are best suited for glycosylation profiles required for therapeutic protein X?
-
