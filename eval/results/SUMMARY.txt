@@ -2,5 +2,5 @@ MCBO CQ evaluation run
 Source: ontology=ontology/mcbo.owl.ttl, instances=data/processed/mcbo_instances.ttl
 
 cq1.rq	161	->	eval/results/cq1.tsv
-cq2.rq	631	->	eval/results/cq2.tsv
+cq2.rq	3	->	eval/results/cq2.tsv
 cq5.rq	4	->	eval/results/cq5.tsv

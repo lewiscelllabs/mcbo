@@ -1,39 +1,17 @@
-# CQ2: Which CHO cell lines have been engineered to overexpress gene Y?
-#
-# Notes:
-# - This query assumes:
-#   - cell line instances are typed under subclasses of mcbo:CHOCellLine
-#   - gene is connected via mcbo:overexpressesGene
-#   - productivity value is mcbo:hasProductivityValue on a productivity measurement
-
 PREFIX mcbo: <http://example.org/mcbo#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT DISTINCT ?choLine ?gene ?product ?maxProductivity ?categoryAtMax
+SELECT ?choLine
+       (GROUP_CONCAT(DISTINCT STR(?gene); separator=", ") AS ?genes)
+       (MAX(?prodVal) AS ?maxProductivity)
+       (SAMPLE(?category) AS ?categoryAtMax)
 WHERE {
-  # Find CHO cell line individuals (instance-of some subclass of CHOCellLine)
-  ?choLine a ?cellLineType .
-  ?cellLineType rdfs:subClassOf* mcbo:CHOCellLine .
-
-  # Engineering + product assertions (if product isn’t always present, make it OPTIONAL)
+  ?choLine a mcbo:CHOCellLine .
   ?choLine mcbo:overexpressesGene ?gene .
-  OPTIONAL { ?choLine mcbo:producesProduct ?product }
 
-  # Max productivity per CHO line
-  {
-    SELECT ?choLine (MAX(?prodVal) AS ?maxProductivity)
-    WHERE {
-      ?proc mcbo:usesCellLine ?choLine ;
-            mcbo:hasProductivityMeasurement ?pm .
-      ?pm mcbo:hasProductivityValue ?prodVal .
-    }
-    GROUP BY ?choLine
-  }
-
-  # Retrieve the measurement/category corresponding to that max value
-  ?process mcbo:usesCellLine ?choLine ;
-           mcbo:hasProductivityMeasurement ?prodMeasure .
-  ?prodMeasure mcbo:hasProductivityValue ?maxProductivity .
-  OPTIONAL { ?prodMeasure mcbo:hasProductivityCategory ?categoryAtMax }
+  ?proc mcbo:usesCellLine ?choLine ;
+        mcbo:hasProductivityMeasurement ?pm .
+  ?pm mcbo:hasProductivityValue ?prodVal .
+  OPTIONAL { ?pm mcbo:hasProductivityCategory ?category . }
 }
-ORDER BY DESC(?maxProductivity) ?choLine
+GROUP BY ?choLine
+ORDER BY DESC(MAX(?prodVal)) ?choLine

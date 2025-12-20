@@ -1,0 +1,125 @@
+name: Ontology QC (ROBOT)
+
+on:
+  push:
+    paths:
+      - "ontology/**"
+      - "**/*.ttl"
+      - "sparql/**"
+      - ".github/workflows/qc.yml"
+  pull_request:
+    paths:
+      - "ontology/**"
+      - "**/*.ttl"
+      - "sparql/**"
+      - ".github/workflows/qc.yml"
+  workflow_dispatch: {}
+
+jobs:
+  robot-qc:
+    runs-on: ubuntu-latest
+
+    env:
+      ROBOT_VERSION: "1.9.6"
+      ONTOLOGY_FILE: "ontology/mcbo.owl.ttl"
+      REPORT_DIR: "reports/robot"
+      FAIL_ON_FINDINGS: "true"   # set to "false" if you want warnings only
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java (required for ROBOT)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache ROBOT
+        uses: actions/cache@v4
+        with:
+          path: .robot
+          key: robot-${{ runner.os }}-${{ env.ROBOT_VERSION }}
+
+      - name: Install ROBOT
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .robot
+          if [ ! -f ".robot/robot.jar" ]; then
+            echo "Downloading ROBOT ${ROBOT_VERSION}..."
+            curl -L -o .robot/robot.jar "https://github.com/ontodev/robot/releases/download/v${ROBOT_VERSION}/robot.jar"
+          fi
+          echo "ROBOT installed at .robot/robot.jar"
+
+      - name: Run QC queries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "${ONTOLOGY_FILE}" ]; then
+            echo "ERROR: Ontology file not found: ${ONTOLOGY_FILE}"
+            exit 1
+          fi
+
+          mkdir -p "${REPORT_DIR}"
+
+          # Run QC SPARQL queries (these should exist under sparql/)
+          java -jar .robot/robot.jar query \
+            --input "${ONTOLOGY_FILE}" \
+            --query "sparql/missing_definitions.rq" \
+            --output "${REPORT_DIR}/missing_definitions.tsv"
+
+          java -jar .robot/robot.jar query \
+            --input "${ONTOLOGY_FILE}" \
+            --query "sparql/orphan_classes.rq" \
+            --output "${REPORT_DIR}/orphan_classes.tsv"
+
+          java -jar .robot/robot.jar query \
+            --input "${ONTOLOGY_FILE}" \
+            --query "sparql/duplicate_labels.rq" \
+            --output "${REPORT_DIR}/duplicate_labels.tsv"
+
+          echo "QC reports written to ${REPORT_DIR}"
+
+      - name: Summarize findings
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          summarize_tsv () {
+            local f="$1"
+            if [ ! -f "$f" ]; then
+              echo "::error::Missing report: $f"
+              return 2
+            fi
+            # Count lines; subtract header if present (assume header exists if file non-empty)
+            local lines
+            lines=$(wc -l < "$f" | tr -d ' ')
+            if [ "$lines" -le 1 ]; then
+              echo "$f: OK (0 findings)"
+              return 0
+            fi
+            local findings=$((lines - 1))
+            echo "$f: ${findings} finding(s)"
+            return 1
+          }
+
+          status=0
+          summarize_tsv "${REPORT_DIR}/missing_definitions.tsv" || status=1
+          summarize_tsv "${REPORT_DIR}/orphan_classes.tsv" || status=1
+          summarize_tsv "${REPORT_DIR}/duplicate_labels.tsv" || status=1
+
+          if [ "${FAIL_ON_FINDINGS}" = "true" ] && [ "$status" -ne 0 ]; then
+            echo "::error::Ontology QC failed: one or more reports contain findings."
+            exit 1
+          fi
+
+          echo "QC complete."
+
+      - name: Upload QC reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-qc-reports
+          path: reports/robot/*.tsv
+          if-no-files-found: error

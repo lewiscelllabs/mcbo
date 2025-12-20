@@ -35,15 +35,15 @@ The following reports were run and placed under reports/robot/; QC passes if eve
 java -jar .robot/robot.jar query \
   --input ontology/mcbo.owl.ttl \
   --query sparql/orphan_classes.rq \
-reports/robot/orphan_classes.rq
+reports/robot/orphan_classes.tsv
 
  java -jar .robot/robot.jar query \
   --input ontology/mcbo.owl.ttl \
   --query sparql/duplicate_labels.rq \
-reports/robot/duplicate_labels.rq
+reports/robot/duplicate_labels.tsv
 
  java -jar .robot/robot.jar query \ 
   --input ontology/mcbo.owl.ttl \
   --query sparql/duplicate_labels.rq \
-reports/robot/duplicate_labels.rq
+reports/robot/duplicate_labels.tsv
 ```
