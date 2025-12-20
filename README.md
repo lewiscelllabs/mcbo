@@ -1,5 +1,5 @@
 # mcbo
-Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities; designed for RNA-seq analysis, culture condition optimization, and product development. 
+Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities.
 
 **New Term Request:**
 
@@ -7,9 +7,10 @@ Please click `'Issues'>'New Issue'>'MCBO Term Request'` to submit your request
 
 **Please cite:**
 
-Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology [Short talk]. 16th International Conference on Biomedical Ontology (ICBO 2025), Virtual conference. Short talk published on conference website. https://icbo-conference.github.io/icbo2025/
+Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology for mammalian cell bioprocessing. [preprint/paper details].
 
 [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YTvCv-l0ia4)
+[![CI/CD](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml/badge.svg)](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml)
 
 # MCBO Project
 
@@ -46,7 +47,7 @@ reports/robot/orphan_classes.tsv
   --query sparql/duplicate_labels.rq \
 reports/robot/duplicate_labels.tsv
 
- java -jar .robot/robot.jar query \ 
+ java -jar .robot/robot.jar query \ \
   --input ontology/mcbo.owl.ttl \
   --query sparql/duplicate_labels.rq \
 reports/robot/duplicate_labels.tsv
