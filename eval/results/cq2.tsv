@@ -1,0 +1,3 @@
+choLine	gene	product	maxProductivity	categoryAtMax
+http://example.org/mcbo#CHO_K1	http://example.org/mcbo#GeneY	http://example.org/mcbo#mAb	120.0	http://example.org/mcbo#VeryHighProductivity
+http://example.org/mcbo#CHO_S	http://example.org/mcbo#GeneY	http://example.org/mcbo#mAb	85.0	http://example.org/mcbo#HighProductivity

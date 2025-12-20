@@ -1,0 +1,30 @@
+# CQ1: Culture conditions for HIGH productivity samples
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?cellLine ?temperature ?pH ?dissolvedOxygen ?productivityType
+WHERE {
+  # Ensure ?process is some subclass instance of CellCultureProcess
+  ?process a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+
+  # Process annotations
+  ?process mcbo:usesCellLine ?cellLine ;
+           mcbo:hasCultureConditions ?conditions ;
+           mcbo:hasProductivityMeasurement ?prodMeasure .
+
+  # Culture condition values may be missing (OPTIONAL)
+  OPTIONAL { ?conditions mcbo:hasTemperature ?temperature }
+  OPTIONAL { ?conditions mcbo:hasPH ?pH }
+  OPTIONAL { ?conditions mcbo:hasDissolvedOxygen ?dissolvedOxygen }
+
+  # Productivity category is modeled as rdf:type of the measurement instance
+  ?prodMeasure a ?productivityType .
+  FILTER(?productivityType IN (
+    mcbo:VeryHighProductivity,
+    mcbo:HighProductivity,
+    mcbo:MediumProductivity
+  ))
+}
+ORDER BY ?productivityType ?cellLine

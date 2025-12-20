@@ -26,3 +26,24 @@ Main MCBO ontology diagram below (click to get github doc, then right-click and 
 - CQ6: Which are the top genes correlated with recombinant protein productivity in the stationary phase of all experiments?
 - CQ7: Which genes have the highest fold change between cells with viability (>90%) and those without (<50%)? 
 - CQ8: Which cell lines or subclones are best suited for glycosylation profiles required for therapeutic protein X?
+
+# QC reports
+
+The following reports were run and placed under reports/robot/; QC passes if every report is empty
+
+```
+java -jar .robot/robot.jar query \
+  --input ontology/mcbo.owl.ttl \
+  --query sparql/orphan_classes.rq \
+reports/robot/orphan_classes.rq
+
+ java -jar .robot/robot.jar query \
+  --input ontology/mcbo.owl.ttl \
+  --query sparql/duplicate_labels.rq \
+reports/robot/duplicate_labels.rq
+
+ java -jar .robot/robot.jar query \ 
+  --input ontology/mcbo.owl.ttl \
+  --query sparql/duplicate_labels.rq \
+reports/robot/duplicate_labels.rq
+```

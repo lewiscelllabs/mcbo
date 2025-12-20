@@ -1,0 +1,15 @@
+# CQ5: Process type comparison (current implemented query)
+#
+# This is NOT yet "pathways differentially expressed under Fed-batch vs Perfusion".
+# It’s a lightweight proxy that reports how many process instances exist per process type.
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?processType (COUNT(?process) AS ?count)
+WHERE {
+  ?process a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+}
+GROUP BY ?processType
+ORDER BY DESC(?count) ?processType
