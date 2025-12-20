@@ -1,124 +1,139 @@
 @prefix mcbo: <http://example.org/mcbo#> .
-@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ro: <http://purl.obolibrary.org/obo/RO_> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-#################################################################
-# Minimal, public sample graph for reviewer-reproducible CQ runs
-# Supports: eval/queries/cq1.rq, cq2.rq, cq5.rq
-#################################################################
+mcbo:CHOLine a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "CHO line (generic subclass for instances)" ;
+    rdfs:subClassOf mcbo:CHOCellLine .
 
-########################
-# Classes (minimal TBox)
-########################
-
-mcbo:CellCultureProcess a owl:Class ; rdfs:label "Cell culture process" .
-
-mcbo:BatchCultureProcess a owl:Class ;
-  rdfs:subClassOf mcbo:CellCultureProcess ;
-  rdfs:label "Batch culture process" .
-
-mcbo:FedBatchCultureProcess a owl:Class ;
-  rdfs:subClassOf mcbo:CellCultureProcess ;
-  rdfs:label "Fed-batch culture process" .
-
-mcbo:PerfusionCultureProcess a owl:Class ;
-  rdfs:subClassOf mcbo:CellCultureProcess ;
-  rdfs:label "Perfusion culture process" .
-
-mcbo:CHOCellLine a owl:Class ; rdfs:label "CHO cell line" .
-mcbo:CHOLine a owl:Class ;
-  rdfs:subClassOf mcbo:CHOCellLine ;
-  rdfs:label "CHO line (generic subclass for instances)" .
-
-mcbo:ProductivityMeasurement a owl:Class ; rdfs:label "Productivity measurement" .
-mcbo:CultureConditions a owl:Class ; rdfs:label "Culture conditions" .
-
-# Productivity categories used by CQ1
-mcbo:VeryHighProductivity a owl:Class ; rdfs:label "Very high productivity" .
-mcbo:HighProductivity a owl:Class ; rdfs:label "High productivity" .
-mcbo:MediumProductivity a owl:Class ; rdfs:label "Medium productivity" .
-
-########################
-# Properties (minimal)
-########################
-
-mcbo:usesCellLine a owl:ObjectProperty ; rdfs:label "uses cell line" .
-mcbo:hasCultureConditions a owl:ObjectProperty ; rdfs:label "has culture conditions" .
-mcbo:hasProductivityMeasurement a owl:ObjectProperty ; rdfs:label "has productivity measurement" .
-
-mcbo:overexpressesGene a owl:ObjectProperty ; rdfs:label "overexpresses gene" .
-mcbo:producesProduct a owl:ObjectProperty ; rdfs:label "produces product" .
-
-mcbo:hasTemperature a owl:DatatypeProperty ; rdfs:label "has temperature" .
-mcbo:hasPH a owl:DatatypeProperty ; rdfs:label "has pH" .
-mcbo:hasDissolvedOxygen a owl:DatatypeProperty ; rdfs:label "has dissolved oxygen" .
-
-mcbo:hasProductivityValue a owl:DatatypeProperty ; rdfs:label "has productivity value" .
-mcbo:hasProductivityCategory a owl:ObjectProperty ; rdfs:label "has productivity category" .
-
-########################
-# Instances (ABox)
-########################
-
-# Genes and products (opaque resources for evaluation)
-mcbo:GeneY a owl:Thing ; rdfs:label "Gene Y (placeholder)" .
-mcbo:mAb a owl:Thing ; rdfs:label "Monoclonal antibody (placeholder)" .
-
-# Cell lines (typed under a subclass of mcbo:CHOCellLine so CQ2 works)
-mcbo:CHO_K1 a mcbo:CHOLine ;
-  rdfs:label "CHO-K1" ;
-  mcbo:overexpressesGene mcbo:GeneY ;
-  mcbo:producesProduct mcbo:mAb .
-
-mcbo:CHO_S a mcbo:CHOLine ;
-  rdfs:label "CHO-S" ;
-  mcbo:overexpressesGene mcbo:GeneY ;
-  mcbo:producesProduct mcbo:mAb .
-
-# Culture condition nodes
-mcbo:Cond_A a mcbo:CultureConditions ;
-  mcbo:hasTemperature "37.0"^^xsd:decimal ;
-  mcbo:hasPH "7.10"^^xsd:decimal ;
-  mcbo:hasDissolvedOxygen "40.0"^^xsd:decimal .
-
-mcbo:Cond_B a mcbo:CultureConditions ;
-  mcbo:hasTemperature "36.5"^^xsd:decimal ;
-  mcbo:hasPH "7.00"^^xsd:decimal ;
-  mcbo:hasDissolvedOxygen "30.0"^^xsd:decimal .
-
-mcbo:Cond_C a mcbo:CultureConditions ;
-  mcbo:hasTemperature "37.0"^^xsd:decimal ;
-  mcbo:hasPH "6.95"^^xsd:decimal ;
-  mcbo:hasDissolvedOxygen "50.0"^^xsd:decimal .
-
-# Productivity measurements
-# CQ1 treats productivity category as rdf:type of the measurement instance.
-mcbo:ProdM_1 a mcbo:ProductivityMeasurement, mcbo:VeryHighProductivity ;
-  mcbo:hasProductivityValue "120.0"^^xsd:decimal ;
-  mcbo:hasProductivityCategory mcbo:VeryHighProductivity .
-
-mcbo:ProdM_2 a mcbo:ProductivityMeasurement, mcbo:HighProductivity ;
-  mcbo:hasProductivityValue "85.0"^^xsd:decimal ;
-  mcbo:hasProductivityCategory mcbo:HighProductivity .
-
-mcbo:ProdM_3 a mcbo:ProductivityMeasurement, mcbo:MediumProductivity ;
-  mcbo:hasProductivityValue "55.0"^^xsd:decimal ;
-  mcbo:hasProductivityCategory mcbo:MediumProductivity .
-
-# Processes (typed as subclasses of mcbo:CellCultureProcess so CQ1/CQ5 work)
 mcbo:Process_1 a mcbo:BatchCultureProcess ;
-  mcbo:usesCellLine mcbo:CHO_K1 ;
-  mcbo:hasCultureConditions mcbo:Cond_A ;
-  mcbo:hasProductivityMeasurement mcbo:ProdM_1 .
+    mcbo:hasProductivityMeasurement mcbo:ProdM_1 ;
+    mcbo:usesCellLine mcbo:CHO_K1 ;
+    ro:0000057 mcbo:Process_1_system .
 
 mcbo:Process_2 a mcbo:FedBatchCultureProcess ;
-  mcbo:usesCellLine mcbo:CHO_S ;
-  mcbo:hasCultureConditions mcbo:Cond_B ;
-  mcbo:hasProductivityMeasurement mcbo:ProdM_2 .
+    mcbo:hasProductivityMeasurement mcbo:ProdM_2 ;
+    mcbo:usesCellLine mcbo:CHO_S ;
+    ro:0000057 mcbo:Process_2_system .
 
 mcbo:Process_3 a mcbo:PerfusionCultureProcess ;
-  mcbo:usesCellLine mcbo:CHO_K1 ;
-  mcbo:hasCultureConditions mcbo:Cond_C ;
-  mcbo:hasProductivityMeasurement mcbo:ProdM_3 .
+    mcbo:hasProductivityMeasurement mcbo:ProdM_3 ;
+    mcbo:usesCellLine mcbo:CHO_K1 ;
+    ro:0000057 mcbo:Process_3_system .
+
+mcbo:hasCultureConditions a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "has culture conditions" .
+
+mcbo:hasDissolvedOxygen a <http://www.w3.org/2002/07/owl#DatatypeProperty> ;
+    rdfs:label "has dissolved oxygen" .
+
+mcbo:hasPH a <http://www.w3.org/2002/07/owl#DatatypeProperty> ;
+    rdfs:label "has pH" .
+
+mcbo:hasProductivityCategory a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "has productivity category" .
+
+mcbo:hasProductivityMeasurement a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "has productivity measurement" .
+
+mcbo:hasProductivityValue a <http://www.w3.org/2002/07/owl#DatatypeProperty> ;
+    rdfs:label "has productivity value" .
+
+mcbo:hasTemperature a <http://www.w3.org/2002/07/owl#DatatypeProperty> ;
+    rdfs:label "has temperature" .
+
+mcbo:overexpressesGene a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "overexpresses gene" .
+
+mcbo:producesProduct a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "produces product" .
+
+mcbo:usesCellLine a <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    rdfs:label "uses cell line" .
+
+mcbo:BatchCultureProcess a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Batch culture process" ;
+    rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:CHO_S a mcbo:CHOCellLine ;
+    rdfs:label "CHO-S" ;
+    mcbo:overexpressesGene mcbo:GeneY ;
+    mcbo:producesProduct mcbo:mAb .
+
+mcbo:Cond_A a mcbo:CultureConditionQuality ;
+    mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.10 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:Cond_B a mcbo:CultureConditionQuality ;
+    mcbo:hasDissolvedOxygen 30.0 ;
+    mcbo:hasPH 7.00 ;
+    mcbo:hasTemperature 36.5 .
+
+mcbo:Cond_C a mcbo:CultureConditionQuality ;
+    mcbo:hasDissolvedOxygen 50.0 ;
+    mcbo:hasPH 6.95 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:FedBatchCultureProcess a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Fed-batch culture process" ;
+    rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:PerfusionCultureProcess a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Perfusion culture process" ;
+    rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:Process_1_system a mcbo:CellCultureSystem ;
+    ro:0000086 mcbo:Cond_A .
+
+mcbo:Process_2_system a mcbo:CellCultureSystem ;
+    ro:0000086 mcbo:Cond_B .
+
+mcbo:Process_3_system a mcbo:CellCultureSystem ;
+    ro:0000086 mcbo:Cond_C .
+
+mcbo:ProdM_1 a mcbo:ProductivityMeasurement,
+        mcbo:VeryHighProductivity ;
+    mcbo:hasProductivityCategory mcbo:VeryHighProductivity ;
+    mcbo:hasProductivityValue 120.0 .
+
+mcbo:ProdM_2 a mcbo:HighProductivity,
+        mcbo:ProductivityMeasurement ;
+    mcbo:hasProductivityCategory mcbo:HighProductivity ;
+    mcbo:hasProductivityValue 85.0 .
+
+mcbo:ProdM_3 a mcbo:MediumProductivity,
+        mcbo:ProductivityMeasurement ;
+    mcbo:hasProductivityCategory mcbo:MediumProductivity ;
+    mcbo:hasProductivityValue 55.0 .
+
+mcbo:CHO_K1 a mcbo:CHOCellLine ;
+    rdfs:label "CHO-K1" ;
+    mcbo:overexpressesGene mcbo:GeneY ;
+    mcbo:producesProduct mcbo:mAb .
+
+mcbo:GeneY a <http://www.w3.org/2002/07/owl#Thing> ;
+    rdfs:label "Gene Y (placeholder)" .
+
+mcbo:HighProductivity a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "High productivity" .
+
+mcbo:MediumProductivity a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Medium productivity" .
+
+mcbo:VeryHighProductivity a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Very high productivity" .
+
+mcbo:mAb a <http://www.w3.org/2002/07/owl#Thing> ;
+    rdfs:label "Monoclonal antibody (placeholder)" .
+
+mcbo:CHOCellLine a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "CHO cell line" .
+
+mcbo:CellCultureProcess a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Cell culture process" .
+
+mcbo:ProductivityMeasurement a <http://www.w3.org/2002/07/owl#Class> ;
+    rdfs:label "Productivity measurement" .
+

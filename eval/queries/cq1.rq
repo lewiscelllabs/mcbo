@@ -1,25 +1,26 @@
-# CQ1: Culture conditions for HIGH productivity samples
+# CQ1: Culture conditions for HIGH productivity samples (new MCBO pattern)
+# Process --RO:has_participant--> CellCultureSystem --RO:has_quality--> CultureConditionQuality
 
 PREFIX mcbo: <http://example.org/mcbo#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ro:   <http://purl.obolibrary.org/obo/RO_>
 
 SELECT ?cellLine ?temperature ?pH ?dissolvedOxygen ?productivityType
 WHERE {
-  # Ensure ?process is some subclass instance of CellCultureProcess
   ?process a ?processType .
   ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
 
-  # Process annotations
   ?process mcbo:usesCellLine ?cellLine ;
-           mcbo:hasCultureConditions ?conditions ;
-           mcbo:hasProductivityMeasurement ?prodMeasure .
+           mcbo:hasProductivityMeasurement ?prodMeasure ;
+           ro:0000057 ?system .                 # has_participant
 
-  # Culture condition values may be missing (OPTIONAL)
-  OPTIONAL { ?conditions mcbo:hasTemperature ?temperature }
-  OPTIONAL { ?conditions mcbo:hasPH ?pH }
-  OPTIONAL { ?conditions mcbo:hasDissolvedOxygen ?dissolvedOxygen }
+  ?system a mcbo:CellCultureSystem .            # CRITICAL: prevents binding to cellLine
+  ?system ro:0000086 ?ccq .                     # has_quality
 
-  # Productivity category is modeled as rdf:type of the measurement instance
+  OPTIONAL { ?ccq mcbo:hasTemperature ?temperature }
+  OPTIONAL { ?ccq mcbo:hasPH ?pH }
+  OPTIONAL { ?ccq mcbo:hasDissolvedOxygen ?dissolvedOxygen }
+
   ?prodMeasure a ?productivityType .
   FILTER(?productivityType IN (
     mcbo:VeryHighProductivity,
@@ -28,3 +29,4 @@ WHERE {
   ))
 }
 ORDER BY ?productivityType ?cellLine
+

@@ -1,6 +1,7 @@
 @prefix iof: <https://spec.industrialontologies.org/ontology/core/Core/> .
 @prefix mcbo: <http://example.org/mcbo#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix uo: <http://purl.obolibrary.org/obo/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -69,6 +70,15 @@ mcbo:LowProductivity a owl:Class ;
     uo:IAO_0000115 "A productivity category indicating low production output relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
+mcbo:MammalianCellCultureProcess a owl:Class ;
+    rdfs:label "Mammalian cell culture process"@en ;
+    uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
+    rdfs:subClassOf mcbo:CellCultureProcess ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
+                        owl:onProperty uo:RO_0000057 ;
+                        owl:someValuesFrom mcbo:MammalianCell ] ) ] .
+
 mcbo:MediumProductivity a owl:Class ;
     rdfs:label "Medium productivity" ;
     uo:IAO_0000115 "A productivity category indicating medium production output relative to an applicable reference context." ;
@@ -85,13 +95,20 @@ mcbo:RNASeqMethod a owl:Class ;
     uo:IAO_0000115 "An analytical method that generates sequence reads from RNA molecules to quantify transcript abundance." ;
     rdfs:subClassOf mcbo:AnalyticalMethod .
 
+mcbo:CellCultureSystem_001 a mcbo:CellCultureSystem,
+        owl:NamedIndividual ;
+    rdfs:label "Cell culture system for Run_001" ;
+    uo:RO_0000086 mcbo:Conditions_001 ;
+    uo:BFO_0000051 mcbo:CHO_K1 .
+
 mcbo:Run_001 a mcbo:PerfusionCultureProcess,
         owl:NamedIndividual ;
     rdfs:label "Run_001 (perfusion)" ;
-    mcbo:hasCultureConditions mcbo:Conditions_001 ;
+    uo:RO_0000057 mcbo:CellCultureSystem_001 ;
     mcbo:hasProcessOutput mcbo:Sample_D7 ;
     mcbo:hasProduct mcbo:Product_mAb ;
     mcbo:usesCellLine mcbo:CHO_K1 .
+
 
 mcbo:StationaryPhase a owl:Class ;
     rdfs:label "Stationary phase" ;
@@ -125,13 +142,13 @@ mcbo:fromStudy a owl:ObjectProperty ;
 
 mcbo:hasCO2Concentration a owl:DatatypeProperty ;
     rdfs:label "has CO2 concentration (%)" ;
-    rdfs:domain mcbo:CultureConditions ;
+    rdfs:domain mcbo:CultureConditionQuality ;
     rdfs:range xsd:decimal .
 
 mcbo:hasCO2ConcentrationUnit a owl:ObjectProperty ;
     rdfs:label "has CO2 concentration unit" ;
     rdfs:comment "UO unit for CO2 concentration (e.g., uo:UO_0000169 for ppm)" ;
-    rdfs:domain mcbo:CultureConditions .
+    rdfs:domain mcbo:CultureConditionQuality .
 
 mcbo:hasCellViabilityMeasurement a owl:ObjectProperty ;
     rdfs:label "has cell viability measurement" ;
@@ -158,10 +175,6 @@ mcbo:hasConcentrationValue a owl:DatatypeProperty ;
     rdfs:domain mcbo:NutrientConcentration ;
     rdfs:range xsd:decimal .
 
-mcbo:hasCultureConditions a owl:ObjectProperty ;
-    rdfs:label "has culture conditions" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
-    rdfs:range mcbo:CultureConditions .
 
 mcbo:hasDatasetAccession a owl:DatatypeProperty ;
     rdfs:label "has dataset accession" ;
@@ -170,13 +183,13 @@ mcbo:hasDatasetAccession a owl:DatatypeProperty ;
 
 mcbo:hasDissolvedOxygen a owl:DatatypeProperty ;
     rdfs:label "has dissolved oxygen (%)" ;
-    rdfs:domain mcbo:CultureConditions ;
+    rdfs:domain mcbo:CultureConditionQuality ;
     rdfs:range xsd:decimal .
 
 mcbo:hasDissolvedOxygenUnit a owl:ObjectProperty ;
     rdfs:label "has dissolved oxygen unit" ;
     rdfs:comment "UO unit for dissolved oxygen (e.g., uo:UO_0000273 for mg/L)" ;
-    rdfs:domain mcbo:CultureConditions .
+    rdfs:domain mcbo:CultureConditionQuality .
 
 mcbo:hasExpressionUnit a owl:DatatypeProperty ;
     rdfs:label "has expression unit" ;
@@ -210,7 +223,7 @@ mcbo:hasGeneSymbol a owl:DatatypeProperty ;
 
 mcbo:hasHumidity a owl:DatatypeProperty ;
     rdfs:label "has humidity (%)" ;
-    rdfs:domain mcbo:CultureConditions ;
+    rdfs:domain mcbo:CultureConditionQuality ;
     rdfs:range xsd:decimal .
 
 mcbo:hasNutrientConcentration a owl:ObjectProperty ;
@@ -220,7 +233,7 @@ mcbo:hasNutrientConcentration a owl:ObjectProperty ;
 
 mcbo:hasPH a owl:DatatypeProperty ;
     rdfs:label "has pH" ;
-    rdfs:domain mcbo:CultureConditions ;
+    rdfs:domain mcbo:CultureConditionQuality ;
     rdfs:range xsd:decimal .
 
 mcbo:hasProduct a owl:ObjectProperty ;
@@ -267,13 +280,13 @@ mcbo:hasSampleAccession a owl:DatatypeProperty ;
 
 mcbo:hasTemperature a owl:DatatypeProperty ;
     rdfs:label "has temperature" ;
-    rdfs:domain mcbo:CultureConditions ;
+    rdfs:domain mcbo:CultureConditionQuality ;
     rdfs:range xsd:decimal .
 
 mcbo:hasTemperatureUnit a owl:ObjectProperty ;
     rdfs:label "has temperature unit" ;
     rdfs:comment "UO unit for temperature (e.g., uo:UO_0000027 for Celsius, uo:UO_0000195 for Fahrenheit)" ;
-    rdfs:domain mcbo:CultureConditions .
+    rdfs:domain mcbo:CultureConditionQuality .
 
 mcbo:hasTiterValue a owl:DatatypeProperty ;
     rdfs:label "has titer value" ;
@@ -344,6 +357,9 @@ uo:OBI_0000299 rdfs:label "has specified output" ;
     rdfs:domain uo:OBI_0001271 ;
     rdfs:range uo:IAO_0000030 .
 
+iof:ProductProductionProcess a owl:Class ;
+    rdfs:label "product production process" .
+
 mcbo:BatchCultureProcess a owl:Class ;
     rdfs:label "Batch culture process" ;
     uo:IAO_0000115 "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
@@ -365,7 +381,7 @@ mcbo:Clone a owl:Class ;
     rdfs:comment "Specific engineered clone derived from a parent cell line." ;
     rdfs:subClassOf mcbo:CellLine .
 
-mcbo:Conditions_001 a mcbo:CultureConditions,
+mcbo:Conditions_001 a mcbo:CultureConditionQuality,
         owl:NamedIndividual ;
     rdfs:label "Standard culture conditions" ;
     mcbo:hasCO2Concentration 50000 ;
@@ -375,6 +391,11 @@ mcbo:Conditions_001 a mcbo:CultureConditions,
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 ;
     mcbo:hasTemperatureUnit uo:UO_0000027 .
+
+mcbo:CultureConditionQuality a owl:Class ;
+    rdfs:label "Culture condition quality"@en ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
+    rdfs:subClassOf uo:BFO_0000019 ;.
 
 mcbo:ExponentialPhase a owl:Class ;
     rdfs:label "Exponential phase" ;
@@ -399,6 +420,11 @@ mcbo:GeneCountsMatrixDataset a owl:Class ;
     uo:IAO_0000115 "A dataset consisting of a matrix of gene-level counts derived from RNA sequencing reads." ;
     rdfs:comment "A dataset containing quantified gene expression data in matrix format, with genes/transcripts as rows and samples as columns." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
+
+mcbo:MammalianCell a owl:Class ;
+    rdfs:label "Mammalian cell"@en ;
+    uo:IAO_0000115 "A material entity that is a cell of a mammal."@en ;
+    rdfs:subClassOf uo:BFO_BFO_0000040 .
 
 mcbo:PerfusionCultureProcess a owl:Class ;
     rdfs:label "Perfusion culture process" ;
@@ -468,9 +494,6 @@ uo:UO_0000201 rdfs:label "cells per milliliter" .
 
 uo:UO_0000273 rdfs:label "milligram per liter" .
 
-iof:ProductProductionProcess a owl:Class ;
-    rdfs:label "product production process" .
-
 mcbo:ContinuousCultureProcess a owl:Class ;
     rdfs:label "Continuous culture process" ;
     uo:IAO_0000115 "A cell culture process in which fresh medium is added and culture broth is removed during cultivation to maintain a quasi-steady state." ;
@@ -514,14 +537,6 @@ mcbo:AnalyticalMethod a owl:Class ;
     uo:IAO_0000115 "A planned process in which measurements are performed to obtain information about some entity." ;
     rdfs:comment "Method used for sample analysis." ;
     rdfs:subClassOf uo:BFO_0000015 .
-
-mcbo:CellCultureProcess a owl:Class ;
-    rdfs:label "Cell culture process" ;
-    uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
-    rdfs:subClassOf [ a owl:Restriction ;
-            owl:onProperty mcbo:hasProcessOutput ;
-            owl:someValuesFrom mcbo:BioprocessSample ],
-        mcbo:MammalianCellBioprocess .
 
 mcbo:CulturePhase a owl:Class ;
     rdfs:label "Culture phase" ;
@@ -569,6 +584,13 @@ mcbo:GeneExpressionMeasurement a owl:Class ;
     rdfs:comment "Quantitative measurement of gene expression level." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
+mcbo:MammalianCellBioprocess a owl:Class ;
+    rdfs:label "Mammalian cell bioprocess" ;
+    uo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
+    rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
+    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:subClassOf uo:BFO_BFO_0000015 .
+
 mcbo:SequencingRun a owl:Class ;
     rdfs:label "Sequencing run" ;
     uo:IAO_0000115 "An information content entity representing the execution record and outputs of a sequencing instrument run." ;
@@ -579,17 +601,20 @@ uo:BFO_0000040 rdfs:label "material entity" .
 
 uo:IAO_0000109 rdfs:label "measurement datum" .
 
+mcbo:CellCultureProcess a owl:Class ;
+    rdfs:label "Cell culture process" ;
+    uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
+    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty mcbo:hasProcessOutput ;
+            owl:someValuesFrom mcbo:BioprocessSample ],
+        uo:BFO_BFO_0000015 .
+
 mcbo:CellLine a owl:Class ;
     rdfs:label "Cell line" ;
     uo:IAO_0000115 "A population of cells derived from a common lineage that can be propagated and maintained under defined culture conditions." ;
     rdfs:comment "Immortalized mammalian cell line used for bioprocessing (e.g., CHO, HEK293)." ;
     rdfs:subClassOf uo:BFO_0000040 .
-
-mcbo:MammalianCellBioprocess a owl:Class ;
-    rdfs:label "Mammalian cell bioprocess" ;
-    uo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
-    rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
-    rdfs:subClassOf iof:ProductProductionProcess .
 
 mcbo:ProductivityMeasurement a owl:Class ;
     rdfs:label "Productivity measurement" ;
@@ -597,11 +622,6 @@ mcbo:ProductivityMeasurement a owl:Class ;
     rdfs:comment "Measurement of bioprocess productivity." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
-mcbo:CultureConditions a owl:Class ;
-    rdfs:label "Culture conditions" ;
-    uo:IAO_0000115 "A quality (or collection of qualities) of a cell culture system that specifies environmental and operational setpoints such as temperature, pH, and dissolved oxygen." ;
-    rdfs:comment "Environmental and operational conditions during cell culture." ;
-    rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:BioprocessSample a owl:Class ;
     rdfs:label "Bioprocess sample" ;
