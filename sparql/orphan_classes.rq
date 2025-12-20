@@ -1,0 +1,9 @@
+SELECT ?class ?label
+WHERE {
+  ?class a owl:Class .
+  FILTER NOT EXISTS {
+    ?class rdfs:subClassOf ?parent .
+    FILTER (?parent != owl:Thing)
+  }
+  OPTIONAL { ?class rdfs:label ?label }
+}

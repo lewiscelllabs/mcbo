@@ -1,0 +1,6 @@
+SELECT ?label (COUNT(?class) AS ?count)
+WHERE {
+  ?class rdfs:label ?label .
+}
+GROUP BY ?label
+HAVING (COUNT(?class) > 1)
