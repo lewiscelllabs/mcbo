@@ -1,6 +1,10 @@
 # mcbo
 Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities; designed for RNA-seq analysis, culture condition optimization, and product development. 
 
+**New Term Request:**
+
+Please click `'Issues'>'New Issue'>'MCBO Term Request'` to submit your request
+
 **Please cite:**
 
 Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology [Short talk]. 16th International Conference on Biomedical Ontology (ICBO 2025), Virtual conference. Short talk published on conference website. https://icbo-conference.github.io/icbo2025/
