@@ -1,9 +1,28 @@
+# QC: Orphaned MCBO classes (no asserted parent; ignores imports)
+# A class is considered orphaned if:
+#  - it is in the MCBO namespace
+#  - it is an owl:Class
+#  - it has no asserted rdfs:subClassOf parent (other than owl:Thing)
+#  - and it is NOT a purely-defined class via owl:equivalentClass
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
 SELECT ?class ?label
 WHERE {
   ?class a owl:Class .
+  FILTER(STRSTARTS(STR(?class), STR(mcbo:)))
+
+  # no asserted parent besides owl:Thing
   FILTER NOT EXISTS {
     ?class rdfs:subClassOf ?parent .
     FILTER (?parent != owl:Thing)
   }
+
+  # allow fully-defined classes (they may classify under a reasoner)
+  FILTER NOT EXISTS { ?class owl:equivalentClass ?eq . }
+
   OPTIONAL { ?class rdfs:label ?label }
 }
+ORDER BY ?class
