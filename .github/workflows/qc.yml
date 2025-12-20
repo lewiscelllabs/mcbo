@@ -78,20 +78,11 @@ jobs:
           mkdir -p "${REPORT_DIR}"
 
           # Run QC SPARQL queries (these should exist under sparql/)
-          java -jar .robot/robot.jar query \
-            --input "${ONTOLOGY_FILE}" \
-            --query "sparql/missing_definitions.rq" \
-            --output "${REPORT_DIR}/missing_definitions.tsv"
+          java -jar .robot/robot.jar query --input "${ONTOLOGY_FILE}" --query "sparql/missing_definitions.rq" --output "${REPORT_DIR}/missing_definitions.tsv"
 
-          java -jar .robot/robot.jar query \
-            --input "${ONTOLOGY_FILE}" \
-            --query "sparql/orphan_classes.rq" \
-            --output "${REPORT_DIR}/orphan_classes.tsv"
+          java -jar .robot/robot.jar query --input "${ONTOLOGY_FILE}" --query "sparql/orphan_classes.rq" --output "${REPORT_DIR}/orphan_classes.tsv"
 
-          java -jar .robot/robot.jar query \
-            --input "${ONTOLOGY_FILE}" \
-            --query "sparql/duplicate_labels.rq" \
-            --output "${REPORT_DIR}/duplicate_labels.tsv"
+          java -jar .robot/robot.jar query --input "${ONTOLOGY_FILE}" --query "sparql/duplicate_labels.rq" --output "${REPORT_DIR}/duplicate_labels.tsv"
 
           echo "QC reports written to ${REPORT_DIR}"
 
