@@ -57,6 +57,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Debug: print current working directory and list files before running ROBOT
+          echo "==== Debug: current working directory ===="
+          pwd
+          echo "==== Debug: GITHUB_WORKSPACE ===="
+          echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-<not-set>}"
+          echo "==== Debug: list ontology file (${ONTOLOGY_FILE}) ===="
+          ls -la "${ONTOLOGY_FILE}"
+          echo "==== Debug: list repository root (GITHUB_WORKSPACE) ===="
+          ls -la "${GITHUB_WORKSPACE:-.}" || true
+          echo "==== Debug: list current directory ===="
+          ls -la || true
+          echo "============================================"
+
           if [ ! -f "${ONTOLOGY_FILE}" ]; then
             echo "ERROR: Ontology file not found: ${ONTOLOGY_FILE}"
             exit 1
