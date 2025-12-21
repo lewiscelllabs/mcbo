@@ -34,20 +34,8 @@ conda create -n mcbo python=3.10
 conda activate mcbo
 pip install -r requirements.txt
 
-# 2. Run all checks (QC + demo data + real data if present)
+# 2. Run all checks (Ontology verification, QC + demo data + real data if present)
 bash scripts/run_all_checks.sh
-
-# Or manually: build and evaluate demo data
-python scripts/build_graph.py build \
-  --studies-dir data.sample/studies \
-  --output data.sample/graph.ttl
-
-python run_eval.py \
-  --graph data.sample/graph.ttl \
-  --queries eval/queries \
-  --results data.sample/results
-
-cat data.sample/results/SUMMARY.txt
 ```
 
 ## Adding Your Own Data
@@ -118,23 +106,3 @@ All 8 competency questions have SPARQL query implementations in `eval/queries/`:
 
 **Note:** The demo graph (`data.sample/graph.ttl`) includes demonstration data for all CQs. Some CQs (CQ3, CQ6) may return 0 results on the real curated data until additional fields are populated. See `eval/README.md` for details.
 
-# QC reports
-
-The following reports were run and placed under reports/robot/; QC passes if every report is empty
-
-```
-java -jar .robot/robot.jar query \
-  --input ontology/mcbo.owl.ttl \
-  --query sparql/orphan_classes.rq \
-reports/robot/orphan_classes.tsv
-
- java -jar .robot/robot.jar query \
-  --input ontology/mcbo.owl.ttl \
-  --query sparql/duplicate_labels.rq \
-reports/robot/duplicate_labels.tsv
-
- java -jar .robot/robot.jar query \ \
-  --input ontology/mcbo.owl.ttl \
-  --query sparql/missing_definitions.rq \
-reports/robot/missing_definitions.tsv
-```

@@ -13,6 +13,9 @@ Usage examples:
 3) Run on ontology + instances directly:
   python run_eval.py --ontology ontology/mcbo.owl.ttl --instances .data/processed/mcbo_instances.ttl \
     --queries eval/queries --results .data/results
+
+4) Verify graph parses (no queries):
+  python run_eval.py --graph data.sample/graph.ttl --verify
 """
 
 from __future__ import annotations
@@ -84,6 +87,8 @@ def main() -> None:
                     help="If set, write the loaded merged graph to this TTL path.")
     ap.add_argument("--fail-on-empty", action="store_true",
                     help="Exit non-zero if any query returns 0 rows.")
+    ap.add_argument("--verify", action="store_true",
+                    help="Only verify graph parses; report triple count and exit (no queries run).")
     args = ap.parse_args()
 
     query_dir = Path(args.queries)
@@ -93,18 +98,30 @@ def main() -> None:
     # Load graph
     # Always load ontology first for rdfs:subClassOf* queries to work
     ontology_path = Path("ontology/mcbo.owl.ttl")
-    if args.graph:
-        graph_paths = [Path(args.graph)]
-        # If ontology exists and graph is not the ontology itself, load it too
-        if ontology_path.exists() and str(ontology_path) != args.graph:
-            graph_paths.insert(0, ontology_path)
-        g = load_graph_from_files(graph_paths)
-        source_desc = f"graph={args.graph}" + (f" + ontology" if len(graph_paths) > 1 else "")
-    else:
-        if not args.ontology or not args.instances:
-            raise SystemExit("Provide either --graph OR both --ontology and --instances.")
-        g = load_graph_from_files([Path(args.ontology), Path(args.instances)])
-        source_desc = f"ontology={args.ontology}, instances={args.instances}"
+    try:
+        if args.graph:
+            graph_paths = [Path(args.graph)]
+            # If ontology exists and graph is not the ontology itself, load it too
+            if ontology_path.exists() and str(ontology_path) != args.graph:
+                graph_paths.insert(0, ontology_path)
+            g = load_graph_from_files(graph_paths)
+            source_desc = f"graph={args.graph}" + (f" + ontology" if len(graph_paths) > 1 else "")
+        else:
+            if not args.ontology or not args.instances:
+                raise SystemExit("Provide either --graph OR both --ontology and --instances.")
+            g = load_graph_from_files([Path(args.ontology), Path(args.instances)])
+            source_desc = f"ontology={args.ontology}, instances={args.instances}"
+    except Exception as e:
+        if args.verify:
+            print(f"FAIL: Graph parsing failed - {e}")
+            raise SystemExit(1)
+        raise
+
+    # If --verify, just report triple count and exit
+    if args.verify:
+        triple_count = len(g)
+        print(f"PASS: {triple_count} triples")
+        return
 
     # Optionally write merged graph
     if args.write_merged:

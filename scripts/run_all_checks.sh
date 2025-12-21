@@ -2,9 +2,13 @@
 # Run all CQ evaluations and ROBOT QC checks for MCBO
 #
 # This script:
-# 1. Runs ROBOT QC queries on the ontology
-# 2. Builds and evaluates data.sample/ (demo data)
-# 3. Builds and evaluates .data/ (real data, if present)
+# 1. Verifies ontology parses correctly with rdflib
+# 2. Runs ROBOT QC queries on the ontology
+# 3. Builds and evaluates data.sample/ (demo data)
+# 4. Builds and evaluates .data/ (real data, if present)
+#    - Also runs verification and ROBOT QC on .data/graph.ttl
+#
+# Note: .data/ steps warn but don't fail if data is missing or has issues
 
 set -e  # Exit on error
 
@@ -52,241 +56,287 @@ fi
 mkdir -p "$REPO_ROOT/reports/robot"
 mkdir -p "$REPO_ROOT/eval/results"
 
-echo "=========================================="
-echo "Step 1: Running ROBOT QC queries"
-echo "=========================================="
-echo ""
-
-QC_PASSED=true
-
-# Run orphan classes check
-echo "  [1/3] Checking for orphan classes..."
-java -jar "$ROBOT_JAR" query \
-    --input "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-    --query "$REPO_ROOT/sparql/orphan_classes.rq" \
-    "$REPO_ROOT/reports/robot/orphan_classes.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
-
-if [ -s "$REPO_ROOT/reports/robot/orphan_classes.tsv" ]; then
-    ORPHAN_COUNT=$(tail -n +2 "$REPO_ROOT/reports/robot/orphan_classes.tsv" | wc -l)
-    if [ "$ORPHAN_COUNT" -gt 0 ]; then
-        echo "    ⚠️  WARNING: Found $ORPHAN_COUNT orphan class(es)"
-        QC_PASSED=false
-    else
-        echo "    ✅ PASS: No orphan classes"
-    fi
-else
-    echo "    ✅ PASS: No orphan classes"
-fi
-
-# Run duplicate labels check
-echo "  [2/3] Checking for duplicate labels..."
-java -jar "$ROBOT_JAR" query \
-    --input "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-    --query "$REPO_ROOT/sparql/duplicate_labels.rq" \
-    "$REPO_ROOT/reports/robot/duplicate_labels.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
-
-if [ -s "$REPO_ROOT/reports/robot/duplicate_labels.tsv" ]; then
-    DUP_COUNT=$(tail -n +2 "$REPO_ROOT/reports/robot/duplicate_labels.tsv" | wc -l)
-    if [ "$DUP_COUNT" -gt 0 ]; then
-        echo "    ⚠️  WARNING: Found $DUP_COUNT duplicate label(s)"
-        QC_PASSED=false
-    else
-        echo "    ✅ PASS: No duplicate labels"
-    fi
-else
-    echo "    ✅ PASS: No duplicate labels"
-fi
-
-# Run missing definitions check
-echo "  [3/3] Checking for missing definitions..."
-java -jar "$ROBOT_JAR" query \
-    --input "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-    --query "$REPO_ROOT/sparql/missing_definitions.rq" \
-    "$REPO_ROOT/reports/robot/missing_definitions.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
-
-if [ -s "$REPO_ROOT/reports/robot/missing_definitions.tsv" ]; then
-    MISSING_COUNT=$(tail -n +2 "$REPO_ROOT/reports/robot/missing_definitions.tsv" | wc -l)
-    if [ "$MISSING_COUNT" -gt 0 ]; then
-        echo "    ⚠️  WARNING: Found $MISSING_COUNT class(es) missing definitions"
-        QC_PASSED=false
-    else
-        echo "    ✅ PASS: All classes have definitions"
-    fi
-else
-    echo "    ✅ PASS: All classes have definitions"
-fi
-
-echo ""
-if [ "$QC_PASSED" = true ]; then
-    echo "✅ All ROBOT QC checks PASSED"
-else
-    echo "⚠️  Some ROBOT QC checks have warnings (see reports/robot/)"
-fi
-echo ""
-
-echo "=========================================="
-echo "Step 2: Building and evaluating data.sample/ (demo data)"
-echo "=========================================="
-echo ""
-
-DEMO_RAN=false
-
-# Check for demo data
-if [ -d "$REPO_ROOT/data.sample" ]; then
-    # Create output directories
-    mkdir -p "$REPO_ROOT/data.sample/processed"
-    mkdir -p "$REPO_ROOT/data.sample/results"
+# Helper function: Verify a TTL file parses using run_eval.py --verify
+# Usage: verify_graph <file_path> <description>
+# Returns: 0 if valid, 1 if invalid
+verify_graph() {
+    local file_path="$1"
+    local description="$2"
     
-    # Determine if we have a studies/ subdirectory or direct study folders
-    if [ -d "$REPO_ROOT/data.sample/studies" ]; then
-        DEMO_STUDIES_DIR="$REPO_ROOT/data.sample/studies"
+    if [ ! -f "$file_path" ]; then
+        echo "    ⚠️  WARNING: $description not found at $file_path"
+        return 1
+    fi
+    
+    local result
+    result=$(python "$REPO_ROOT/run_eval.py" --graph "$file_path" --verify 2>&1)
+    if [[ "$result" == PASS:* ]]; then
+        echo "    ✅ $result ($description)"
+        return 0
     else
-        # Check for study_* directories directly in data.sample/
-        STUDY_COUNT=$(find "$REPO_ROOT/data.sample" -maxdepth 1 -type d -name "study_*" 2>/dev/null | wc -l)
-        if [ "$STUDY_COUNT" -gt 0 ]; then
-            DEMO_STUDIES_DIR="$REPO_ROOT/data.sample"
+        echo "    ⚠️  WARNING: $description - $result"
+        return 1
+    fi
+}
+
+# Helper function: Run ROBOT QC checks on a graph
+# Usage: run_robot_qc <input_file> <output_dir> <description>
+# Sets: LAST_QC_PASSED (true/false)
+run_robot_qc() {
+    local input_file="$1"
+    local output_dir="$2"
+    local description="$3"
+    
+    mkdir -p "$output_dir"
+    LAST_QC_PASSED=true
+    
+    echo "    [1/3] Checking for orphan classes..."
+    java -jar "$ROBOT_JAR" query \
+        --input "$input_file" \
+        --query "$REPO_ROOT/sparql/orphan_classes.rq" \
+        "$output_dir/orphan_classes.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
+    
+    if [ -s "$output_dir/orphan_classes.tsv" ]; then
+        local count=$(tail -n +2 "$output_dir/orphan_classes.tsv" | wc -l)
+        if [ "$count" -gt 0 ]; then
+            echo "      ⚠️  WARNING: Found $count orphan class(es)"
+            LAST_QC_PASSED=false
         else
-            DEMO_STUDIES_DIR=""
+            echo "      ✅ PASS: No orphan classes"
         fi
+    else
+        echo "      ✅ PASS: No orphan classes"
     fi
     
-    if [ -n "$DEMO_STUDIES_DIR" ] && [ -d "$DEMO_STUDIES_DIR" ]; then
-        echo "  Building demo graph from: $DEMO_STUDIES_DIR"
-        python "$REPO_ROOT/scripts/build_graph.py" build \
-            --studies-dir "$DEMO_STUDIES_DIR" \
-            --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$REPO_ROOT/data.sample/processed/mcbo_instances.ttl" \
-            --output "$REPO_ROOT/data.sample/graph.ttl"
-        echo ""
-        
-        echo "  Evaluating demo graph..."
-        python "$REPO_ROOT/run_eval.py" \
-            --graph "$REPO_ROOT/data.sample/graph.ttl" \
-            --queries "$REPO_ROOT/eval/queries" \
-            --results "$REPO_ROOT/data.sample/results"
-        DEMO_RAN=true
-        echo ""
-        echo "  Demo data results:"
-        if [ -f "$REPO_ROOT/data.sample/results/SUMMARY.txt" ]; then
-            cat "$REPO_ROOT/data.sample/results/SUMMARY.txt"
+    echo "    [2/3] Checking for duplicate labels..."
+    java -jar "$ROBOT_JAR" query \
+        --input "$input_file" \
+        --query "$REPO_ROOT/sparql/duplicate_labels.rq" \
+        "$output_dir/duplicate_labels.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
+    
+    if [ -s "$output_dir/duplicate_labels.tsv" ]; then
+        local count=$(tail -n +2 "$output_dir/duplicate_labels.tsv" | wc -l)
+        if [ "$count" -gt 0 ]; then
+            echo "      ⚠️  WARNING: Found $count duplicate label(s)"
+            LAST_QC_PASSED=false
+        else
+            echo "      ✅ PASS: No duplicate labels"
         fi
-        echo ""
     else
-        echo "  ⚠️  No study directories found in data.sample/"
+        echo "      ✅ PASS: No duplicate labels"
     fi
-else
-    echo "  ⚠️  data.sample/ directory not found"
-fi
+    
+    echo "    [3/3] Checking for missing definitions..."
+    java -jar "$ROBOT_JAR" query \
+        --input "$input_file" \
+        --query "$REPO_ROOT/sparql/missing_definitions.rq" \
+        "$output_dir/missing_definitions.tsv" 2>&1 | grep -v "WARNING:.*Unsafe" || true
+    
+    if [ -s "$output_dir/missing_definitions.tsv" ]; then
+        local count=$(tail -n +2 "$output_dir/missing_definitions.tsv" | wc -l)
+        if [ "$count" -gt 0 ]; then
+            echo "      ⚠️  WARNING: Found $count class(es) missing definitions"
+            LAST_QC_PASSED=false
+        else
+            echo "      ✅ PASS: All classes have definitions"
+        fi
+    else
+        echo "      ✅ PASS: All classes have definitions"
+    fi
+    
+    echo ""
+    if [ "$LAST_QC_PASSED" = true ]; then
+        echo "    ✅ All ROBOT QC checks PASSED ($description)"
+    else
+        echo "    ⚠️  Some ROBOT QC checks have warnings ($output_dir/)"
+    fi
+}
 
-echo "=========================================="
-echo "Step 3: Building and evaluating .data/ (real data)"
-echo "=========================================="
-echo ""
-
-REAL_RAN=false
-
-# Check for real data
-if [ -d "$REPO_ROOT/.data" ]; then
+# Helper function: Process a dataset (build, verify, evaluate)
+# Usage: process_dataset <data_dir> <name> <warn_only>
+# Sets: LAST_DATASET_RAN, LAST_GRAPH_VALID, LAST_QC_PASSED
+process_dataset() {
+    local data_dir="$1"
+    local name="$2"
+    local warn_only="$3"  # "true" = warn on failure, "false" = fail on error
+    
+    LAST_DATASET_RAN=false
+    LAST_GRAPH_VALID=false
+    
+    if [ ! -d "$data_dir" ]; then
+        if [ "$warn_only" = "true" ]; then
+            echo "  ℹ️  $data_dir/ directory not found (this is normal for public clones)"
+        else
+            echo "  ⚠️  $data_dir/ directory not found"
+        fi
+        return 1
+    fi
+    
     # Create output directories
-    mkdir -p "$REPO_ROOT/.data/processed"
-    mkdir -p "$REPO_ROOT/.data/results"
+    mkdir -p "$data_dir/processed"
+    mkdir -p "$data_dir/results"
+    
+    local studies_dir=""
+    local graph_file="$data_dir/graph.ttl"
     
     # Determine data structure
-    if [ -d "$REPO_ROOT/.data/studies" ]; then
-        # studies/ subdirectory exists
-        REAL_STUDIES_DIR="$REPO_ROOT/.data/studies"
-        STUDY_COUNT=$(find "$REAL_STUDIES_DIR" -maxdepth 1 -type d ! -name "studies" 2>/dev/null | wc -l)
-        
-        if [ "$STUDY_COUNT" -gt 0 ]; then
-            echo "  Building real graph from: $REAL_STUDIES_DIR ($STUDY_COUNT studies)"
-            python "$REPO_ROOT/scripts/build_graph.py" build \
-                --studies-dir "$REAL_STUDIES_DIR" \
-                --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-                --instances "$REPO_ROOT/.data/processed/mcbo_instances.ttl" \
-                --output "$REPO_ROOT/.data/graph.ttl"
-            echo ""
-            
-            echo "  Evaluating real graph..."
-            python "$REPO_ROOT/run_eval.py" \
-                --graph "$REPO_ROOT/.data/graph.ttl" \
-                --queries "$REPO_ROOT/eval/queries" \
-                --results "$REPO_ROOT/.data/results"
-            REAL_RAN=true
-            echo ""
-            echo "  Real data results:"
-            if [ -f "$REPO_ROOT/.data/results/SUMMARY.txt" ]; then
-                cat "$REPO_ROOT/.data/results/SUMMARY.txt"
-            fi
-            echo ""
-        else
-            echo "  ⚠️  No study directories found in .data/studies/"
+    if [ -d "$data_dir/studies" ]; then
+        studies_dir="$data_dir/studies"
+        local study_count=$(find "$studies_dir" -maxdepth 1 -type d ! -name "studies" 2>/dev/null | wc -l)
+        if [ "$study_count" -eq 0 ]; then
+            echo "  ⚠️  WARNING: No study directories found in $data_dir/studies/"
+            return 1
         fi
-    elif [ -f "$REPO_ROOT/.data/sample_metadata.csv" ]; then
-        # Single CSV file at root level
-        echo "  Found single metadata file: .data/sample_metadata.csv"
+        echo "  Building graph from: $studies_dir ($study_count studies)"
+        
+        if python "$REPO_ROOT/scripts/build_graph.py" build \
+            --studies-dir "$studies_dir" \
+            --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
+            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --output "$graph_file" 2>&1; then
+            LAST_DATASET_RAN=true
+        else
+            echo "    ⚠️  WARNING: Failed to build graph"
+            return 1
+        fi
+        
+    elif [ -f "$data_dir/sample_metadata.csv" ]; then
+        echo "  Found single metadata file: $data_dir/sample_metadata.csv"
         echo "  Converting directly with csv_to_rdf.py..."
         
-        # Check for expression matrix
-        EXPR_FLAG=""
-        if [ -f "$REPO_ROOT/.data/expression_matrix.csv" ]; then
-            EXPR_FLAG="--expression_matrix $REPO_ROOT/.data/expression_matrix.csv"
-            echo "    + Expression matrix: .data/expression_matrix.csv"
+        local expr_flag=""
+        if [ -f "$data_dir/expression_matrix.csv" ]; then
+            expr_flag="--expression_matrix $data_dir/expression_matrix.csv"
+            echo "    + Expression matrix: $data_dir/expression_matrix.csv"
         fi
         
-        python "$REPO_ROOT/src/csv_to_rdf.py" \
-            --csv_file "$REPO_ROOT/.data/sample_metadata.csv" \
-            --output_file "$REPO_ROOT/.data/processed/mcbo_instances.ttl" \
-            $EXPR_FLAG
+        if ! python "$REPO_ROOT/src/csv_to_rdf.py" \
+            --csv_file "$data_dir/sample_metadata.csv" \
+            --output_file "$data_dir/processed/mcbo_instances.ttl" \
+            $expr_flag 2>&1; then
+            echo "    ⚠️  WARNING: Failed to convert CSV to RDF"
+            return 1
+        fi
         echo ""
         
         echo "  Merging with ontology..."
-        python "$REPO_ROOT/scripts/build_graph.py" merge \
+        if python "$REPO_ROOT/scripts/build_graph.py" merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$REPO_ROOT/.data/processed/mcbo_instances.ttl" \
-            --output "$REPO_ROOT/.data/graph.ttl"
-        echo ""
-        
-        echo "  Evaluating real graph..."
-        python "$REPO_ROOT/run_eval.py" \
-            --graph "$REPO_ROOT/.data/graph.ttl" \
-            --queries "$REPO_ROOT/eval/queries" \
-            --results "$REPO_ROOT/.data/results"
-        REAL_RAN=true
-        echo ""
-        echo "  Real data results:"
-        if [ -f "$REPO_ROOT/.data/results/SUMMARY.txt" ]; then
-            cat "$REPO_ROOT/.data/results/SUMMARY.txt"
+            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --output "$graph_file" 2>&1; then
+            LAST_DATASET_RAN=true
+        else
+            echo "    ⚠️  WARNING: Failed to merge graph"
+            return 1
         fi
-        echo ""
-    elif [ -f "$REPO_ROOT/.data/processed/mcbo_instances.ttl" ]; then
-        # Pre-existing instances file
-        echo "  Found pre-existing instances: .data/processed/mcbo_instances.ttl"
+        
+    elif [ -f "$data_dir/processed/mcbo_instances.ttl" ]; then
+        echo "  Found pre-existing instances: $data_dir/processed/mcbo_instances.ttl"
         echo "  Merging with ontology..."
-        python "$REPO_ROOT/scripts/build_graph.py" merge \
+        if python "$REPO_ROOT/scripts/build_graph.py" merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$REPO_ROOT/.data/processed/mcbo_instances.ttl" \
-            --output "$REPO_ROOT/.data/graph.ttl"
-        echo ""
-        
-        echo "  Evaluating real graph..."
-        python "$REPO_ROOT/run_eval.py" \
-            --graph "$REPO_ROOT/.data/graph.ttl" \
-            --queries "$REPO_ROOT/eval/queries" \
-            --results "$REPO_ROOT/.data/results"
-        REAL_RAN=true
-        echo ""
-        echo "  Real data results:"
-        if [ -f "$REPO_ROOT/.data/results/SUMMARY.txt" ]; then
-            cat "$REPO_ROOT/.data/results/SUMMARY.txt"
+            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --output "$graph_file" 2>&1; then
+            LAST_DATASET_RAN=true
+        else
+            echo "    ⚠️  WARNING: Failed to merge graph"
+            return 1
         fi
-        echo ""
     else
-        echo "  ⚠️  No data found in .data/"
-        echo "      Expected: .data/studies/*, .data/sample_metadata.csv, or .data/processed/mcbo_instances.ttl"
+        echo "  ⚠️  WARNING: No data found in $data_dir/"
+        echo "      Expected: studies/*, sample_metadata.csv, or processed/mcbo_instances.ttl"
+        return 1
+    fi
+    
+    echo ""
+    
+    # Verify graph
+    echo "  Verifying graph..."
+    if verify_graph "$graph_file" "$name graph"; then
+        LAST_GRAPH_VALID=true
+    fi
+    echo ""
+    
+    # Evaluate
+    echo "  Evaluating graph..."
+    python "$REPO_ROOT/run_eval.py" \
+        --graph "$graph_file" \
+        --queries "$REPO_ROOT/eval/queries" \
+        --results "$data_dir/results" || echo "    ⚠️  WARNING: Evaluation had issues"
+    echo ""
+    
+    # Show results
+    echo "  Results:"
+    if [ -f "$data_dir/results/SUMMARY.txt" ]; then
+        cat "$data_dir/results/SUMMARY.txt"
+    fi
+    echo ""
+    
+    # Generate stats
+    python "$REPO_ROOT/scripts/stats_eval_graph.py" --graph "$graph_file" > "$data_dir/STATS.txt" 2>&1
+    echo "  Stats written to: $data_dir/STATS.txt"
+    
+    return 0
+}
+
+echo "=========================================="
+echo "Step 1: Verify ontology parses"
+echo "=========================================="
+echo ""
+
+ONTOLOGY_FILE="$REPO_ROOT/ontology/mcbo.owl.ttl"
+echo "  Verifying ontology parses..."
+if verify_graph "$ONTOLOGY_FILE" "Ontology"; then
+    ONTOLOGY_VALID=true
+else
+    ONTOLOGY_VALID=false
+fi
+echo ""
+
+echo "=========================================="
+echo "Step 2: Running ROBOT QC queries on ontology"
+echo "=========================================="
+echo ""
+
+run_robot_qc "$ONTOLOGY_FILE" "$REPO_ROOT/reports/robot" "ontology"
+QC_PASSED="$LAST_QC_PASSED"
+echo ""
+
+echo "=========================================="
+echo "Step 3: Building and evaluating data.sample/ (demo data)"
+echo "=========================================="
+echo ""
+
+if process_dataset "$REPO_ROOT/data.sample" "Demo" "false"; then
+    DEMO_RAN="$LAST_DATASET_RAN"
+    DEMO_GRAPH_VALID="$LAST_GRAPH_VALID"
+else
+    DEMO_RAN=false
+    DEMO_GRAPH_VALID=false
+fi
+
+echo "=========================================="
+echo "Step 4: Building and evaluating .data/ (real world data)"
+echo "=========================================="
+echo ""
+
+if process_dataset "$REPO_ROOT/.data" "Real" "true"; then
+    REAL_RAN="$LAST_DATASET_RAN"
+    REAL_GRAPH_VALID="$LAST_GRAPH_VALID"
+    
+    # Run ROBOT QC on real data graph
+    if [ "$REAL_RAN" = true ] && [ -f "$REPO_ROOT/.data/graph.ttl" ]; then
+        echo ""
+        echo "  ------------------------------------------"
+        echo "  ROBOT QC for .data/graph.ttl"
+        echo "  ------------------------------------------"
+        echo ""
+        run_robot_qc "$REPO_ROOT/.data/graph.ttl" "$REPO_ROOT/reports/robot/real_data" "real data"
+        REAL_QC_PASSED="$LAST_QC_PASSED"
     fi
 else
-    echo "  ℹ️  .data/ directory not found (this is normal for public clones)"
-    echo "      To add real data, create .data/studies/<study_name>/sample_metadata.csv"
+    REAL_RAN=false
+    REAL_GRAPH_VALID=false
 fi
 
 echo ""
@@ -294,21 +344,27 @@ echo "=========================================="
 echo "Summary"
 echo "=========================================="
 
+# Ontology Summary
+if [ "$ONTOLOGY_VALID" = true ]; then
+    echo "✅ Ontology: VALID"
+else
+    echo "❌ Ontology: INVALID"
+fi
+
 # QC Summary
 if [ "$QC_PASSED" = true ]; then
-    echo "✅ QC: PASSED"
+    echo "✅ Ontology QC: PASSED"
 else
-    echo "⚠️  QC: WARNINGS (see reports/robot/)"
+    echo "⚠️  Ontology QC: WARNINGS (see reports/robot/)"
 fi
 
 # Demo data summary
 if [ "$DEMO_RAN" = true ]; then
     echo "✅ Demo data (data.sample/): COMPLETED"
-    echo "   Results: data.sample/results/"
-    # Generate stats
-    if [ -f "$REPO_ROOT/data.sample/graph.ttl" ]; then
-        python "$REPO_ROOT/scripts/stats_eval_graph.py" --graph "$REPO_ROOT/data.sample/graph.ttl" > "$REPO_ROOT/data.sample/STATS.txt" 2>&1
-        echo "   Stats: data.sample/STATS.txt"
+    if [ "${DEMO_GRAPH_VALID:-}" = true ]; then
+        echo "   Graph: ✅ VALID"
+    else
+        echo "   Graph: ⚠️  WARNINGS"
     fi
 else
     echo "⚠️  Demo data: SKIPPED"
@@ -317,11 +373,15 @@ fi
 # Real data summary
 if [ "$REAL_RAN" = true ]; then
     echo "✅ Real data (.data/): COMPLETED"
-    echo "   Results: .data/results/"
-    # Generate stats
-    if [ -f "$REPO_ROOT/.data/graph.ttl" ]; then
-        python "$REPO_ROOT/scripts/stats_eval_graph.py" --graph "$REPO_ROOT/.data/graph.ttl" > "$REPO_ROOT/.data/STATS.txt" 2>&1
-        echo "   Stats: .data/STATS.txt"
+    if [ "${REAL_GRAPH_VALID:-}" = true ]; then
+        echo "   Graph: ✅ VALID"
+    else
+        echo "   Graph: ⚠️  WARNINGS"
+    fi
+    if [ "${REAL_QC_PASSED:-}" = true ]; then
+        echo "   QC: ✅ PASSED"
+    elif [ "${REAL_QC_PASSED:-}" = false ]; then
+        echo "   QC: ⚠️  WARNINGS (see reports/robot/real_data/)"
     fi
 else
     echo "ℹ️  Real data: NOT AVAILABLE"
