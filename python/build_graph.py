@@ -5,12 +5,12 @@ build_graph.py — Build MCBO evaluation graph from multiple studies.
 This script supports two workflows:
 
 1. INCREMENTAL: Add studies one at a time
-   python scripts/build_graph.py add-study \
+   python python/build_graph.py add-study \
      --study-dir .data/studies/study_001 \
      --instances .data/processed/mcbo_instances.ttl
 
 2. FULL BUILD: Combine all studies into final graph
-   python scripts/build_graph.py build \
+   python python/build_graph.py build \
      --studies-dir .data/studies \
      --ontology ontology/mcbo.owl.ttl \
      --output .data/graph.ttl
@@ -201,25 +201,25 @@ def main():
         epilog="""
 Examples:
   # Add a single study to existing instances
-  python scripts/build_graph.py add-study \\
+  python python/build_graph.py add-study \\
     --study-dir .data/studies/my_study \\
     --instances .data/processed/mcbo_instances.ttl
 
   # Build full graph from all studies
-  python scripts/build_graph.py build \\
+  python python/build_graph.py build \\
     --studies-dir .data/studies \\
     --ontology ontology/mcbo.owl.ttl \\
     --instances .data/processed/mcbo_instances.ttl \\
     --output .data/graph.ttl
 
   # Just merge ontology + instances (no study processing)
-  python scripts/build_graph.py merge \\
+  python python/build_graph.py merge \\
     --ontology ontology/mcbo.owl.ttl \\
     --instances .data/processed/mcbo_instances.ttl \\
     --output .data/graph.ttl
   
   # Demo data example
-  python scripts/build_graph.py build \\
+  python python/build_graph.py build \\
     --studies-dir data.sample/studies \\
     --output data.sample/graph.ttl
 """

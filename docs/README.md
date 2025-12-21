@@ -77,12 +77,12 @@ The `data.sample/` directory contains demonstration data for testing the workflo
 conda activate mcbo
 
 # Build graph from demo data
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir data.sample \
   --output data.sample/graph.ttl
 
 # Evaluate against all 8 CQs
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -141,37 +141,37 @@ For curated real-world data, use the `.data/` directory (not tracked in git):
 conda activate mcbo
 
 # Option A: Add study incrementally
-python scripts/build_graph.py add-study \
+python python/build_graph.py add-study \
   --study-dir .data/studies/my_study_2024 \
   --instances .data/processed/mcbo_instances.ttl
 
 # Option B: Rebuild all studies
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir .data/studies \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Merge with ontology (if using Option A)
-python scripts/build_graph.py merge \
+python python/build_graph.py merge \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
 
 # run demo data
 # Rebuild studies
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir data.sample/studies \
   --instances data.sample/processed/mcbo_instances.ttl \
   --output data.sample/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results

@@ -2,7 +2,7 @@
 """
 csv_to_rdf.py — Core CSV-to-RDF conversion logic for MCBO (ABox).
 
-NOTE: This module is used by scripts/build_graph.py for multi-study workflows.
+NOTE: This module is used by python/build_graph.py for multi-study workflows.
       You can also use it standalone for single-file conversion.
 
 This version matches the updated MCBO design (NO backward-compat mcbo:hasCultureConditions):

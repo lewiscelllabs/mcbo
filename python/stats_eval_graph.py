@@ -3,8 +3,8 @@
 Compute statistics from the evaluation graph to verify sample/process counts.
 
 Usage:
-  python scripts/stats_eval_graph.py --graph .data/graph.ttl          # Real data
-  python scripts/stats_eval_graph.py --graph data.sample/graph.ttl    # Demo data
+  python python/stats_eval_graph.py --graph .data/graph.ttl          # Real data
+  python python/stats_eval_graph.py --graph data.sample/graph.ttl    # Demo data
 
 Output:
   - Cell culture process count by type (Batch, Fed-batch, Perfusion, Unknown)

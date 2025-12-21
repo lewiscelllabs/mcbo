@@ -35,23 +35,23 @@ bash scripts/run_all_checks.sh
 conda activate mcbo
 
 # 1. Add first study
-python scripts/build_graph.py add-study \
+python python/build_graph.py add-study \
   --study-dir data.sample/studies/study_demo_001 \
   --instances data.sample/processed/mcbo_instances.ttl
 
 # 2. Add second study
-python scripts/build_graph.py add-study \
+python python/build_graph.py add-study \
   --study-dir data.sample/studies/study_demo_002 \
   --instances data.sample/processed/mcbo_instances.ttl
 
 # 3. Merge with ontology to create evaluation graph
-python scripts/build_graph.py merge \
+python python/build_graph.py merge \
   --ontology ontology/mcbo.owl.ttl \
   --instances data.sample/processed/mcbo_instances.ttl \
   --output data.sample/graph.ttl
 
 # 4. Run CQ evaluation
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -66,14 +66,14 @@ cat data.sample/results/SUMMARY.txt
 conda activate mcbo
 
 # Build graph from all demo studies
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir data.sample/studies \
   --ontology ontology/mcbo.owl.ttl \
   --instances data.sample/processed/mcbo_instances.ttl \
   --output data.sample/graph.ttl
 
 # Evaluate against all 8 CQs
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results

@@ -5,17 +5,17 @@ Run MCBO competency question evaluation queries.
 Usage examples:
 
 1) Demo data:
-  python run_eval.py --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
+  python python/run_eval.py --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
 
 2) Real data:
-  python run_eval.py --graph .data/graph.ttl --queries eval/queries --results .data/results
+  python python/run_eval.py --graph .data/graph.ttl --queries eval/queries --results .data/results
 
 3) Run on ontology + instances directly:
-  python run_eval.py --ontology ontology/mcbo.owl.ttl --instances .data/processed/mcbo_instances.ttl \
+  python python/run_eval.py --ontology ontology/mcbo.owl.ttl --instances .data/processed/mcbo_instances.ttl \
     --queries eval/queries --results .data/results
 
 4) Verify graph parses (no queries):
-  python run_eval.py --graph data.sample/graph.ttl --verify
+  python python/run_eval.py --graph data.sample/graph.ttl --verify
 """
 
 from __future__ import annotations

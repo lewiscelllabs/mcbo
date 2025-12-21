@@ -51,12 +51,12 @@ This is **generated** from `.data/studies/`:
 
 ```bash
 # Build graph
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir data.sample/studies \
   --output data.sample/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -66,12 +66,12 @@ python run_eval.py \
 
 ```bash
 # Build graph
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir .data/studies \
   --output .data/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -87,10 +87,10 @@ bash scripts/run_all_checks.sh
 
 ```bash
 # Stats on real data
-python scripts/stats_eval_graph.py --graph .data/graph.ttl
+python python/stats_eval_graph.py --graph .data/graph.ttl
 
 # Stats on demo data
-python scripts/stats_eval_graph.py --graph data.sample/graph.ttl
+python python/stats_eval_graph.py --graph data.sample/graph.ttl
 ```
 
 Output includes:

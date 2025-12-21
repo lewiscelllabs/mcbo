@@ -21,23 +21,23 @@ data/studies/
 
 ```bash
 # Add first study
-python scripts/build_graph.py add-study \
+python python/build_graph.py add-study \
   --study-dir .data/studies/study_001 \
   --instances .data/processed/mcbo_instances.ttl
 
 # Add another study (appends to existing)
-python scripts/build_graph.py add-study \
+python python/build_graph.py add-study \
   --study-dir .data/studies/study_002 \
   --instances .data/processed/mcbo_instances.ttl
 
 # Merge with ontology to create graph.ttl
-python scripts/build_graph.py merge \
+python python/build_graph.py merge \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -47,14 +47,14 @@ python run_eval.py \
 
 ```bash
 # Process all studies and merge with ontology in one step
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir .data/studies \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
-python run_eval.py \
+python python/run_eval.py \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -64,11 +64,11 @@ python run_eval.py \
 
 ```bash
 # Build and evaluate demo data
-python scripts/build_graph.py build \
+python python/build_graph.py build \
   --studies-dir data.sample/studies \
   --output data.sample/graph.ttl
 
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -207,7 +207,7 @@ The following 10 columns should be added to `data/sample_metadata.csv` (empty va
 3. **Gene expression data**: For real RNA-seq data with thousands of genes per sample, use a separate **expression matrix file**:
 
    ```bash
-   python src/csv_to_rdf.py \
+   python python/csv_to_rdf.py \
      --csv_file data/sample_metadata.csv \
      --expression_matrix data/expression_matrix.csv \
      --output_file data/processed/mcbo_instances.ttl

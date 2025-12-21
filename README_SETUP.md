@@ -45,13 +45,13 @@ To run evaluations manually:
 conda activate mcbo
 
 # Run on real data (if available)
-python run_eval.py \
+python python/run_eval.py \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
 
 # Run on demo data
-python run_eval.py \
+python python/run_eval.py \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results

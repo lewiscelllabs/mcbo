@@ -42,13 +42,13 @@ if ! command -v python &> /dev/null; then
     exit 1
 fi
 
-if [ ! -f "$REPO_ROOT/run_eval.py" ]; then
-    echo "Error: run_eval.py not found at $REPO_ROOT/run_eval.py"
+if [ ! -f "$REPO_ROOT/python/run_eval.py" ]; then
+    echo "Error: run_eval.py not found at $REPO_ROOT/python/run_eval.py"
     exit 1
 fi
 
-if [ ! -f "$REPO_ROOT/scripts/build_graph.py" ]; then
-    echo "Error: build_graph.py not found at $REPO_ROOT/scripts/build_graph.py"
+if [ ! -f "$REPO_ROOT/python/build_graph.py" ]; then
+    echo "Error: build_graph.py not found at $REPO_ROOT/python/build_graph.py"
     exit 1
 fi
 
@@ -69,7 +69,7 @@ verify_graph() {
     fi
     
     local result
-    result=$(python "$REPO_ROOT/run_eval.py" --graph "$file_path" --verify 2>&1)
+    result=$(python "$REPO_ROOT/python/run_eval.py" --graph "$file_path" --verify 2>&1)
     if [[ "$result" == PASS:* ]]; then
         echo "    ✅ $result ($description)"
         return 0
@@ -189,7 +189,7 @@ process_dataset() {
         fi
         echo "  Building graph from: $studies_dir ($study_count studies)"
         
-        if python "$REPO_ROOT/scripts/build_graph.py" build \
+        if python "$REPO_ROOT/python/build_graph.py" build \
             --studies-dir "$studies_dir" \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
@@ -210,7 +210,7 @@ process_dataset() {
             echo "    + Expression matrix: $data_dir/expression_matrix.csv"
         fi
         
-        if ! python "$REPO_ROOT/src/csv_to_rdf.py" \
+        if ! python "$REPO_ROOT/python/csv_to_rdf.py" \
             --csv_file "$data_dir/sample_metadata.csv" \
             --output_file "$data_dir/processed/mcbo_instances.ttl" \
             $expr_flag 2>&1; then
@@ -220,7 +220,7 @@ process_dataset() {
         echo ""
         
         echo "  Merging with ontology..."
-        if python "$REPO_ROOT/scripts/build_graph.py" merge \
+        if python "$REPO_ROOT/python/build_graph.py" merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
             --output "$graph_file" 2>&1; then
@@ -233,7 +233,7 @@ process_dataset() {
     elif [ -f "$data_dir/processed/mcbo_instances.ttl" ]; then
         echo "  Found pre-existing instances: $data_dir/processed/mcbo_instances.ttl"
         echo "  Merging with ontology..."
-        if python "$REPO_ROOT/scripts/build_graph.py" merge \
+        if python "$REPO_ROOT/python/build_graph.py" merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
             --output "$graph_file" 2>&1; then
@@ -259,7 +259,7 @@ process_dataset() {
     
     # Evaluate
     echo "  Evaluating graph..."
-    python "$REPO_ROOT/run_eval.py" \
+    python "$REPO_ROOT/python/run_eval.py" \
         --graph "$graph_file" \
         --queries "$REPO_ROOT/eval/queries" \
         --results "$data_dir/results" || echo "    ⚠️  WARNING: Evaluation had issues"
@@ -273,7 +273,7 @@ process_dataset() {
     echo ""
     
     # Generate stats
-    python "$REPO_ROOT/scripts/stats_eval_graph.py" --graph "$graph_file" > "$data_dir/STATS.txt" 2>&1
+    python "$REPO_ROOT/python/stats_eval_graph.py" --graph "$graph_file" > "$data_dir/STATS.txt" 2>&1
     echo "  Stats written to: $data_dir/STATS.txt"
     
     return 0
