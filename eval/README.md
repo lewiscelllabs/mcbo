@@ -1,79 +1,101 @@
 # Evaluation (Competency Questions)
 
-This directory contains artifacts used to reproduce the paper’s evaluation:
-- the RDF graph used for CQ execution
-- the SPARQL queries for CQ1/CQ2/CQ5
-- the query outputs
+This directory contains SPARQL queries for all 8 competency questions (CQ1-CQ8).
 
 ## Directory layout
 
 ```
-
 eval/
-├── graph.ttl              # OPTIONAL: full evaluation graph (private: not part of repo now)
-├── graph.sample.ttl       # PUBLIC: small shareable graph for reviewers
 ├── queries/
-│   ├── cq1.rq
-│   ├── cq2.rq
-│   └── cq5.rq
-├── results/
-│   ├── cq1.tsv
-│   ├── cq2.tsv
-│   └── cq5.tsv
+│   ├── cq1.rq             # Culture conditions for peak productivity
+│   ├── cq2.rq             # Engineered cell lines overexpressing genes
+│   ├── cq3.rq             # Nutrient concentrations and viable cell density at day 6
+│   ├── cq4.rq             # Gene expression variation between clones
+│   ├── cq5.rq             # Process type comparison (proxy for pathway differential expression)
+│   ├── cq6.rq             # Genes correlated with productivity in stationary phase
+│   ├── cq7.rq             # Fold change between high/low viability samples
+│   └── cq8.rq             # Cell lines/clones suited for glycosylation profiles
 └── README.md
 
-````
-
-## What is eval/graph*.ttl?
-
-The evaluation graph is the *union graph* used by SPARQL engines:
-
-- **Ontology (schema / TBox)**: `ontology/mcbo.owl.ttl`
-- **Instances (data / ABox)**: `data/processed/mcbo_instances.ttl`: these data were used to generate the eval in the 
-
-`eval/graph.ttl` is the merged TTL produced from those inputs. It exists so that CQ queries can be executed against a single RDF file.
-
-### Public vs private evaluation data
-
-Some instance data may be non-public (e.g., derived from non-shareable metadata files). In that case:
-- `eval/graph.ttl` is generated locally and not committed
-- `eval/graph.sample.ttl` is committed and contains a small, shareable subset (or synthetic/redacted example instances) that still exercises CQ1/CQ2/CQ5 end-to-end
-- `eval/results/*.tsv` can be published for the sample graph, and optionally also for the private full graph if shareable.
-
-This provides reviewers a runnable path while respecting data restrictions.
-
-## How to run the evaluation (recommended: rdflib)
-
-From the repo root:
-
-```bash
-python run_eval.py \
-  --ontology ontology/mcbo.owl.ttl \
-  --instances data/processed/mcbo_instances.ttl \
-  --queries eval/queries \
-  --results eval/results
-````
-
-If you do not have the private instance data, run on the public sample graph:
-
-```bash
-python run_eval.py \
-  --graph eval/graph.sample.ttl \
-  --queries eval/queries \
-  --results eval/results
+# Generated graphs and results (NOT in eval/):
+.data/graph.ttl            # Real data graph (git-ignored)
+.data/results/             # Real data results (git-ignored)
+data.sample/graph.ttl      # Demo data graph (generated)
+data.sample/results/       # Demo data results (generated)
 ```
 
-## How to generate eval/graph.ttl
+## Graph Types
 
-`run_eval.py` can generate a merged graph automatically if you supply `--ontology` and `--instances`.
-Optionally, you can also build the graph with ROBOT:
+| Graph | Location | Purpose | Checked In? |
+|-------|----------|---------|-------------|
+| `data.sample/graph.ttl` | `data.sample/` | Generated from demo studies | ❌ No (generated) |
+| `.data/graph.ttl` | `.data/` | Generated from real curated data | ❌ No (.gitignored) |
+
+### data.sample/graph.ttl (demo data)
+
+This is **generated** from `data.sample/studies/`:
+- 7 samples from 2 demo studies
+- All 8 CQs return results
+- Demonstrates the full data pipeline
+
+### .data/graph.ttl (real data)
+
+This is **generated** from `.data/studies/`:
+- Contains real curated data (723+ samples)
+- Some CQs may return 0 until additional fields are populated
+- Git-ignored (not shared publicly)
+
+## How to run evaluations
+
+### Demo data (generated from data.sample/)
 
 ```bash
-robot merge \
-  --input ontology/mcbo.owl.ttl \
-  --input data/processed/mcbo_instances.ttl \
-  --output eval/graph.ttl
+# Build graph
+python scripts/build_graph.py build \
+  --studies-dir data.sample/studies \
+  --output data.sample/graph.ttl
+
+# Evaluate
+python run_eval.py \
+  --graph data.sample/graph.ttl \
+  --queries eval/queries \
+  --results data.sample/results
 ```
+
+### Real data (generated from .data/)
+
+```bash
+# Build graph
+python scripts/build_graph.py build \
+  --studies-dir .data/studies \
+  --output .data/graph.ttl
+
+# Evaluate
+python run_eval.py \
+  --graph .data/graph.ttl \
+  --queries eval/queries \
+  --results .data/results
+```
+
+### Or run all at once
+
+```bash
+bash scripts/run_all_checks.sh
+```
+
+### Compute graph statistics
+
+```bash
+# Stats on real data
+python scripts/stats_eval_graph.py --graph .data/graph.ttl
+
+# Stats on demo data
+python scripts/stats_eval_graph.py --graph data.sample/graph.ttl
+```
+
+Output includes:
+- Total cell culture process instances (by type: Batch, Fed-batch, Perfusion, Unknown)
+- Total bioprocess sample instances
 
 ## Alternative runners (optional)
 
@@ -81,24 +103,37 @@ robot merge \
 
 ```bash
 robot query \
-  --input eval/graph.sample.ttl \
+  --input data.sample/graph.ttl \
   --query eval/queries/cq1.rq \
-  --output eval/results/cq1.tsv
+  --output data.sample/results/cq1.tsv
 ```
 
 ### Apache Jena (arq)
 
 ```bash
-arq --data eval/graph.sample.ttl --query eval/queries/cq1.rq > eval/results/cq1.tsv
+arq --data data.sample/graph.ttl --query eval/queries/cq1.rq > data.sample/results/cq1.tsv
 ```
 
 (If using `arq`, ensure prefixes are included in the `.rq` files.)
 
-## Notes on CQ semantics
+## Notes on CQ semantics and implementation status
 
-* CQ1 currently returns culture conditions for instances categorized as medium/high/very-high productivity.
-* CQ2 returns engineered CHO lines (overexpressesGene) along with maximum observed productivity.
-* CQ5 currently reports counts by process type; it is a lightweight proxy for the eventual “differential expression / pathways” CQ.
+**Fully implemented and tested:**
+* **CQ1**: Returns culture conditions (pH, dissolved oxygen, temperature) for processes with medium/high/very-high productivity.
+* **CQ2**: Returns engineered CHO cell lines (overexpressesGene) along with maximum observed productivity.
+* **CQ4**: Compares gene expression levels between clones (subclones) of a cell line.
+* **CQ5**: Reports counts by process type (currently a lightweight proxy for the eventual "differential expression / pathways" CQ).
+* **CQ7**: Returns genes with highest fold change between high-viability (>90%) and low-viability (<50%) samples.
+* **CQ8**: Identifies cell lines/clones producing products with quality measurements (e.g., glycosylation profiles).
 
-See the paper’s Evaluation section for interpretation and limitations.
+**Implemented but may require additional data:**
+* **CQ3**: Finds nutrient concentrations associated with high viable cell density at day 6. Requires processes with `CultureMedium` containing `NutrientConcentration` data linked to day-6 samples with viability measurements.
+* **CQ6**: Identifies genes with highest expression in stationary phase samples with high productivity. Requires gene expression data linked to samples in stationary phase.
+
+**Query implementation notes:**
+- CQ3 and CQ6 queries are syntactically correct and work with the demo graph. They may return 0 results on the real curated data until additional fields (nutrient concentrations, gene expression data) are populated.
+- CQ5 is currently a process type count query rather than a true pathway differential expression analysis. Full pathway analysis would require integration with pathway databases (e.g., GO, KEGG) and statistical computation outside SPARQL.
+- CQ8 uses `QualityMeasurement` as a framework for glycosylation profiles. Domain-specific glycosylation attributes can be added as subclasses of `QualityMeasurement` as needed.
+
+See the paper's Evaluation section for interpretation and limitations.
 

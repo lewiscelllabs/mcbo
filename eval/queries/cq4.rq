@@ -1,0 +1,54 @@
+# CQ4: How does the expression of gene X vary between clone A and clone B?
+#
+# This query compares gene expression levels between two clones (subclones) of a cell line.
+# Parameters: gene (X), clone A, clone B
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX uo: <http://purl.obolibrary.org/obo/>
+
+SELECT ?gene ?geneLabel ?cloneA ?cloneALabel ?cloneB ?cloneBLabel 
+       ?exprA ?exprB ?foldChange
+WHERE {
+  # Clone A expression
+  ?cloneA a mcbo:Clone ;
+          rdfs:label ?cloneALabel .
+  ?parentLineA mcbo:hasClone ?cloneA .
+  
+  ?processA a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  ?processA mcbo:usesCellLine ?parentLineA .
+  ?processA mcbo:hasProcessOutput ?sampleA .
+  
+  ?sampleA a mcbo:BioprocessSample ;
+           mcbo:hasGeneExpression ?exprMeasA .
+  ?exprMeasA a mcbo:GeneExpressionMeasurement ;
+             uo:IAO_0000136 ?gene ;  # is about (gene)
+             mcbo:hasExpressionValue ?exprA .
+  
+  # Clone B expression
+  ?cloneB a mcbo:Clone ;
+          rdfs:label ?cloneBLabel .
+  ?parentLineB mcbo:hasClone ?cloneB .
+  
+  ?processB a ?processType .
+  ?processB mcbo:usesCellLine ?parentLineB .
+  ?processB mcbo:hasProcessOutput ?sampleB .
+  
+  ?sampleB a mcbo:BioprocessSample ;
+           mcbo:hasGeneExpression ?exprMeasB .
+  ?exprMeasB a mcbo:GeneExpressionMeasurement ;
+             uo:IAO_0000136 ?gene ;
+             mcbo:hasExpressionValue ?exprB .
+  
+  OPTIONAL { ?gene rdfs:label ?geneLabel }
+  
+  # Calculate fold change (if available, or compute)
+  OPTIONAL {
+    ?exprMeasA mcbo:hasFoldChange ?foldChange .
+  }
+  
+  FILTER(?cloneA != ?cloneB)
+}
+ORDER BY ?gene ?cloneA ?cloneB
+

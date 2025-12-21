@@ -1,0 +1,50 @@
+# CQ7: Which genes have the highest fold change between cells with viability (>90%) and those without (<50%)?
+#
+# This query compares gene expression between high-viability (>90%) and low-viability (<50%) samples,
+# reporting genes with the highest fold change.
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX uo: <http://purl.obolibrary.org/obo/>
+
+SELECT ?gene ?geneLabel 
+       (AVG(?exprHigh) AS ?avgExprHigh) 
+       (AVG(?exprLow) AS ?avgExprLow)
+       (AVG(?exprHigh) / AVG(?exprLow) AS ?foldChange)
+WHERE {
+  {
+    # High viability samples (>90%)
+    ?sampleHigh a mcbo:BioprocessSample ;
+                mcbo:hasCellViabilityMeasurement ?viabilityHigh .
+    ?viabilityHigh a mcbo:CellViabilityMeasurement ;
+                   mcbo:hasViabilityPercentage ?viabilityPctHigh .
+    
+    ?sampleHigh mcbo:hasGeneExpression ?exprMeasHigh .
+    ?exprMeasHigh a mcbo:GeneExpressionMeasurement ;
+                  uo:IAO_0000136 ?gene ;
+                  mcbo:hasExpressionValue ?exprHigh .
+    
+    FILTER(?viabilityPctHigh > 90.0)
+  }
+  UNION
+  {
+    # Low viability samples (<50%)
+    ?sampleLow a mcbo:BioprocessSample ;
+               mcbo:hasCellViabilityMeasurement ?viabilityLow .
+    ?viabilityLow a mcbo:CellViabilityMeasurement ;
+                  mcbo:hasViabilityPercentage ?viabilityPctLow .
+    
+    ?sampleLow mcbo:hasGeneExpression ?exprMeasLow .
+    ?exprMeasLow a mcbo:GeneExpressionMeasurement ;
+                 uo:IAO_0000136 ?gene ;
+                 mcbo:hasExpressionValue ?exprLow .
+    
+    FILTER(?viabilityPctLow < 50.0)
+  }
+  
+  OPTIONAL { ?gene rdfs:label ?geneLabel }
+}
+GROUP BY ?gene ?geneLabel
+HAVING (COUNT(DISTINCT ?exprHigh) > 0 && COUNT(DISTINCT ?exprLow) > 0)
+ORDER BY DESC(?foldChange) ?gene
+

@@ -1,0 +1,5 @@
+cellLine	nutrientType	concentrationValue	concentrationUnit	viableCellDensity	collectionDay
+http://example.org/mcbo#cellline_CHO-K1	Glutamine 4.0mM	4.0	mM	12000000.0	6
+http://example.org/mcbo#clone_Clone_A	Glutamine 4.0mM	4.0	mM	12000000.0	6
+http://example.org/mcbo#cellline_CHO-K1	Glutamine 4.0mM	4.0	mM	4000000.0	6
+http://example.org/mcbo#clone_Clone_B	Glutamine 4.0mM	4.0	mM	4000000.0	6

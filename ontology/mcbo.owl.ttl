@@ -395,7 +395,7 @@ mcbo:Conditions_001 a mcbo:CultureConditionQuality,
 mcbo:CultureConditionQuality a owl:Class ;
     rdfs:label "Culture condition quality"@en ;
     uo:IAO_0000115 "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
-    rdfs:subClassOf uo:BFO_0000019 ;.
+    rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:ExponentialPhase a owl:Class ;
     rdfs:label "Exponential phase" ;
@@ -424,7 +424,7 @@ mcbo:GeneCountsMatrixDataset a owl:Class ;
 mcbo:MammalianCell a owl:Class ;
     rdfs:label "Mammalian cell"@en ;
     uo:IAO_0000115 "A material entity that is a cell of a mammal."@en ;
-    rdfs:subClassOf uo:BFO_BFO_0000040 .
+    rdfs:subClassOf uo:BFO_0000040 .
 
 mcbo:PerfusionCultureProcess a owl:Class ;
     rdfs:label "Perfusion culture process" ;
@@ -589,7 +589,7 @@ mcbo:MammalianCellBioprocess a owl:Class ;
     uo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
     rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
     rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf uo:BFO_BFO_0000015 .
+    rdfs:subClassOf uo:BFO_0000015 .
 
 mcbo:SequencingRun a owl:Class ;
     rdfs:label "Sequencing run" ;
@@ -608,7 +608,7 @@ mcbo:CellCultureProcess a owl:Class ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty mcbo:hasProcessOutput ;
             owl:someValuesFrom mcbo:BioprocessSample ],
-        uo:BFO_BFO_0000015 .
+        uo:BFO_0000015 .
 
 mcbo:CellLine a owl:Class ;
     rdfs:label "Cell line" ;

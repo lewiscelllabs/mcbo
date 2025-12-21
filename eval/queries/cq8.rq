@@ -1,0 +1,36 @@
+# CQ8: Which cell lines or subclones are best suited for glycosylation profiles required for therapeutic protein X?
+#
+# This query identifies cell lines/clones that produce products with specific quality attributes
+# (e.g., glycosylation patterns). It looks for processes that produce products with 
+# quality measurements, sorted by titer value.
+#
+# Note: Full glycosylation profile matching would require domain-specific quality attributes.
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?cellLine ?cellLineLabel ?clone ?cloneLabel ?product ?productLabel 
+       ?qualityMeas ?qualityLabel ?titerValue
+WHERE {
+  ?process a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  
+  ?process mcbo:usesCellLine ?cellLine .
+  OPTIONAL { ?cellLine rdfs:label ?cellLineLabel }
+  
+  # Check for clones (optional)
+  OPTIONAL {
+    ?cellLine mcbo:hasClone ?clone .
+    ?clone rdfs:label ?cloneLabel .
+  }
+  
+  ?process mcbo:hasProduct ?product .
+  OPTIONAL { ?product rdfs:label ?productLabel }
+  OPTIONAL { ?product mcbo:hasTiterValue ?titerValue }
+  
+  # Product quality measurements (e.g., glycosylation)
+  ?product mcbo:hasQualityMeasurement ?qualityMeas .
+  OPTIONAL { ?qualityMeas rdfs:label ?qualityLabel }
+}
+ORDER BY DESC(?titerValue) ?cellLine
+

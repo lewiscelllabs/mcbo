@@ -4,12 +4,15 @@ Run MCBO competency question evaluation queries.
 
 Usage examples:
 
-1) Run on a merged graph file:
-  python run_eval.py --graph eval/graph.sample.ttl --queries eval/queries --results eval/results
+1) Demo data:
+  python run_eval.py --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
 
-2) Run by loading ontology + instances (and optionally write merged graph):
-  python run_eval.py --ontology ontology/mcbo.owl.ttl --instances data/processed/mcbo_instances.ttl \
-    --queries eval/queries --results eval/results --write-merged eval/graph.ttl
+2) Real data:
+  python run_eval.py --graph .data/graph.ttl --queries eval/queries --results .data/results
+
+3) Run on ontology + instances directly:
+  python run_eval.py --ontology ontology/mcbo.owl.ttl --instances .data/processed/mcbo_instances.ttl \
+    --queries eval/queries --results .data/results
 """
 
 from __future__ import annotations
@@ -88,9 +91,15 @@ def main() -> None:
     ensure_dir(results_dir)
 
     # Load graph
+    # Always load ontology first for rdfs:subClassOf* queries to work
+    ontology_path = Path("ontology/mcbo.owl.ttl")
     if args.graph:
-        g = load_graph_from_files([Path(args.graph)])
-        source_desc = f"graph={args.graph}"
+        graph_paths = [Path(args.graph)]
+        # If ontology exists and graph is not the ontology itself, load it too
+        if ontology_path.exists() and str(ontology_path) != args.graph:
+            graph_paths.insert(0, ontology_path)
+        g = load_graph_from_files(graph_paths)
+        source_desc = f"graph={args.graph}" + (f" + ontology" if len(graph_paths) > 1 else "")
     else:
         if not args.ontology or not args.instances:
             raise SystemExit("Provide either --graph OR both --ontology and --instances.")

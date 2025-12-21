@@ -1,0 +1,6 @@
+RunAccession,SampleAccession,CellLine,ProcessType,Temperature,pH,DissolvedOxygen,CulturePhase,Productivity,Producer,ProductType,CollectionDay,ViableCellDensity,ViabilityPercentage,CloneID,GlutamineConcentration
+DEMO001_RUN_A,DEMO001_SAMPLE_A,CHO-K1,FedBatch,37,7.0,40,Exponential,High,TRUE,mAb,3,8000000,95,Clone_A,4.0
+DEMO001_RUN_B,DEMO001_SAMPLE_B,CHO-K1,FedBatch,37,7.0,40,Exponential,Medium,TRUE,mAb,3,6000000,92,Clone_B,4.0
+DEMO001_RUN_C,DEMO001_SAMPLE_C,CHO-K1,FedBatch,37,7.0,40,Stationary,High,TRUE,mAb,6,12000000,88,Clone_A,4.0
+DEMO001_RUN_D,DEMO001_SAMPLE_D,CHO-K1,FedBatch,37,7.0,40,Stationary,Low,TRUE,mAb,6,4000000,45,Clone_B,4.0
+

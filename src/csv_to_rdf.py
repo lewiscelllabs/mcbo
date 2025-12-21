@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-csv_to_rdf.py — Convert bioprocess metadata CSV to RDF instances for MCBO (ABox).
+csv_to_rdf.py — Core CSV-to-RDF conversion logic for MCBO (ABox).
+
+NOTE: This module is used by scripts/build_graph.py for multi-study workflows.
+      You can also use it standalone for single-file conversion.
 
 This version matches the updated MCBO design (NO backward-compat mcbo:hasCultureConditions):
 
@@ -9,19 +12,19 @@ This version matches the updated MCBO design (NO backward-compat mcbo:hasCulture
   - The CellCultureSystem obo:RO_0000086 (has quality) a mcbo:CultureConditionQuality instance
   - Temperature/pH/DO literals are attached to the CultureConditionQuality instance
 
-CQ2 support (CHO engineering / overexpression):
-  The public sample_metadata.csv does not contain a dedicated "OverexpressedGene" column.
-  Instead, it includes:
-    - Producer (boolean): whether the line is a producer/engineered line
-    - ProductType (string): product identifier; often a gene/protein symbol (e.g., HGF, CXCL13),
-      and sometimes broader categories (e.g., mAb, BsAb, Control).
-  This script therefore asserts mcbo:overexpressesGene based on:
-    - If Producer==True AND ProductType is non-empty and not "Control", then:
-        cellLine mcbo:overexpressesGene gene_<ProductType>
-      For mAb/BsAb, it uses a shared placeholder gene individual mcbo:AntibodyProductGene.
+CQ support - columns used:
+  CQ1: Temperature, pH, DissolvedOxygen, Productivity
+  CQ2: CellLine, Producer, ProductType (or OverexpressedGene for explicit column)
+  CQ3: CellLine, GlutamineConcentration, CollectionDay, ViableCellDensity
+  CQ4: CellLine, CloneID, GeneSymbol, ExpressionValue, CulturePhase
+  CQ5: ProcessType
+  CQ6: CulturePhase, Productivity, GeneSymbol, ExpressionValue
+  CQ7: ViabilityPercentage, GeneSymbol, ExpressionValue
+  CQ8: CellLine, CloneID, TiterValue, QualityType
 
-If you later add a dedicated gene column (e.g., OverexpressedGene), this script will
-use it automatically (see GENE_COLUMN_CANDIDATES).
+Note: GeneSymbol is for expression MEASUREMENTS (CQ4/6/7).
+      OverexpressedGene is for cell line ENGINEERING (CQ2).
+      These are semantically different and use separate columns!
 
 Output:
   - ABox only (instances). To run CQs that rely on subclass hierarchies (rdfs:subClassOf*),
@@ -45,12 +48,12 @@ BFO_HAS_PART       = OBO.BFO_0000051   # has part
 RO_HAS_PARTICIPANT = OBO.RO_0000057    # has participant
 RO_HAS_QUALITY     = OBO.RO_0000086    # has quality
 
-# Candidate columns (case-insensitive) if you later add explicit gene fields
-GENE_COLUMN_CANDIDATES = [
+# Candidate columns (case-insensitive) for CQ2 overexpression (NOT gene expression measurements)
+# Note: GeneSymbol is intentionally NOT here - it's used for expression measurements (CQ4/6/7)
+OVEREXPRESSION_COLUMN_CANDIDATES = [
     "OverexpressedGene", "OverexpressedGenes",
     "EngineeringGene", "EngineeringGenes",
     "OverexpressesGene", "OverexpressesGenes",
-    "Gene", "Genes", "GeneSymbol", "GeneSymbols",
 ]
 
 # Split multiple genes / products in a cell by these separators
@@ -125,9 +128,12 @@ def get_case_insensitive(row, colname: str):
     return None
 
 
-def extract_gene_symbols(row) -> list[str]:
-    """Extract gene symbols from any explicit gene columns if present."""
-    for c in GENE_COLUMN_CANDIDATES:
+def extract_overexpressed_genes(row) -> list[str]:
+    """Extract overexpressed gene symbols from explicit overexpression columns (CQ2).
+    
+    Note: This is separate from GeneSymbol which is used for expression measurements (CQ4/6/7).
+    """
+    for c in OVEREXPRESSION_COLUMN_CANDIDATES:
         v = get_case_insensitive(row, c)
         if pd.notna(v) and str(v).strip():
             raw = str(v).strip()
@@ -269,9 +275,138 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str) -> Graph:
 
             g.add((run_uri, MCBO.hasProductivityMeasurement, prod_uri))
 
-        # 9) CQ2 engineering: infer overexpressed gene from explicit gene columns or (Producer, ProductType)
+        # 9) CollectionDay and ViableCellDensity (CQ3)
+        collection_day = get_case_insensitive(row, "CollectionDay")
+        if pd.notna(collection_day) and str(collection_day).strip() not in {"", "NA", "nan"}:
+            try:
+                g.add((sample_uri, MCBO.hasCollectionDay, Literal(int(float(str(collection_day))), datatype=XSD.integer)))
+            except (ValueError, TypeError):
+                pass
+
+        viable_cell_density = get_case_insensitive(row, "ViableCellDensity")
+        if pd.notna(viable_cell_density) and str(viable_cell_density).strip() not in {"", "NA", "nan"}:
+            viability_uri = MCBO[f"viability_{iri_safe(sample_id)}"]
+            g.add((viability_uri, RDF.type, MCBO.CellViabilityMeasurement))
+            vcd_val, vcd_dt = safe_numeric(viable_cell_density)
+            if vcd_val is not None:
+                g.add((viability_uri, MCBO.hasViableCellDensity, Literal(vcd_val, datatype=vcd_dt)))
+            g.add((sample_uri, MCBO.hasCellViabilityMeasurement, viability_uri))
+
+        # 10) ViabilityPercentage (CQ7)
+        viability_pct = get_case_insensitive(row, "ViabilityPercentage")
+        if pd.notna(viability_pct) and str(viability_pct).strip() not in {"", "NA", "nan"}:
+            # Reuse viability_uri if exists, else create
+            if f"viability_{iri_safe(sample_id)}" not in str(sample_uri):
+                viability_uri = MCBO[f"viability_{iri_safe(sample_id)}"]
+                g.add((viability_uri, RDF.type, MCBO.CellViabilityMeasurement))
+                g.add((sample_uri, MCBO.hasCellViabilityMeasurement, viability_uri))
+            pct_val, pct_dt = safe_numeric(viability_pct)
+            if pct_val is not None:
+                g.add((viability_uri, MCBO.hasViabilityPercentage, Literal(pct_val, datatype=pct_dt)))
+
+        # 11) CloneID (CQ4, CQ8)
+        clone_id = get_case_insensitive(row, "CloneID")
+        clone_uri = None
+        if pd.notna(clone_id) and str(clone_id).strip() not in {"", "NA", "nan"}:
+            clone_str = str(clone_id).strip()
+            clone_uri = MCBO[f"clone_{iri_safe(clone_str)}"]
+            if clone_uri not in created_cell_lines:  # reuse created_cell_lines for clones
+                g.add((clone_uri, RDF.type, MCBO.Clone))
+                g.add((clone_uri, RDFS.label, Literal(clone_str)))
+                if cell_line_uri is not None:
+                    g.add((cell_line_uri, MCBO.hasClone, clone_uri))
+                created_cell_lines.add(clone_uri)
+            g.add((run_uri, MCBO.usesCellLine, clone_uri))
+
+        # 12) GeneSymbol and ExpressionValue (CQ4, CQ6, CQ7)
+        gene_symbol = get_case_insensitive(row, "GeneSymbol")
+        expr_value = get_case_insensitive(row, "ExpressionValue")
+        if pd.notna(gene_symbol) and str(gene_symbol).strip() not in {"", "NA", "nan"}:
+            gene_str = str(gene_symbol).strip()
+            # Handle multiple genes separated by ; or ,
+            gene_list = [gs.strip() for gs in re.split(r'[;,]', gene_str) if gs.strip()]
+            for gene_sym in gene_list:
+                gene_uri = MCBO[f"gene_{iri_safe(gene_sym)}"]
+                if gene_uri not in created_genes:
+                    g.add((gene_uri, RDF.type, MCBO.Gene))
+                    g.add((gene_uri, RDFS.label, Literal(gene_sym)))
+                    created_genes.add(gene_uri)
+
+                # Create gene expression measurement
+                expr_uri = MCBO[f"expr_{iri_safe(sample_id)}_{iri_safe(gene_sym)}"]
+                g.add((expr_uri, RDF.type, MCBO.GeneExpressionMeasurement))
+                g.add((expr_uri, OBO.IAO_0000136, gene_uri))  # is about
+                if pd.notna(expr_value) and str(expr_value).strip() not in {"", "NA", "nan"}:
+                    ev_val, ev_dt = safe_numeric(expr_value)
+                    if ev_val is not None:
+                        g.add((expr_uri, MCBO.hasExpressionValue, Literal(ev_val, datatype=ev_dt)))
+                g.add((sample_uri, MCBO.hasGeneExpression, expr_uri))
+
+        # 13) TiterValue (CQ8)
+        titer_value = get_case_insensitive(row, "TiterValue")
+        if pd.notna(titer_value) and str(titer_value).strip() not in {"", "NA", "nan"}:
+            product_uri = MCBO[f"product_{iri_safe(run_id)}"]
+            g.add((product_uri, RDF.type, MCBO.TherapeuticProtein))
+            titer_val, titer_dt = safe_numeric(titer_value)
+            if titer_val is not None:
+                g.add((product_uri, MCBO.hasTiterValue, Literal(titer_val, datatype=titer_dt)))
+            g.add((run_uri, MCBO.hasProduct, product_uri))
+
+            # Link product type if available
+            if pd.notna(get_case_insensitive(row, "ProductType")):
+                pt = str(get_case_insensitive(row, "ProductType")).strip()
+                if pt and pt.lower() not in {"na", "nan", "control"}:
+                    g.add((product_uri, RDFS.label, Literal(pt)))
+
+        # 14) QualityType (CQ8)
+        quality_type = get_case_insensitive(row, "QualityType")
+        if pd.notna(quality_type) and str(quality_type).strip() not in {"", "NA", "nan"}:
+            quality_str = str(quality_type).strip()
+            quality_uri = MCBO[f"quality_{iri_safe(run_id)}_{iri_safe(quality_str)}"]
+            g.add((quality_uri, RDF.type, MCBO.QualityMeasurement))
+            g.add((quality_uri, RDFS.label, Literal(quality_str)))
+            # Link to product if exists
+            if pd.notna(titer_value):
+                g.add((product_uri, MCBO.hasQualityMeasurement, quality_uri))
+            else:
+                # Create product just for quality
+                product_uri = MCBO[f"product_{iri_safe(run_id)}"]
+                g.add((product_uri, RDF.type, MCBO.TherapeuticProtein))
+                g.add((product_uri, MCBO.hasQualityMeasurement, quality_uri))
+                g.add((run_uri, MCBO.hasProduct, product_uri))
+
+        # 15) Nutrient concentrations for CQ3 (glutamine - medium component)
+        glut_conc = get_case_insensitive(row, "GlutamineConcentration")
+        if pd.notna(glut_conc) and str(glut_conc).strip() not in {"", "NA", "nan"}:
+            # Create nutrient concentration instance
+            nutrient_uri = MCBO[f"glutamine_{iri_safe(run_id)}"]
+            g.add((nutrient_uri, RDF.type, MCBO.GlutamineConcentration))
+            g.add((nutrient_uri, RDF.type, MCBO.NutrientConcentration))  # Explicit for simple queries
+            conc_val, conc_dt = safe_numeric(glut_conc)
+            if conc_val is not None:
+                g.add((nutrient_uri, MCBO.hasConcentrationValue, Literal(conc_val, datatype=conc_dt)))
+                g.add((nutrient_uri, MCBO.hasConcentrationUnit, Literal("mM")))
+            g.add((nutrient_uri, RDFS.label, Literal(f"Glutamine {glut_conc}mM")))
+
+            # Link to medium if exists
+            medium_val = row.get("CultureMedium") or row.get("Medium")
+            if pd.notna(medium_val) and str(medium_val).strip() != "":
+                medium_str = str(medium_val).strip()
+                medium_uri = MCBO[f"medium_{iri_safe(medium_str)}"]
+                g.add((medium_uri, MCBO.hasNutrientConcentration, nutrient_uri))
+            else:
+                # Create a generic medium
+                medium_uri = MCBO[f"medium_{iri_safe(run_id)}"]
+                if medium_uri not in created_media:
+                    g.add((medium_uri, RDF.type, MCBO.CultureMedium))
+                    g.add((medium_uri, RDFS.label, Literal("Culture Medium")))
+                    created_media.add(medium_uri)
+                g.add((medium_uri, MCBO.hasNutrientConcentration, nutrient_uri))
+                g.add((system_uri, BFO_HAS_PART, medium_uri))
+
+        # 16) CQ2 engineering: infer overexpressed gene from explicit overexpression columns or (Producer, ProductType)
         if cell_line_uri is not None:
-            genes = extract_gene_symbols(row)
+            genes = extract_overexpressed_genes(row)
 
             producer = get_case_insensitive(row, "Producer")
             product_type = get_case_insensitive(row, "ProductType")
@@ -313,9 +448,85 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str) -> Graph:
     return g
 
 
+def load_expression_matrix(expr_file: str) -> dict:
+    """Load expression matrix CSV and return dict: {sample_accession: {gene: value, ...}}
+    
+    Expected format:
+        SampleAccession,GeneX,GeneY,GeneZ,...
+        ERS4805133,150,200,50,...
+        ERS4805134,180,220,45,...
+    """
+    df = pd.read_csv(expr_file)
+    result = {}
+    sample_col = None
+    for col in ["SampleAccession", "Sample", "sample_id", "SampleID"]:
+        if col in df.columns:
+            sample_col = col
+            break
+    if sample_col is None:
+        raise ValueError(f"Expression matrix must have a sample identifier column (SampleAccession, Sample, etc.)")
+    
+    gene_cols = [c for c in df.columns if c != sample_col]
+    for _, row in df.iterrows():
+        sample_id = str(row[sample_col]).strip()
+        result[sample_id] = {}
+        for gene in gene_cols:
+            val = row[gene]
+            if pd.notna(val):
+                try:
+                    result[sample_id][gene] = float(val)
+                except (ValueError, TypeError):
+                    pass
+    return result
+
+
+def add_expression_data(g: Graph, sample_uri, sample_id: str, expr_data: dict, created_genes: set):
+    """Add gene expression measurements from expression matrix to the graph."""
+    if sample_id not in expr_data:
+        return
+    
+    for gene_sym, expr_val in expr_data[sample_id].items():
+        gene_uri = MCBO[f"gene_{iri_safe(gene_sym)}"]
+        if gene_uri not in created_genes:
+            g.add((gene_uri, RDF.type, MCBO.Gene))
+            g.add((gene_uri, RDFS.label, Literal(gene_sym)))
+            created_genes.add(gene_uri)
+        
+        expr_uri = MCBO[f"expr_{iri_safe(sample_id)}_{iri_safe(gene_sym)}"]
+        g.add((expr_uri, RDF.type, MCBO.GeneExpressionMeasurement))
+        g.add((expr_uri, OBO.IAO_0000136, gene_uri))  # is about
+        g.add((expr_uri, MCBO.hasExpressionValue, Literal(expr_val, datatype=XSD.decimal)))
+        g.add((sample_uri, MCBO.hasGeneExpression, expr_uri))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert CSV metadata to RDF (MCBO instances)")
     parser.add_argument("--csv_file", type=str, default="data/sample_metadata.csv", help="Input CSV file")
     parser.add_argument("--output_file", type=str, default="data/processed/mcbo_instances.ttl", help="Output TTL file")
+    parser.add_argument("--expression_matrix", type=str, default=None, 
+                        help="Optional expression matrix CSV (genes as columns, samples as rows)")
     args = parser.parse_args()
-    convert_csv_to_rdf(args.csv_file, args.output_file)
+    
+    # Load expression matrix if provided
+    expr_data = {}
+    if args.expression_matrix:
+        print(f"Loading expression matrix from: {args.expression_matrix}")
+        expr_data = load_expression_matrix(args.expression_matrix)
+        print(f"  Loaded expression data for {len(expr_data)} samples")
+    
+    g = convert_csv_to_rdf(args.csv_file, args.output_file)
+    
+    # If expression matrix provided, add expression data
+    if expr_data:
+        # Re-parse to add expression data (slightly inefficient but keeps convert_csv_to_rdf clean)
+        df = pd.read_csv(args.csv_file)
+        created_genes = set()
+        for _, row in df.iterrows():
+            sample_id = str(row.get("SampleAccession", "")).strip()
+            if sample_id and sample_id in expr_data:
+                sample_uri = MCBO[f"sample_{iri_safe(sample_id)}"]
+                add_expression_data(g, sample_uri, sample_id, expr_data, created_genes)
+        
+        # Re-serialize with expression data
+        g.serialize(destination=args.output_file, format="turtle")
+        print(f"Added expression data for {len([s for s in expr_data if s in df['SampleAccession'].astype(str).values])} samples")

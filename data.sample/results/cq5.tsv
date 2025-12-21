@@ -1,0 +1,4 @@
+processType	count
+http://example.org/mcbo#FedBatchCultureProcess	4
+http://example.org/mcbo#BatchCultureProcess	2
+http://example.org/mcbo#PerfusionCultureProcess	2

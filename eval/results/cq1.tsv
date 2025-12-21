@@ -1,4 +1,0 @@
-cellLine	temperature	pH	dissolvedOxygen	productivityType
-http://example.org/mcbo#CHO_S	36.5	7.00	30.0	http://example.org/mcbo#HighProductivity
-http://example.org/mcbo#CHO_K1	37.0	6.95	50.0	http://example.org/mcbo#MediumProductivity
-http://example.org/mcbo#CHO_K1	37.0	7.10	40.0	http://example.org/mcbo#VeryHighProductivity

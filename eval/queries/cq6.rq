@@ -1,0 +1,46 @@
+# CQ6: Which are the top genes correlated with recombinant protein productivity in the stationary phase of all experiments?
+#
+# This query identifies genes with highest expression in stationary phase samples
+# that also have high productivity measurements.
+# Note: Full correlation analysis would require statistical computation outside SPARQL;
+# this query provides expression values for high-productivity stationary phase samples.
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+PREFIX uo: <http://purl.obolibrary.org/obo/>
+
+SELECT ?gene ?geneLabel ?expressionValue ?productivityValue ?productivityCategory ?processType ?cellLine
+WHERE {
+  ?process a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  
+  ?process mcbo:hasProductivityMeasurement ?prodMeas ;
+           mcbo:hasProcessOutput ?sample .
+  OPTIONAL { ?process mcbo:usesCellLine ?cellLine . }
+  
+  ?prodMeas a ?prodCategory .
+  ?prodCategory rdfs:subClassOf* mcbo:ProductivityMeasurement .
+  ?prodMeas mcbo:hasProductivityValue ?productivityValue .
+  OPTIONAL { ?prodCategory rdfs:label ?productivityCategory }
+  
+  # Filter for high/very high productivity
+  FILTER(?prodCategory IN (
+    mcbo:HighProductivity,
+    mcbo:VeryHighProductivity,
+    mcbo:MediumProductivity
+  ))
+  
+  ?sample a mcbo:BioprocessSample ;
+          mcbo:inCulturePhase ?phase .
+  ?phase a mcbo:StationaryPhase .
+  
+  ?sample mcbo:hasGeneExpression ?exprMeas .
+  ?exprMeas a mcbo:GeneExpressionMeasurement ;
+            uo:IAO_0000136 ?gene ;  # is about (gene)
+            mcbo:hasExpressionValue ?expressionValue .
+  
+  OPTIONAL { ?gene rdfs:label ?geneLabel }
+}
+ORDER BY DESC(?productivityValue) DESC(?expressionValue) ?gene
+

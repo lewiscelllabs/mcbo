@@ -1,0 +1,11 @@
+MCBO CQ evaluation run
+Source: graph=/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/graph.ttl + ontology
+
+cq1.rq	9	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq1.tsv
+cq2.rq	1	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq2.tsv
+cq3.rq	4	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq3.tsv
+cq4.rq	224	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq4.tsv
+cq5.rq	3	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq5.tsv
+cq6.rq	26	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq6.tsv
+cq7.rq	7	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq7.tsv
+cq8.rq	3	->	/home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/results/cq8.tsv

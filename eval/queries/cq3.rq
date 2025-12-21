@@ -1,0 +1,48 @@
+# CQ3: Which nutrient concentrations in cell line K are most associated with viable cell density above Z at day 6 of culture?
+#
+# Finds (e.g., glutamine) nutrient concentrations in culture medium associated with high viable cell density in cell line K at day 6.
+# Parameters: cell line (K), minimum viable cell density threshold (Z)
+#
+# Requirements:
+#   - Cell culture processes with CellCultureSystem and CultureMedium/nutrient concentrations
+#   - Samples collected at day 6 with viability measurements
+#   - (Optional) Filter by cell line
+
+PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ro: <http://purl.obolibrary.org/obo/RO_>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+
+SELECT ?cellLine ?nutrientType ?concentrationValue ?concentrationUnit ?viableCellDensity ?collectionDay
+WHERE {
+  ?process a ?processType .
+  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  
+  ?process ro:0000057 ?system .
+  OPTIONAL { ?process mcbo:usesCellLine ?cellLine . }
+  
+  ?system a mcbo:CellCultureSystem .
+  ?system bfo:0000051 ?medium .  # has part (medium)
+  
+  ?medium a mcbo:CultureMedium .
+  ?medium mcbo:hasNutrientConcentration ?nutrient .
+  
+  ?nutrient a mcbo:NutrientConcentration ;
+            mcbo:hasConcentrationValue ?concentrationValue ;
+            mcbo:hasConcentrationUnit ?concentrationUnit .
+  OPTIONAL { ?nutrient rdfs:label ?nutrientType }
+  
+  ?process mcbo:hasProcessOutput ?sample .
+  ?sample a mcbo:BioprocessSample ;
+          mcbo:hasCollectionDay ?collectionDay ;
+          mcbo:hasCellViabilityMeasurement ?viability .
+  
+  ?viability a mcbo:CellViabilityMeasurement ;
+             mcbo:hasViableCellDensity ?viableCellDensity .
+  
+  FILTER(?collectionDay = 6)
+  # Filter for high viable cell density (threshold Z could be parameterized)
+  # Example: FILTER(?viableCellDensity > 5000000)  # 5M cells/mL
+}
+ORDER BY DESC(?viableCellDensity) ?cellLine ?nutrientType
+

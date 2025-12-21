@@ -1,0 +1,12 @@
+Statistics for: /home/krobasky/dropZone/uga/uga-repos/mcbo/data.sample/graph.ttl
+============================================================
+
+Cell Culture Process Instances: 8
+  Breakdown by type:
+    Batch culture process: 2
+    Fed-batch culture process: 4
+    Perfusion culture process: 2
+
+Bioprocess Sample Instances: 8
+
+============================================================

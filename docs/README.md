@@ -46,7 +46,7 @@ Deliverables (TTL/OWL + modular slim).
  (Cite: IOF RDF, NIIMBL context as relevance.) CEUR-WSNIIMBL
 
 ## Evaluation / Case Study (pull from application & impact)
-Successfully integrated 725 curated bioprocessing samples from published studies, distributed across Batch (482), Cell Culture (241), Fed-batch (1), and Perfusion (1) processes.
+Successfully integrated 724 curated bioprocessing samples from published studies, distributed across Batch (518), Fed-batch (135), Perfusion (49), and Unknown (22) processes.
 
 CQ's:
 - CQ1 (Culture optimization): 402 results correlating culture conditions with productivity measurements
@@ -54,7 +54,7 @@ CQ's:
 - CQ5 (Process comparison): 4 process types identified for comparative analysis
 
 Overall Coverage: 75% of competency questions returned results with real data
-All competency questions executed within sub-second response times on the 725-sample dataset. Complex multi-table relationship traversals successfully processed culture condition-productivity correlations. Full compatibility with OBO Foundry ontologies (OBI, BFO, ChEBI, GO) ensures interoperability with existing life sciences semantic infrastructure. CQ1 results enable systematic culture optimization analysis across multiple studies; insights not achievable with traditional tabular approaches. The ontology successfully harmonized heterogeneous experimental data into queryable knowledge graphs. Gene expression integration (CQ3) requires additional RNA-seq processing workflows. The current dataset lacks detailed nutrient concentration linkages. Overall, MCBO demonstrates effective bioprocessing data integration with 725 real samples, 75% competency question coverage, and practical analytical capabilities. The framework provides a robust foundation for systematic bioprocess optimization and cross-study comparative analysis.
+All competency questions executed within sub-second response times on the 724-sample dataset. Complex multi-table relationship traversals successfully processed culture condition-productivity correlations. Reuse of OBO Foundry ontologies (OBI, BFO, ChEBI, GO) ensures interoperability with existing life sciences semantic infrastructure. CQ1 results enable systematic culture optimization analysis across multiple studies; insights not achievable with traditional tabular approaches. The ontology successfully harmonized heterogeneous experimental data into queryable knowledge graphs. Gene expression integration (CQ3) requires additional RNA-seq processing workflows. The current dataset lacks detailed nutrient concentration linkages. Overall, MCBO demonstrates effective bioprocessing data integration with 724 real samples, 75% competency question coverage, and practical analytical capabilities. The framework provides a robust foundation for systematic bioprocess optimization and cross-study comparative analysis.
 
 ## Discussion ( pull from application & impact)
 Benefits (interoperability, reuse, modularity).
@@ -64,5 +64,141 @@ Lessons learned about application-level commitment.
 ## Conclusion & Future Work
 Extensions: downstream purification, proteomics, digital-twin alignment, community release plan.
 Invite feedback and contributions (Git repo & issue templates).
+
+---
+
+# Data Workflow Instructions
+
+## Demo Data (Public)
+
+The `data.sample/` directory contains demonstration data for testing the workflow:
+
+```bash
+conda activate mcbo
+
+# Build graph from demo data
+python scripts/build_graph.py build \
+  --studies-dir data.sample \
+  --output data.sample/graph.ttl
+
+# Evaluate against all 8 CQs
+python run_eval.py \
+  --graph data.sample/graph.ttl \
+  --queries eval/queries \
+  --results data.sample/results
+
+# View results
+cat data.sample/results/SUMMARY.txt
+```
+
+## Real Data (Private - .gitignore'd)
+
+For curated real-world data, use the `.data/` directory (not tracked in git):
+
+### Directory Structure
+
+```
+.data/
+├── studies/
+│   ├── dhiman_2020/
+│   │   ├── sample_metadata.csv
+│   │   └── expression_matrix.csv  # optional
+│   ├── kol_2020/
+│   │   └── sample_metadata.csv
+│   └── your_new_study/
+│       ├── sample_metadata.csv
+│       └── expression_matrix.csv
+├── processed/
+│   └── mcbo_instances.ttl         # generated
+└── graph.ttl                      # generated
+```
+
+### Adding a New Study
+
+1. **Create study directory:**
+   ```bash
+   mkdir -p .data/studies/my_study_2024
+   ```
+
+2. **Add metadata CSV** (see `docs/CQ_DATA_REQUIREMENTS.md` for column definitions):
+   ```bash
+   # Minimum required columns:
+   # RunAccession, SampleAccession, CellLine, ProcessType
+   cp template.csv .data/studies/my_study_2024/sample_metadata.csv
+   # Edit with your data...
+   ```
+
+3. **Add expression matrix** (optional, for CQ4/6/7):
+   ```bash
+   # Format: SampleAccession as first column, genes as remaining columns
+   # SampleAccession,ACTB,GAPDH,MYC,...
+   # SAMPLE001,1000,800,250,...
+   ```
+
+### Build and Evaluate
+
+```bash
+conda activate mcbo
+
+# Option A: Add study incrementally
+python scripts/build_graph.py add-study \
+  --study-dir .data/studies/my_study_2024 \
+  --instances .data/processed/mcbo_instances.ttl
+
+# Option B: Rebuild all studies
+python scripts/build_graph.py build \
+  --studies-dir .data/studies \
+  --instances .data/processed/mcbo_instances.ttl \
+  --output .data/graph.ttl
+
+# Merge with ontology (if using Option A)
+python scripts/build_graph.py merge \
+  --ontology ontology/mcbo.owl.ttl \
+  --instances .data/processed/mcbo_instances.ttl \
+  --output .data/graph.ttl
+
+# Evaluate
+python run_eval.py \
+  --graph .data/graph.ttl \
+  --queries eval/queries \
+  --results .data/results
+
+# run demo data
+# Rebuild studies
+python scripts/build_graph.py build \
+  --studies-dir data.sample/studies \
+  --instances data.sample/processed/mcbo_instances.ttl \
+  --output data.sample/graph.ttl
+
+# Evaluate
+python run_eval.py \
+  --graph data.sample/graph.ttl \
+  --queries eval/queries \
+  --results data.sample/results
+
+
+# Compare with demo data
+cat .data/results/SUMMARY.txt
+cat data.sample/results/SUMMARY.txt
+```
+
+### Column Reference (Quick)
+
+| Column | CQs | Description |
+|--------|-----|-------------|
+| `RunAccession` | all | Unique run ID |
+| `SampleAccession` | all | Unique sample ID |
+| `CellLine` | CQ1-8 | Cell line name (CHO-K1, HEK293) |
+| `ProcessType` | CQ5 | Batch, FedBatch, Perfusion |
+| `Temperature`, `pH`, `DissolvedOxygen` | CQ1 | Culture conditions |
+| `Productivity` | CQ1, CQ6 | High/Medium/Low or numeric |
+| `CollectionDay` | CQ3 | Day of sample collection |
+| `ViableCellDensity` | CQ3 | Viable cells/mL |
+| `ViabilityPercentage` | CQ7 | Cell viability % |
+| `CloneID` | CQ4, CQ8 | Clone identifier |
+| `GlutamineConcentration` | CQ3 | mM glutamine |
+| `TiterValue`, `QualityType` | CQ8 | Product quality |
+
+See `docs/CQ_DATA_REQUIREMENTS.md` for complete documentation.
 
 
