@@ -1,6 +1,8 @@
 # MCBO Python Dependencies
 # Conda environment name: mcbo
 # For creating a new conda environment: conda create -n mcbo python=3.10 && conda activate mcbo && pip install -r requirements.txt
+#
+# For building documentation locally, also install: pip install -r docs/requirements.txt
 
 rdflib>=7.0.0
 pandas>=1.5.0

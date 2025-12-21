@@ -14,7 +14,7 @@
 #   - Python package installed: make install
 #   - ROBOT jar at .robot/robot.jar (for QC checks)
 
-.PHONY: all demo real qc clean help install robot verify-demo verify-real stats-demo stats-real conda-env check-env
+.PHONY: all demo real qc clean help install robot verify-demo verify-real stats-demo stats-real conda-env check-env docs docs-clean
 
 # Configuration
 PYTHON := python
@@ -63,6 +63,8 @@ help:
 	@echo "  make demo-eval    Run CQ evaluation on demo data"
 	@echo "  make demo-stats   Show demo data statistics"
 	@echo "  make verify-demo  Verify demo graph parses"
+	@echo "  make docs         Build Sphinx documentation"
+	@echo "  make docs-clean   Clean documentation build"
 	@echo ""
 	@echo "Configuration by convention:"
 	@echo "  Graph files:     <data-dir>/graph.ttl"
@@ -292,7 +294,18 @@ ci: install qc demo verify-demo
 	@echo ""
 	@echo "✅ CI checks passed"
 
-# Placeholder for future docs target
-# docs:
-#	cd docs && make html
+# =============================================================================
+# Documentation Targets
+# =============================================================================
+
+docs:
+	@echo "Building Sphinx documentation..."
+	@cd docs && $(MAKE) html
+	@echo ""
+	@echo "✅ Documentation built successfully"
+	@echo "   Open docs/_build/html/index.html in your browser"
+
+docs-clean:
+	@echo "Cleaning documentation build..."
+	@cd docs && $(MAKE) clean
 

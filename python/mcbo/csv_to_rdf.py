@@ -479,16 +479,32 @@ def add_expression_data(g, sample_uri, sample_id: str, expr_data: dict, created_
         g.add((sample_uri, MCBO.hasGeneExpression, expr_uri))
 
 
+# Configuration by convention defaults
+DEFAULT_PATHS = {
+    "metadata": "sample_metadata.csv",
+    "instances": "mcbo-instances.ttl",
+    "expression": "expression",
+}
+
+
+def resolve_data_dir_path(data_dir, key: str):
+    """Resolve a path relative to data_dir using convention defaults."""
+    from pathlib import Path
+    return Path(data_dir) / DEFAULT_PATHS[key]
+
+
 def main():
     """CLI entry point for CSV to RDF conversion.
     
     Usage (after pip install -e python/):
-      mcbo-csv-to-rdf --csv_file data/sample_metadata.csv --output_file data/mcbo-instances.ttl
+      mcbo-csv-to-rdf --data-dir data.sample                    # Config-by-convention
+      mcbo-csv-to-rdf --csv_file data/sample_metadata.csv       # Explicit paths
     
     Or run directly:
-      python -m mcbo.csv_to_rdf --csv_file data/sample_metadata.csv --output_file data/mcbo-instances.ttl
+      python -m mcbo.csv_to_rdf --data-dir data.sample
     """
     import argparse
+    from pathlib import Path
     
     from .namespaces import MCBO
     from .graph_utils import iri_safe
@@ -498,42 +514,59 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Scenario 1: Single metadata file, no expression data
+  # CONFIG-BY-CONVENTION (recommended)
+  mcbo-csv-to-rdf --data-dir data.sample
+  mcbo-csv-to-rdf --data-dir .data
+
+  # Explicit paths - Scenario 1: Single metadata file, no expression data
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
     --output_file .data/mcbo-instances.ttl
 
-  # Scenario 2: Single metadata + single expression matrix
+  # Explicit paths - Scenario 2: Single metadata + single expression matrix
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
     --output_file .data/mcbo-instances.ttl \\
     --expression_matrix .data/expression_matrix.csv
 
-  # Scenario 3: Single metadata + multiple expression matrices (per-study)
-  # Expression files in directory are matched to samples by SampleAccession
+  # Explicit paths - Scenario 3: Single metadata + per-study expression matrices
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
     --output_file .data/mcbo-instances.ttl \\
     --expression_dir .data/expression/
 
-  # Demo data example with per-study expression
-  mcbo-csv-to-rdf \\
-    --csv_file data.sample/sample_metadata.csv \\
-    --output_file data.sample/mcbo-instances.ttl \\
-    --expression_dir data.sample/expression/
+Convention: When using --data-dir, the tool looks for:
+  <data-dir>/sample_metadata.csv     - input metadata CSV
+  <data-dir>/mcbo-instances.ttl      - output instance data (ABox)
+  <data-dir>/expression/             - optional per-study expression matrices
 
-Note: For multi-study workflows with separate directories, use mcbo-build-graph instead.
+Note: For building the full graph (TBox + ABox), use mcbo-build-graph instead.
 """
     )
-    parser.add_argument("--csv_file", type=str, default="data/sample_metadata.csv", 
+    parser.add_argument("--data-dir", type=Path, default=None,
+                        help="Data directory (uses config-by-convention)")
+    parser.add_argument("--csv_file", type=str, default=None, 
                         help="Input CSV file with sample metadata")
-    parser.add_argument("--output_file", type=str, default="data/mcbo-instances.ttl", 
+    parser.add_argument("--output_file", type=str, default=None, 
                         help="Output TTL file")
     parser.add_argument("--expression_matrix", type=str, default=None, 
                         help="Single expression matrix CSV (genes as columns, samples as rows)")
     parser.add_argument("--expression_dir", type=str, default=None,
                         help="Directory containing multiple expression matrix CSVs (one per study)")
     args = parser.parse_args()
+    
+    # Resolve paths using config-by-convention
+    if args.data_dir:
+        csv_file = args.csv_file or str(resolve_data_dir_path(args.data_dir, "metadata"))
+        output_file = args.output_file or str(resolve_data_dir_path(args.data_dir, "instances"))
+        # Auto-detect expression dir if it exists and not explicitly specified
+        if not args.expression_matrix and not args.expression_dir:
+            expr_dir_path = resolve_data_dir_path(args.data_dir, "expression")
+            if expr_dir_path.exists():
+                args.expression_dir = str(expr_dir_path)
+    else:
+        csv_file = args.csv_file or "data/sample_metadata.csv"
+        output_file = args.output_file or "data/mcbo-instances.ttl"
     
     # Validate mutually exclusive options
     if args.expression_matrix and args.expression_dir:
@@ -548,11 +581,11 @@ Note: For multi-study workflows with separate directories, use mcbo-build-graph 
     elif args.expression_dir:
         expr_data = load_expression_dir(args.expression_dir)
     
-    g = convert_csv_to_rdf(args.csv_file, args.output_file)
+    g = convert_csv_to_rdf(csv_file, output_file)
     
     # If expression data provided, add to graph
     if expr_data:
-        df = pd.read_csv(args.csv_file)
+        df = pd.read_csv(csv_file)
         created_genes = set()
         matched_count = 0
         for _, row in df.iterrows():
@@ -563,7 +596,7 @@ Note: For multi-study workflows with separate directories, use mcbo-build-graph 
                 matched_count += 1
         
         # Re-serialize with expression data
-        g.serialize(destination=args.output_file, format="turtle")
+        g.serialize(destination=output_file, format="turtle")
         print(f"Added expression data for {matched_count} samples ({len(created_genes)} unique genes)")
 
 

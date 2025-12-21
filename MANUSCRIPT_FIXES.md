@@ -135,6 +135,10 @@ All dataset classes (e.g., `RNASeqDataset`, `RawReadsDataset`, `AlignedReadsData
 
 **Location:** Evaluation section, after describing the 724-sample dataset
 
+**Add paragraph:**
+
+To enable reviewer reproduction without access to the private curated dataset, we provide a public demonstration dataset (`data.sample/`) containing three synthetic studies with 10 process runs. This sample data is structured to exercise all 8 competency questions and demonstrates the full data ingestion workflow. Table X contrasts results between the real curated data and the demonstration data:
+
 **Demo data statistics** (from `mcbo-stats --data-dir data.sample`):
 ```
 Cell Culture Process Instances: 10
