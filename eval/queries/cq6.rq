@@ -12,6 +12,8 @@ PREFIX uo: <http://purl.obolibrary.org/obo/>
 
 SELECT ?gene ?geneLabel ?expressionValue ?productivityValue ?productivityCategory ?processType ?cellLine
 WHERE {
+  # Match any process that is (directly or transitively) a CellCultureProcess
+  # Also capture the direct process type for reporting
   ?process a ?processType .
   ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
   

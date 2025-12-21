@@ -6,8 +6,8 @@ This guide covers setting up the MCBO development environment.
 Prerequisites
 -------------
 
+- **Conda** or **Miniconda** (for environment management), which will install:
 - **Python 3.9+** (3.10 recommended)
-- **Conda** (for environment management)
 - **Java** (for ROBOT ontology tool)
 
 Creating the Conda Environment

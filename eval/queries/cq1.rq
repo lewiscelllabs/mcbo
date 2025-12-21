@@ -7,8 +7,8 @@ PREFIX ro:   <http://purl.obolibrary.org/obo/RO_>
 
 SELECT ?cellLine ?temperature ?pH ?dissolvedOxygen ?productivityType
 WHERE {
-  ?process a ?processType .
-  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  # Match any process that is (directly or transitively) a CellCultureProcess
+  ?process a/rdfs:subClassOf* mcbo:CellCultureProcess .
 
   ?process mcbo:usesCellLine ?cellLine ;
            mcbo:hasProductivityMeasurement ?prodMeasure ;

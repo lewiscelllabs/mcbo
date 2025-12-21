@@ -14,6 +14,7 @@ Or run directly:
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 from typing import Iterable, Tuple
 
@@ -21,6 +22,15 @@ from rdflib import Graph
 from rdflib.query import Result
 
 from .graph_utils import load_graphs, ensure_dir, ensure_parent_dir
+
+
+def format_duration(seconds: float) -> str:
+    """Format duration in human-readable form."""
+    if seconds < 60:
+        return f"{seconds:.1f}s"
+    minutes = int(seconds // 60)
+    secs = seconds % 60
+    return f"{minutes}m {secs:.1f}s"
 
 
 # Configuration by convention defaults
@@ -130,6 +140,8 @@ Convention: When using --data-dir, the tool looks for:
 
     # Load graph
     ontology_path = Path("ontology/mcbo.owl.ttl")
+    print("Loading graph...", end="", flush=True)
+    load_start = time.time()
     try:
         if graph_path:
             graph_paths = [Path(graph_path)]
@@ -143,9 +155,11 @@ Convention: When using --data-dir, the tool looks for:
                 raise SystemExit("Provide --graph, --data-dir, or both --ontology and --instances.")
             g = load_graphs([Path(args.ontology), Path(args.instances)])
             source_desc = f"ontology={args.ontology}, instances={args.instances}"
+        load_time = time.time() - load_start
+        print(f" loaded {len(g):,} triples in {format_duration(load_time)}")
     except Exception as e:
         if args.verify:
-            print(f"FAIL: Graph parsing failed - {e}")
+            print(f"\nFAIL: Graph parsing failed - {e}")
             raise SystemExit(1)
         raise
 
@@ -162,19 +176,35 @@ Convention: When using --data-dir, the tool looks for:
         g.serialize(destination=str(out_path), format="turtle")
 
     # Run each query
+    query_files = list(iter_query_files(query_dir))
+    total_queries = len(query_files)
+    print(f"Running {total_queries} competency queries...")
+    
     any_empty = False
     summary_lines = []
-    for qfile in iter_query_files(query_dir):
+    eval_start = time.time()
+    
+    for i, qfile in enumerate(query_files, 1):
+        print(f"  [{i}/{total_queries}] {qfile.name}...", end="", flush=True)
+        query_start = time.time()
+        
         qtext = qfile.read_text(encoding="utf-8")
         res = run_query(g, qtext)
         tsv, nrows = result_to_tsv(res)
 
         out_tsv = results_dir / (qfile.stem + ".tsv")
         out_tsv.write_text(tsv, encoding="utf-8")
+        
+        query_time = time.time() - query_start
+        status = "✓" if nrows > 0 else "⚠"
+        print(f" {status} {nrows} rows ({format_duration(query_time)})")
 
         summary_lines.append(f"{qfile.name}\t{nrows}\t->\t{out_tsv}")
         if nrows == 0:
             any_empty = True
+    
+    total_time = time.time() - eval_start
+    print(f"Completed {total_queries} queries in {format_duration(total_time)}")
 
     # Write a simple run summary
     summary_path = results_dir / "SUMMARY.txt"

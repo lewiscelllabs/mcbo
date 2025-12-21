@@ -12,8 +12,8 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?cellLine ?cellLineLabel ?clone ?cloneLabel ?product ?productLabel 
        ?qualityMeas ?qualityLabel ?titerValue
 WHERE {
-  ?process a ?processType .
-  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  # Match any process that is (directly or transitively) a CellCultureProcess
+  ?process a/rdfs:subClassOf* mcbo:CellCultureProcess .
   
   ?process mcbo:usesCellLine ?cellLine .
   OPTIONAL { ?cellLine rdfs:label ?cellLineLabel }

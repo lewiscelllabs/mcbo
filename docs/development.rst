@@ -170,7 +170,7 @@ Evaluation Results
      - Requires CollectionDay, ViableCellDensity
    * - CQ4
      - 0
-     - 224
+     - 144
      - Requires expression matrix
    * - CQ5
      - 4

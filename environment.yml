@@ -1,0 +1,16 @@
+# MCBO Conda Environment
+#
+# Usage (mamba recommended for faster installs):
+#   mamba env create -f environment.yml   # or: conda env create -f environment.yml
+#   conda activate mcbo
+#   pip install -r requirements.txt
+#   pip install -e python/
+
+name: mcbo
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - openjdk>=11  # Required for ROBOT QC checks
+

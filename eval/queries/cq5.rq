@@ -8,8 +8,10 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?processType (COUNT(?process) AS ?count)
 WHERE {
+  # Get the direct type of each process that is a subclass of CellCultureProcess
   ?process a ?processType .
   ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
+  # Note: This query intentionally keeps ?processType to group by specific process types
 }
 GROUP BY ?processType
 ORDER BY DESC(?count) ?processType

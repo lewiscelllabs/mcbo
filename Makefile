@@ -14,7 +14,7 @@
 #   - Python package installed: make install
 #   - ROBOT jar at .robot/robot.jar (for QC checks)
 
-.PHONY: all demo real qc clean help install robot verify-demo verify-real stats-demo stats-real conda-env check-env docs docs-clean
+.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology
 
 # Configuration
 PYTHON := python
@@ -23,8 +23,10 @@ ONTOLOGY := ontology/mcbo.owl.ttl
 SPARQL_DIR := sparql
 REPORTS_DIR := reports/robot
 
-# Conda detection
+# Conda/Mamba detection (prefer mamba for faster dependency resolution)
 CONDA := $(shell command -v conda 2>/dev/null)
+MAMBA := $(shell command -v mamba 2>/dev/null)
+CONDA_OR_MAMBA := $(if $(MAMBA),mamba,conda)
 MCBO_ENV_ACTIVE := $(shell [ "$$CONDA_DEFAULT_ENV" = "mcbo" ] && echo 1 || echo 0)
 
 # Demo data paths
@@ -37,7 +39,25 @@ DEMO_RESULTS := $(DEMO_DIR)/results
 REAL_DIR := .data
 REAL_GRAPH := $(REAL_DIR)/graph.ttl
 REAL_INSTANCES := $(REAL_DIR)/mcbo-instances.ttl
+REAL_CSV := $(REAL_DIR)/sample_metadata.csv
 REAL_RESULTS := $(REAL_DIR)/results
+
+# Output files (for proper dependency tracking)
+DEMO_SUMMARY := $(DEMO_RESULTS)/SUMMARY.txt
+DEMO_STATS := $(DEMO_DIR)/STATS.txt
+REAL_SUMMARY := $(REAL_RESULTS)/SUMMARY.txt
+REAL_STATS := $(REAL_DIR)/STATS.txt
+INSTALL_STAMP := .install.stamp
+
+# QC report files
+QC_ORPHAN := $(REPORTS_DIR)/orphan_classes.tsv
+QC_DUPLABELS := $(REPORTS_DIR)/duplicate_labels.tsv
+QC_MISSINGDEFS := $(REPORTS_DIR)/missing_definitions.tsv
+# Real data QC reports go under the data directory (not checked in)
+REAL_REPORTS_DIR := $(REAL_DIR)/reports
+REAL_QC_ORPHAN := $(REAL_REPORTS_DIR)/orphan_classes.tsv
+REAL_QC_DUPLABELS := $(REAL_REPORTS_DIR)/duplicate_labels.tsv
+REAL_QC_MISSINGDEFS := $(REAL_REPORTS_DIR)/missing_definitions.tsv
 
 # Default target
 all: demo qc
@@ -80,15 +100,16 @@ conda-env:
 ifndef CONDA
 	@echo "❌ Conda not found"
 	@echo ""
-	@echo "Please install Conda (Miniconda recommended):"
+	@echo "Please install Miniforge (recommended) or Miniconda:"
+	@echo "  https://github.com/conda-forge/miniforge#miniforge3"
 	@echo "  https://docs.conda.io/en/latest/miniconda.html"
 	@echo ""
 	@echo "Quick install (Linux):"
-	@echo "  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-	@echo "  bash Miniconda3-latest-Linux-x86_64.sh"
+	@echo "  wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
+	@echo "  bash Miniforge3-Linux-x86_64.sh"
 	@echo ""
 	@echo "Quick install (macOS):"
-	@echo "  brew install miniconda"
+	@echo "  brew install miniforge"
 	@echo ""
 	@exit 1
 else
@@ -96,10 +117,16 @@ else
 		echo "ℹ️  Conda environment 'mcbo' already exists"; \
 		echo "   To recreate: conda env remove -n mcbo && make conda-env"; \
 	else \
-		echo "Creating mcbo conda environment..."; \
-		conda create -n mcbo python=3.10 -y; \
+		echo "Creating mcbo conda environment from environment.yml..."; \
+		if command -v mamba >/dev/null 2>&1; then \
+			echo "  (using mamba for faster dependency resolution)"; \
+			mamba env create -f environment.yml; \
+		else \
+			echo "  (tip: install mamba for faster installs: conda install -n base mamba)"; \
+			conda env create -f environment.yml; \
+		fi; \
 		echo ""; \
-		echo "✅ Environment created!"; \
+		echo "✅ Environment created (includes Python 3.10 + OpenJDK)!"; \
 	fi
 	@# Add CONDA_DEFAULT_ENV to .env if not present (for IDE integration)
 	@if [ -f .env ]; then \
@@ -117,13 +144,17 @@ check-env:
 	@if [ "$(MCBO_ENV_ACTIVE)" != "1" ]; then \
 		echo "⚠️  Warning: mcbo conda environment is not active"; \
 		echo "   Run: conda activate mcbo"; \
+		echo "   Or to create: make conda-env (requires conda/mamba)"; \
 		echo ""; \
 	fi
 
 # Installation (requires active conda environment)
-install: check-env
+install: check-env $(INSTALL_STAMP)
+
+$(INSTALL_STAMP): requirements.txt python/pyproject.toml
 	pip install -r requirements.txt
 	pip install -e python/
+	@touch $(INSTALL_STAMP)
 	@echo ""
 	@echo "✅ mcbo package installed"
 
@@ -138,7 +169,7 @@ $(ROBOT_JAR):
 # Demo Data Targets
 # =============================================================================
 
-demo: check-env demo-build demo-eval demo-stats
+demo: check-env $(DEMO_GRAPH) $(DEMO_SUMMARY) $(DEMO_STATS)
 	@echo ""
 	@echo "✅ Demo data processing complete"
 	@echo "   Graph: $(DEMO_GRAPH)"
@@ -156,16 +187,22 @@ $(DEMO_GRAPH): $(ONTOLOGY) $(wildcard $(DEMO_DIR)/studies/*/sample_metadata.csv)
 		echo "Error: No data found in $(DEMO_DIR)"; exit 1; \
 	fi
 
-demo-eval: $(DEMO_GRAPH)
+demo-eval: $(DEMO_SUMMARY)
+
+$(DEMO_SUMMARY): $(DEMO_GRAPH) $(wildcard eval/queries/*.rq)
 	@echo "Running CQ evaluation on demo data..."
 	@mkdir -p $(DEMO_RESULTS)
 	mcbo-run-eval --data-dir $(DEMO_DIR)
 	@echo ""
-	@cat $(DEMO_RESULTS)/SUMMARY.txt
+	@cat $(DEMO_SUMMARY)
 
-demo-stats: $(DEMO_GRAPH)
-	@echo "Demo data statistics:"
-	mcbo-stats --data-dir $(DEMO_DIR)
+demo-stats: $(DEMO_STATS)
+	@cat $(DEMO_STATS)
+
+$(DEMO_STATS): $(DEMO_GRAPH)
+	@echo "Generating demo data statistics..."
+	@mcbo-stats --data-dir $(DEMO_DIR) > $(DEMO_STATS)
+	@echo "  -> $(DEMO_STATS)"
 
 verify-demo: $(DEMO_GRAPH)
 	mcbo-run-eval --data-dir $(DEMO_DIR) --verify
@@ -174,7 +211,7 @@ verify-demo: $(DEMO_GRAPH)
 # Real Data Targets
 # =============================================================================
 
-real: check-env real-build real-eval real-stats real-qc
+real: check-env $(REAL_GRAPH) $(REAL_SUMMARY) $(REAL_STATS)
 	@echo ""
 	@echo "✅ Real data processing complete"
 	@echo "   Graph: $(REAL_GRAPH)"
@@ -182,34 +219,42 @@ real: check-env real-build real-eval real-stats real-qc
 
 real-build: $(REAL_GRAPH)
 
-$(REAL_GRAPH): $(ONTOLOGY) $(wildcard $(REAL_DIR)/studies/*/sample_metadata.csv) $(wildcard $(REAL_DIR)/sample_metadata.csv)
+# Build real data graph using mcbo-build-graph (handles studies + expression data)
+$(REAL_GRAPH): $(ONTOLOGY) $(wildcard $(REAL_DIR)/studies/*/sample_metadata.csv) $(wildcard $(REAL_CSV))
 	@if [ ! -d "$(REAL_DIR)" ]; then \
 		echo "ℹ️  Real data directory ($(REAL_DIR)) not found"; \
 		echo "   This is normal for public clones without private data."; \
 		exit 0; \
 	fi
 	@echo "Building real data graph..."
-	@if [ -d "$(REAL_DIR)/studies" ] && [ -n "$$(ls -A $(REAL_DIR)/studies 2>/dev/null)" ]; then \
+	@if [ -d "$(REAL_DIR)/studies" ] && [ -n "$$(find $(REAL_DIR)/studies -name 'sample_metadata.csv' 2>/dev/null)" ]; then \
 		mcbo-build-graph build --data-dir $(REAL_DIR); \
-	elif [ -f "$(REAL_DIR)/sample_metadata.csv" ]; then \
+	elif [ -f "$(REAL_CSV)" ]; then \
 		mcbo-build-graph bootstrap --data-dir $(REAL_DIR); \
 	else \
 		echo "Warning: No data found in $(REAL_DIR)"; \
+		echo "  Expected: $(REAL_DIR)/studies/*/sample_metadata.csv or $(REAL_CSV)"; \
 	fi
 
-real-eval: $(REAL_GRAPH)
+real-eval: $(REAL_SUMMARY)
+
+$(REAL_SUMMARY): $(REAL_GRAPH) $(wildcard eval/queries/*.rq)
 	@if [ -f "$(REAL_GRAPH)" ]; then \
 		echo "Running CQ evaluation on real data..."; \
 		mkdir -p $(REAL_RESULTS); \
 		mcbo-run-eval --data-dir $(REAL_DIR); \
 		echo ""; \
-		cat $(REAL_RESULTS)/SUMMARY.txt; \
+		cat $(REAL_SUMMARY); \
 	fi
 
-real-stats: $(REAL_GRAPH)
+real-stats: $(REAL_STATS)
+	@if [ -f "$(REAL_STATS)" ]; then cat $(REAL_STATS); fi
+
+$(REAL_STATS): $(REAL_GRAPH)
 	@if [ -f "$(REAL_GRAPH)" ]; then \
-		echo "Real data statistics:"; \
-		mcbo-stats --data-dir $(REAL_DIR); \
+		echo "Generating real data statistics..."; \
+		mcbo-stats --data-dir $(REAL_DIR) > $(REAL_STATS); \
+		echo "  -> $(REAL_STATS)"; \
 	fi
 
 verify-real:
@@ -219,72 +264,95 @@ verify-real:
 		echo "ℹ️  Real data graph not found ($(REAL_GRAPH))"; \
 	fi
 
-real-qc: $(REAL_GRAPH)
+# Note: real-qc is NOT included in 'make real' by default.
+# The QC queries (orphan_classes, duplicate_labels, missing_definitions) are designed
+# for ontology classes (TBox), not instance data (ABox). Use 'make qc' for ontology QC.
+# This target is kept for manual use if needed.
+real-qc: $(REAL_GRAPH) $(ROBOT_JAR)
+	@echo "⚠️  Note: QC queries are designed for ontology, not instance data"
 	@if [ -f "$(REAL_GRAPH)" ]; then \
-		echo "Running QC on real data graph..."; \
-		mkdir -p $(REPORTS_DIR)/real_data; \
+		mkdir -p $(REAL_REPORTS_DIR); \
 		java -jar $(ROBOT_JAR) query \
 			--input $(REAL_GRAPH) \
 			--query $(SPARQL_DIR)/orphan_classes.rq \
-			$(REPORTS_DIR)/real_data/orphan_classes.tsv 2>&1 | grep -v "WARNING:.*Unsafe" || true; \
+			$(REAL_QC_ORPHAN) 2>&1 | grep -v "WARNING:.*Unsafe" || true; \
 		java -jar $(ROBOT_JAR) query \
 			--input $(REAL_GRAPH) \
 			--query $(SPARQL_DIR)/duplicate_labels.rq \
-			$(REPORTS_DIR)/real_data/duplicate_labels.tsv 2>&1 | grep -v "WARNING:.*Unsafe" || true; \
+			$(REAL_QC_DUPLABELS) 2>&1 | grep -v "WARNING:.*Unsafe" || true; \
+		java -jar $(ROBOT_JAR) query \
+			--input $(REAL_GRAPH) \
+			--query $(SPARQL_DIR)/missing_definitions.rq \
+			$(REAL_QC_MISSINGDEFS) 2>&1 | grep -v "WARNING:.*Unsafe" || true; \
+		echo "  Reports: $(REAL_REPORTS_DIR)/"; \
 	fi
 
 # =============================================================================
 # QC Targets
 # =============================================================================
 
-qc: $(ROBOT_JAR) qc-ontology
+qc: $(QC_ORPHAN) $(QC_DUPLABELS) $(QC_MISSINGDEFS)
 	@echo ""
 	@echo "✅ QC checks complete"
 	@echo "   Reports: $(REPORTS_DIR)/"
 
-qc-ontology: $(ROBOT_JAR)
+qc-ontology: $(QC_ORPHAN) $(QC_DUPLABELS) $(QC_MISSINGDEFS)
+
+$(QC_ORPHAN): $(ONTOLOGY) $(ROBOT_JAR) $(SPARQL_DIR)/orphan_classes.rq
 	@echo "Running ROBOT QC on ontology..."
 	@mkdir -p $(REPORTS_DIR)
 	@echo "  Checking for orphan classes..."
 	@java -jar $(ROBOT_JAR) query \
 		--input $(ONTOLOGY) \
 		--query $(SPARQL_DIR)/orphan_classes.rq \
-		$(REPORTS_DIR)/orphan_classes.tsv 2>&1 | grep -v "WARNING:.*Unsafe" || true
+		$(QC_ORPHAN) 2>&1 | grep -v "WARNING:.*Unsafe" || true
+
+$(QC_DUPLABELS): $(ONTOLOGY) $(ROBOT_JAR) $(SPARQL_DIR)/duplicate_labels.rq
+	@mkdir -p $(REPORTS_DIR)
 	@echo "  Checking for duplicate labels..."
 	@java -jar $(ROBOT_JAR) query \
 		--input $(ONTOLOGY) \
 		--query $(SPARQL_DIR)/duplicate_labels.rq \
-		$(REPORTS_DIR)/duplicate_labels.tsv 2>&1 | grep -v "WARNING:.*Unsafe" || true
+		$(QC_DUPLABELS) 2>&1 | grep -v "WARNING:.*Unsafe" || true
+
+$(QC_MISSINGDEFS): $(ONTOLOGY) $(ROBOT_JAR) $(SPARQL_DIR)/missing_definitions.rq
+	@mkdir -p $(REPORTS_DIR)
 	@echo "  Checking for missing definitions..."
 	@java -jar $(ROBOT_JAR) query \
 		--input $(ONTOLOGY) \
 		--query $(SPARQL_DIR)/missing_definitions.rq \
-		$(REPORTS_DIR)/missing_definitions.tsv 2>&1 | grep -v "WARNING:.*Unsafe" || true
+		$(QC_MISSINGDEFS) 2>&1 | grep -v "WARNING:.*Unsafe" || true
 
 # =============================================================================
 # Clean Targets
 # =============================================================================
 
-clean: clean-demo clean-real clean-reports
+clean: clean-demo clean-real clean-reports clean-install
 	@echo "✅ Clean complete"
 
 clean-demo:
 	@echo "Cleaning demo artifacts..."
 	rm -f $(DEMO_GRAPH)
 	rm -f $(DEMO_INSTANCES)
-	rm -rf $(DEMO_RESULTS)
-	rm -f $(DEMO_DIR)/STATS.txt
+	@# Safety: only rm -rf if variable is non-empty and not root
+	@if [ -n "$(DEMO_RESULTS)" ] && [ "$(DEMO_RESULTS)" != "/" ]; then rm -rf $(DEMO_RESULTS); fi
+	rm -f $(DEMO_STATS)
 
 clean-real:
 	@echo "Cleaning real data artifacts..."
 	rm -f $(REAL_GRAPH)
 	rm -f $(REAL_INSTANCES)
-	rm -rf $(REAL_RESULTS)
-	rm -f $(REAL_DIR)/STATS.txt
+	@# Safety: only rm -rf if variable is non-empty and not root
+	@if [ -n "$(REAL_RESULTS)" ] && [ "$(REAL_RESULTS)" != "/" ]; then rm -rf $(REAL_RESULTS); fi
+	@if [ -n "$(REAL_REPORTS_DIR)" ] && [ "$(REAL_REPORTS_DIR)" != "/" ]; then rm -rf $(REAL_REPORTS_DIR); fi
+	rm -f $(REAL_STATS)
 
 clean-reports:
 	@echo "Cleaning reports..."
-	rm -rf $(REPORTS_DIR)
+	@if [ -n "$(REPORTS_DIR)" ] && [ "$(REPORTS_DIR)" != "/" ]; then rm -rf $(REPORTS_DIR); fi
+
+clean-install:
+	@rm -f $(INSTALL_STAMP) $(DOCS_STAMP)
 
 # =============================================================================
 # CI/CD Target
@@ -298,14 +366,21 @@ ci: install qc demo verify-demo
 # Documentation Targets
 # =============================================================================
 
-docs:
+DOCS_STAMP := .docs-install.stamp
+
+docs: check-env $(DOCS_STAMP)
 	@echo "Building Sphinx documentation..."
 	@cd docs && $(MAKE) html
 	@echo ""
 	@echo "✅ Documentation built successfully"
 	@echo "   Open docs/_build/html/index.html in your browser"
 
+$(DOCS_STAMP): docs/requirements.txt $(INSTALL_STAMP)
+	pip install -r docs/requirements.txt
+	@touch $(DOCS_STAMP)
+
 docs-clean:
 	@echo "Cleaning documentation build..."
 	@cd docs && $(MAKE) clean
+	@rm -f $(DOCS_STAMP)
 

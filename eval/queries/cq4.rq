@@ -2,6 +2,8 @@
 #
 # This query compares gene expression levels between two clones (subclones) of a cell line.
 # Parameters: gene (X), clone A, clone B
+#
+# Note: Requires Clone instances in the data. If no clones exist, returns empty.
 
 PREFIX mcbo: <http://example.org/mcbo#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -10,45 +12,34 @@ PREFIX uo: <http://purl.obolibrary.org/obo/>
 SELECT ?gene ?geneLabel ?cloneA ?cloneALabel ?cloneB ?cloneBLabel 
        ?exprA ?exprB ?foldChange
 WHERE {
-  # Clone A expression
+  # First, find all clone pairs (fail-fast if no clones exist)
   ?cloneA a mcbo:Clone ;
           rdfs:label ?cloneALabel .
-  ?parentLineA mcbo:hasClone ?cloneA .
-  
-  ?processA a ?processType .
-  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
-  ?processA mcbo:usesCellLine ?parentLineA .
-  ?processA mcbo:hasProcessOutput ?sampleA .
-  
-  ?sampleA a mcbo:BioprocessSample ;
-           mcbo:hasGeneExpression ?exprMeasA .
-  ?exprMeasA a mcbo:GeneExpressionMeasurement ;
-             uo:IAO_0000136 ?gene ;  # is about (gene)
-             mcbo:hasExpressionValue ?exprA .
-  
-  # Clone B expression
   ?cloneB a mcbo:Clone ;
           rdfs:label ?cloneBLabel .
+  # Use < instead of != to avoid duplicate pairs (A,B) and (B,A)
+  FILTER(STR(?cloneA) < STR(?cloneB))
+  
+  # Find parent cell lines
+  ?parentLineA mcbo:hasClone ?cloneA .
   ?parentLineB mcbo:hasClone ?cloneB .
   
-  ?processB a ?processType .
-  ?processB mcbo:usesCellLine ?parentLineB .
-  ?processB mcbo:hasProcessOutput ?sampleB .
+  # Clone A expression path
+  ?processA mcbo:usesCellLine ?parentLineA ;
+            mcbo:hasProcessOutput ?sampleA .
+  ?sampleA mcbo:hasGeneExpression ?exprMeasA .
+  ?exprMeasA uo:IAO_0000136 ?gene ;
+             mcbo:hasExpressionValue ?exprA .
   
-  ?sampleB a mcbo:BioprocessSample ;
-           mcbo:hasGeneExpression ?exprMeasB .
-  ?exprMeasB a mcbo:GeneExpressionMeasurement ;
-             uo:IAO_0000136 ?gene ;
+  # Clone B expression path (same gene)
+  ?processB mcbo:usesCellLine ?parentLineB ;
+            mcbo:hasProcessOutput ?sampleB .
+  ?sampleB mcbo:hasGeneExpression ?exprMeasB .
+  ?exprMeasB uo:IAO_0000136 ?gene ;
              mcbo:hasExpressionValue ?exprB .
   
   OPTIONAL { ?gene rdfs:label ?geneLabel }
-  
-  # Calculate fold change (if available, or compute)
-  OPTIONAL {
-    ?exprMeasA mcbo:hasFoldChange ?foldChange .
-  }
-  
-  FILTER(?cloneA != ?cloneB)
+  OPTIONAL { ?exprMeasA mcbo:hasFoldChange ?foldChange }
 }
 ORDER BY ?gene ?cloneA ?cloneB
 

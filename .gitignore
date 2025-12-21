@@ -4,6 +4,10 @@ data/
 .robot/
 .dev/
 
+# Makefile stamp files
+.install.stamp
+.docs-install.stamp
+
 # Trash
 trash/
 **/trash/

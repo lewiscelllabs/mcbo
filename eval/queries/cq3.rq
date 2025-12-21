@@ -7,6 +7,8 @@
 #   - Cell culture processes with CellCultureSystem and CultureMedium/nutrient concentrations
 #   - Samples collected at day 6 with viability measurements
 #   - (Optional) Filter by cell line
+#
+# Note: Returns 0 rows if data lacks NutrientConcentration or CellViabilityMeasurement instances.
 
 PREFIX mcbo: <http://example.org/mcbo#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -15,34 +17,29 @@ PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 
 SELECT ?cellLine ?nutrientType ?concentrationValue ?concentrationUnit ?viableCellDensity ?collectionDay
 WHERE {
-  ?process a ?processType .
-  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
-  
-  ?process ro:0000057 ?system .
-  OPTIONAL { ?process mcbo:usesCellLine ?cellLine . }
-  
-  ?system a mcbo:CellCultureSystem .
-  ?system bfo:0000051 ?medium .  # has part (medium)
-  
-  ?medium a mcbo:CultureMedium .
-  ?medium mcbo:hasNutrientConcentration ?nutrient .
-  
-  ?nutrient a mcbo:NutrientConcentration ;
-            mcbo:hasConcentrationValue ?concentrationValue ;
-            mcbo:hasConcentrationUnit ?concentrationUnit .
-  OPTIONAL { ?nutrient rdfs:label ?nutrientType }
-  
-  ?process mcbo:hasProcessOutput ?sample .
-  ?sample a mcbo:BioprocessSample ;
-          mcbo:hasCollectionDay ?collectionDay ;
-          mcbo:hasCellViabilityMeasurement ?viability .
-  
+  # Start with the smallest set: viability measurements (only ~8 in real data)
   ?viability a mcbo:CellViabilityMeasurement ;
              mcbo:hasViableCellDensity ?viableCellDensity .
   
+  # Find samples with this viability at day 6
+  ?sample mcbo:hasCellViabilityMeasurement ?viability ;
+          mcbo:hasCollectionDay ?collectionDay .
   FILTER(?collectionDay = 6)
-  # Filter for high viable cell density (threshold Z could be parameterized)
-  # Example: FILTER(?viableCellDensity > 5000000)  # 5M cells/mL
+  
+  # Link sample to process
+  ?process mcbo:hasProcessOutput ?sample .
+  OPTIONAL { ?process mcbo:usesCellLine ?cellLine . }
+  
+  # Link process to culture system with medium
+  ?process ro:0000057 ?system .
+  ?system a mcbo:CellCultureSystem ;
+          bfo:0000051 ?medium .
+  
+  # Get nutrient concentrations from medium
+  ?medium mcbo:hasNutrientConcentration ?nutrient .
+  ?nutrient mcbo:hasConcentrationValue ?concentrationValue ;
+            mcbo:hasConcentrationUnit ?concentrationUnit .
+  OPTIONAL { ?nutrient rdfs:label ?nutrientType }
 }
 ORDER BY DESC(?viableCellDensity) ?cellLine ?nutrientType
 
