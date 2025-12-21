@@ -1,5 +1,5 @@
 # mcbo
-Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities; designed for RNA-seq analysis, culture condition optimization, and product development. 
+Bioprocessing ontology that builds on IOF process patterns and BFO foundations, with domain-specific extensions that reference OBO ontology classes for measurement, sequencing, and biological entities.
 
 **New Term Request:**
 
@@ -7,7 +7,9 @@ Please click `'Issues'>'New Issue'>'MCBO Term Request'` to submit your request
 
 **Please cite:**
 
-Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology [Short talk]. 16th International Conference on Biomedical Ontology (ICBO 2025), Virtual conference. Short talk published on conference website. https://icbo-conference.github.io/icbo2025/
+Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025, November 11). MCBO: Mammalian Cell Bioprocessing Ontology, a hub-and-spoke, IOF-anchored application ontology for mammalian cell bioprocessing. [preprint/paper details].
+
+[![CI/CD](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml/badge.svg)](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml)
 
 [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/YTvCv-l0ia4)
 
@@ -15,11 +17,13 @@ Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J.
 
 Main MCBO ontology diagram below (click to get github doc, then right-click and open in new tab to zoom in).
 
-- Competency question source code under `src/`
-- Ontology under `ontology/`
-- Slightly more implementation details under `docs/`
-
-![MCBO TTL Ontology Diagram](docs/figures/mcbo.owl.ttl.svg)
+- `ontology/`: The ontology 
+- `src/`:  CSV to RDF source code  -- requires private csv sample data (not published here)
+- `eval/`: Competency questions, `graph.sample.ttl` and `graph.ttl` (csv_to_rdf.py's target) 
+- `docs/`: Slightly more implementation details
+- `queries/`: QC sparql; outputs to `reports/robot`, and all files are empty if it works
+- `data/`: private directory for the sample data, if you have it.
+<img width="2561" height="1781" alt="image" src="https://github.com/user-attachments/assets/781c1af6-8238-45a3-b26b-c6c9010dd77e" />
 
 # Competency questions:
 - CQ1: Under what culture conditions (pH, dissolved oxygen, temperature) do the cells reach peak recombinant protein productivity?
@@ -46,7 +50,7 @@ reports/robot/orphan_classes.tsv
   --query sparql/duplicate_labels.rq \
 reports/robot/duplicate_labels.tsv
 
- java -jar .robot/robot.jar query \ 
+ java -jar .robot/robot.jar query \ \
   --input ontology/mcbo.owl.ttl \
   --query sparql/duplicate_labels.rq \
 reports/robot/duplicate_labels.tsv
