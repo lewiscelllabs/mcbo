@@ -18,9 +18,7 @@ Please click [New Term Request](https://github.com/lewiscelllabs/mcbo/issues/new
 ## Quick Start
 
 **Pre-requisites**: 
-- Python 3.9+ (3.10 recommended)
-- Conda (for environment management)
-- Java (for ROBOT ontology tool)
+- Conda/Miniconda (for environment management)
 
 ```bash
 make conda-env
