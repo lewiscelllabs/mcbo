@@ -191,7 +191,7 @@ process_dataset() {
         if mcbo-build-graph build \
             --studies-dir "$studies_dir" \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --instances "$data_dir/mcbo-instances.ttl" \
             --output "$graph_file" 2>&1; then
             LAST_DATASET_RAN=true
         else
@@ -211,7 +211,7 @@ process_dataset() {
         
         if ! mcbo-csv-to-rdf \
             --csv_file "$data_dir/sample_metadata.csv" \
-            --output_file "$data_dir/processed/mcbo_instances.ttl" \
+            --output_file "$data_dir/mcbo-instances.ttl" \
             $expr_flag 2>&1; then
             echo "    ⚠️  WARNING: Failed to convert CSV to RDF"
             return 1
@@ -221,7 +221,7 @@ process_dataset() {
         echo "  Merging with ontology..."
         if mcbo-build-graph merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --instances "$data_dir/mcbo-instances.ttl" \
             --output "$graph_file" 2>&1; then
             LAST_DATASET_RAN=true
         else
@@ -229,12 +229,12 @@ process_dataset() {
             return 1
         fi
         
-    elif [ -f "$data_dir/processed/mcbo_instances.ttl" ]; then
-        echo "  Found pre-existing instances: $data_dir/processed/mcbo_instances.ttl"
+    elif [ -f "$data_dir/mcbo-instances.ttl" ]; then
+        echo "  Found pre-existing instances: $data_dir/mcbo-instances.ttl"
         echo "  Merging with ontology..."
         if mcbo-build-graph merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
-            --instances "$data_dir/processed/mcbo_instances.ttl" \
+            --instances "$data_dir/mcbo-instances.ttl" \
             --output "$graph_file" 2>&1; then
             LAST_DATASET_RAN=true
         else
@@ -243,7 +243,7 @@ process_dataset() {
         fi
     else
         echo "  ⚠️  WARNING: No data found in $data_dir/"
-        echo "      Expected: studies/*, sample_metadata.csv, or processed/mcbo_instances.ttl"
+        echo "      Expected: studies/*, sample_metadata.csv, or mcbo-instances.ttl"
         return 1
     fi
     

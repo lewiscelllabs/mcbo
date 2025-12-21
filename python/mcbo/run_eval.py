@@ -5,6 +5,7 @@ Run MCBO competency question evaluation queries.
 Usage (after pip install -e python/):
   mcbo-run-eval --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
   mcbo-run-eval --graph data.sample/graph.ttl --verify
+  mcbo-run-eval --data-dir data.sample --verify
 
 Or run directly:
   python -m mcbo.run_eval --graph data.sample/graph.ttl --verify
@@ -20,6 +21,20 @@ from rdflib import Graph
 from rdflib.query import Result
 
 from .graph_utils import load_graphs, ensure_dir, ensure_parent_dir
+
+
+# Configuration by convention defaults
+DEFAULT_PATHS = {
+    "graph": "graph.ttl",
+    "instances": "mcbo-instances.ttl",
+    "ontology": "ontology/mcbo.owl.ttl",
+    "results": "results",
+}
+
+
+def resolve_data_dir_path(data_dir: Path, key: str) -> Path:
+    """Resolve a path relative to data_dir using convention defaults."""
+    return data_dir / DEFAULT_PATHS[key]
 
 
 def iter_query_files(query_dir: Path) -> Iterable[Path]:
@@ -51,17 +66,47 @@ def run_query(g: Graph, query_text: str) -> Result:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Run MCBO competency question evaluation queries")
+    ap = argparse.ArgumentParser(
+        description="Run MCBO competency question evaluation queries",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run evaluation with explicit paths
+  mcbo-run-eval --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
+
+  # Use config-by-convention (auto-resolves paths from data directory)
+  mcbo-run-eval --data-dir data.sample
+  mcbo-run-eval --data-dir .data
+
+  # Verify graph parses without running queries
+  mcbo-run-eval --graph data.sample/graph.ttl --verify
+  mcbo-run-eval --data-dir data.sample --verify
+
+  # Use separate ontology and instances files
+  mcbo-run-eval --ontology ontology/mcbo.owl.ttl --instances .data/mcbo-instances.ttl
+
+  # Fail if any competency question returns 0 results
+  mcbo-run-eval --data-dir data.sample --fail-on-empty
+
+Convention: When using --data-dir, the tool looks for:
+  <data-dir>/graph.ttl          - merged evaluation graph
+  <data-dir>/mcbo-instances.ttl - instance data (ABox)
+  <data-dir>/results/           - query results output directory
+  eval/queries/                 - SPARQL query files (*.rq)
+"""
+    )
     ap.add_argument("--graph", type=str, default=None,
                     help="Path to a single TTL file containing the merged evaluation graph (ontology + instances).")
+    ap.add_argument("--data-dir", type=str, default=None,
+                    help="Data directory (uses config-by-convention for graph.ttl and results/)")
     ap.add_argument("--ontology", type=str, default=None,
                     help="Path to ontology TTL (TBox), e.g., ontology/mcbo.owl.ttl")
     ap.add_argument("--instances", type=str, default=None,
-                    help="Path to instances TTL (ABox), e.g., data/processed/mcbo_instances.ttl")
+                    help="Path to instances TTL (ABox), e.g., data/mcbo-instances.ttl")
     ap.add_argument("--queries", type=str, default="eval/queries",
                     help="Directory containing *.rq files (default: eval/queries)")
-    ap.add_argument("--results", type=str, default="eval/results",
-                    help="Directory to write *.tsv outputs (default: eval/results)")
+    ap.add_argument("--results", type=str, default=None,
+                    help="Directory to write *.tsv outputs (default: <data-dir>/results or eval/results)")
     ap.add_argument("--write-merged", type=str, default=None,
                     help="If set, write the loaded merged graph to this TTL path.")
     ap.add_argument("--fail-on-empty", action="store_true",
@@ -70,23 +115,32 @@ def main() -> None:
                     help="Only verify graph parses; report triple count and exit (no queries run).")
     args = ap.parse_args()
 
+    # Resolve paths using config-by-convention if --data-dir provided
+    data_dir = Path(args.data_dir) if args.data_dir else None
+    
+    if data_dir:
+        graph_path = args.graph or str(resolve_data_dir_path(data_dir, "graph"))
+        results_dir = Path(args.results) if args.results else resolve_data_dir_path(data_dir, "results")
+    else:
+        graph_path = args.graph
+        results_dir = Path(args.results) if args.results else Path("eval/results")
+    
     query_dir = Path(args.queries)
-    results_dir = Path(args.results)
     ensure_dir(results_dir)
 
     # Load graph
     ontology_path = Path("ontology/mcbo.owl.ttl")
     try:
-        if args.graph:
-            graph_paths = [Path(args.graph)]
+        if graph_path:
+            graph_paths = [Path(graph_path)]
             # If ontology exists and graph is not the ontology itself, load it too
-            if ontology_path.exists() and str(ontology_path) != args.graph:
+            if ontology_path.exists() and str(ontology_path) != graph_path:
                 graph_paths.insert(0, ontology_path)
             g = load_graphs(graph_paths)
-            source_desc = f"graph={args.graph}" + (f" + ontology" if len(graph_paths) > 1 else "")
+            source_desc = f"graph={graph_path}" + (f" + ontology" if len(graph_paths) > 1 else "")
         else:
             if not args.ontology or not args.instances:
-                raise SystemExit("Provide either --graph OR both --ontology and --instances.")
+                raise SystemExit("Provide --graph, --data-dir, or both --ontology and --instances.")
             g = load_graphs([Path(args.ontology), Path(args.instances)])
             source_desc = f"ontology={args.ontology}, instances={args.instances}"
     except Exception as e:

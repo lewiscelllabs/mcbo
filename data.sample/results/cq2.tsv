@@ -1,2 +1,3 @@
 choLine	genes	maxProductivity	categoryAtMax
+http://example.org/mcbo#cellline_CHO-DG44	http://example.org/mcbo#AntibodyProductGene	4.0	Medium
 http://example.org/mcbo#cellline_CHO-K1	http://example.org/mcbo#AntibodyProductGene	4.0	High

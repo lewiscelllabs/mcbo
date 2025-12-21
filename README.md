@@ -34,61 +34,60 @@ conda create -n mcbo python=3.10
 conda activate mcbo
 pip install -r requirements.txt
 
-# 2. Run all checks (Ontology verification, QC + demo data + real data if present)
-bash scripts/run_all_checks.sh
+# 2. Install mcbo package and run demo
+make install
+make demo          # Build and evaluate demo data
+make qc            # Run ROBOT QC checks on ontology
+
+# Or run all checks at once
+make all           # Runs demo + qc
 ```
 
 ## Adding Your Own Data
 
-Real-world curated data goes in `.data/` (git-ignored). Each study has its own subdirectory:
+Real-world curated data goes in `.data/` (git-ignored). Use config-by-convention:
 
 ```
 .data/
-├── studies/
+├── studies/                  # Input: study directories
 │   ├── my_study_001/
-│   │   ├── sample_metadata.csv    # Required: one row per run/sample
-│   │   └── expression_matrix.csv  # Optional: genes as columns
+│   │   ├── sample_metadata.csv    # Required
+│   │   └── expression_matrix.csv  # Optional
 │   └── my_study_002/
 │       └── sample_metadata.csv
-├── processed/
-│   └── mcbo_instances.ttl         # Generated
-└── graph.ttl                      # Generated
+├── mcbo-instances.ttl        # Generated: instance data (ABox)
+├── graph.ttl                 # Generated: evaluation graph
+└── results/                  # Generated: CQ results
 ```
 
-### Workflow: Add Studies → Build Graph → Evaluate
+### Workflow: Using Makefile (Recommended)
 
 ```bash
 conda activate mcbo
-pip install -e python/  # Install mcbo package (first time only)
 
-# Step 1: Add a new study (can repeat for multiple studies)
-mcbo-build-graph add-study \
-  --study-dir .data/studies/my_new_study \
-  --instances .data/processed/mcbo_instances.ttl
+# Build and evaluate real data
+make real
 
-# Step 2: Merge with ontology to create evaluation graph
-mcbo-build-graph merge \
-  --ontology ontology/mcbo.owl.ttl \
-  --instances .data/processed/mcbo_instances.ttl \
-  --output .data/graph.ttl
-
-# Step 3: Run CQ evaluation
-mcbo-run-eval \
-  --graph .data/graph.ttl \
-  --queries eval/queries \
-  --results .data/results
+# Or run individual steps
+make real-build    # Build graph
+make real-eval     # Run CQ evaluation
+make real-stats    # Show statistics
 ```
 
-### Alternative: Rebuild Everything at Once
+### Workflow: Using CLI Commands
 
 ```bash
-mcbo-build-graph build \
-  --studies-dir .data/studies \
-  --instances .data/processed/mcbo_instances.ttl \
-  --output .data/graph.ttl
+# Config-by-convention (auto-resolves paths)
+mcbo-build-graph build --data-dir .data
+mcbo-run-eval --data-dir .data
+mcbo-stats --data-dir .data
+
+# Or add studies incrementally for large datasets
+mcbo-build-graph add-study --study-dir .data/studies/my_new_study --data-dir .data
+mcbo-build-graph merge --data-dir .data
 ```
 
-See `docs/README.md` for detailed instructions and `docs/CQ_DATA_REQUIREMENTS.md` for CSV column definitions.
+See `docs/WORKFLOWS.md` for large dataset strategies and `docs/CQ_DATA_REQUIREMENTS.md` for CSV column definitions.
 
 <img width="2561" height="1781" alt="image" src="https://github.com/user-attachments/assets/781c1af6-8238-45a3-b26b-c6c9010dd77e" />
 

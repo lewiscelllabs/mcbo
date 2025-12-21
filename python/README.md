@@ -72,7 +72,7 @@ mcbo-build-graph build \
 # Convert CSV to RDF (low-level)
 mcbo-csv-to-rdf \
   --csv_file .data/sample_metadata.csv \
-  --output_file .data/processed/mcbo_instances.ttl \
+  --output_file .data/mcbo-instances.ttl \
   --expression_dir .data/expression/
 
 # Run evaluation queries

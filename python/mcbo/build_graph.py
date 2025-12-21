@@ -3,8 +3,9 @@
 Build MCBO evaluation graph from multiple studies.
 
 Usage (after pip install -e python/):
-  mcbo-build-graph add-study --study-dir .data/studies/study_001 --instances .data/processed/mcbo_instances.ttl
+  mcbo-build-graph add-study --study-dir .data/studies/study_001 --instances .data/mcbo-instances.ttl
   mcbo-build-graph build --studies-dir data.sample/studies --output data.sample/graph.ttl
+  mcbo-build-graph build --data-dir data.sample   # Config-by-convention
 
 Or run directly:
   python -m mcbo.build_graph build --studies-dir data.sample/studies --output data.sample/graph.ttl
@@ -22,9 +23,18 @@ Expected study directory structure:
       expression_matrix.csv  (optional)
     ...
 
+Config-by-convention with --data-dir:
+  <data-dir>/
+    graph.ttl               # Output: merged evaluation graph
+    mcbo-instances.ttl      # Output: instance data (ABox)
+    studies/                # Input: study directories
+    expression/             # Input: per-study expression matrices (optional)
+    sample_metadata.csv     # Input: single CSV for bootstrap (alternative to studies/)
+    results/                # Output: evaluation results
+
 The script will:
   - Process each study's metadata + expression matrix
-  - Merge all studies into mcbo_instances.ttl
+  - Merge all studies into mcbo-instances.ttl
   - Combine with ontology into <data-dir>/graph.ttl
 """
 
@@ -36,6 +46,23 @@ import pandas as pd
 from .namespaces import MCBO
 from .graph_utils import iri_safe, create_graph, ensure_parent_dir
 from .csv_to_rdf import convert_csv_to_rdf, load_expression_matrix, add_expression_data
+
+
+# Configuration by convention defaults
+DEFAULT_PATHS = {
+    "graph": "graph.ttl",
+    "instances": "mcbo-instances.ttl",
+    "ontology": "ontology/mcbo.owl.ttl",
+    "studies": "studies",
+    "expression": "expression",
+    "metadata": "sample_metadata.csv",
+    "results": "results",
+}
+
+
+def resolve_data_dir_path(data_dir: Path, key: str) -> Path:
+    """Resolve a path relative to data_dir using convention defaults."""
+    return data_dir / DEFAULT_PATHS[key]
 
 
 def find_study_files(study_dir: Path) -> tuple:
@@ -194,8 +221,8 @@ def bootstrap_from_csv(csv_file: Path, ontology_file: Path, output_file: Path,
     print(f"\n=== Bootstrapping graph from single CSV ===")
     print(f"Metadata CSV: {csv_file}")
     
-    # Create temporary instances file
-    instances_file = output_file.parent / "mcbo_instances.ttl"
+    # Create temporary instances file using standardized naming
+    instances_file = output_file.parent / "mcbo-instances.ttl"
     ensure_parent_dir(instances_file)
     
     # Load expression data
@@ -241,10 +268,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # CONFIG-BY-CONVENTION: Auto-detect structure in data directory
+  mcbo-build-graph build --data-dir data.sample    # Uses data.sample/studies/ or sample_metadata.csv
+  mcbo-build-graph build --data-dir .data          # Real data
+
   # SCENARIO 1: Bootstrap from single curated CSV (no expression)
-  mcbo-build-graph bootstrap \\
-    --csv .data/sample_metadata.csv \\
-    --output .data/graph.ttl
+  mcbo-build-graph bootstrap --csv .data/sample_metadata.csv --output .data/graph.ttl
 
   # SCENARIO 4: Bootstrap from single CSV + per-study expression matrices
   mcbo-build-graph bootstrap \\
@@ -253,30 +282,21 @@ Examples:
     --output .data/graph.ttl
 
   # SCENARIO 2 & 3: Build from multi-study directories (each with own CSV)
-  mcbo-build-graph build \\
-    --studies-dir .data/studies \\
-    --output .data/graph.ttl
+  mcbo-build-graph build --studies-dir .data/studies --output .data/graph.ttl
 
-  # Add a single study incrementally
-  mcbo-build-graph add-study \\
-    --study-dir .data/studies/my_study \\
-    --instances .data/processed/mcbo_instances.ttl
+  # Add a single study incrementally (for large datasets)
+  mcbo-build-graph add-study --study-dir .data/studies/my_study --instances .data/mcbo-instances.ttl
 
   # Merge existing instances with ontology
-  mcbo-build-graph merge \\
-    --ontology ontology/mcbo.owl.ttl \\
-    --instances .data/processed/mcbo_instances.ttl \\
-    --output .data/graph.ttl
+  mcbo-build-graph merge --instances .data/mcbo-instances.ttl --output .data/graph.ttl
 
-  # Demo data examples
-  mcbo-build-graph bootstrap \\
-    --csv data.sample/sample_metadata.csv \\
-    --expression-dir data.sample/expression/ \\
-    --output data.sample/graph.ttl
-
-  mcbo-build-graph build \\
-    --studies-dir data.sample/studies \\
-    --output data.sample/graph.ttl
+Convention: When using --data-dir, the tool looks for:
+  <data-dir>/graph.ttl               - output merged graph
+  <data-dir>/mcbo-instances.ttl      - output instance data (ABox)
+  <data-dir>/studies/                - input study directories
+  <data-dir>/expression/             - input per-study expression matrices
+  <data-dir>/sample_metadata.csv     - input single CSV (for bootstrap)
+  ontology/mcbo.owl.ttl              - ontology (TBox)
 """
     )
     
@@ -285,10 +305,12 @@ Examples:
     # bootstrap command (single CSV workflow)
     bootstrap_parser = subparsers.add_parser("bootstrap", 
         help="Bootstrap graph from single curated CSV (+ optional expression dir)")
-    bootstrap_parser.add_argument("--csv", type=Path, required=True, 
+    bootstrap_parser.add_argument("--csv", type=Path, default=None, 
                                   help="Single CSV file with all sample metadata")
+    bootstrap_parser.add_argument("--data-dir", type=Path, default=None,
+                                  help="Data directory (uses config-by-convention)")
     bootstrap_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
-    bootstrap_parser.add_argument("--output", type=Path, default=Path(".data/graph.ttl"))
+    bootstrap_parser.add_argument("--output", type=Path, default=None)
     bootstrap_parser.add_argument("--expression-matrix", type=Path, default=None,
                                   help="Single expression matrix CSV")
     bootstrap_parser.add_argument("--expression-dir", type=Path, default=None,
@@ -297,35 +319,82 @@ Examples:
     # add-study command
     add_parser = subparsers.add_parser("add-study", help="Add a single study to instances")
     add_parser.add_argument("--study-dir", type=Path, required=True, help="Study directory")
-    add_parser.add_argument("--instances", type=Path, default=Path(".data/processed/mcbo_instances.ttl"),
+    add_parser.add_argument("--data-dir", type=Path, default=None,
+                           help="Data directory (uses config-by-convention for instances)")
+    add_parser.add_argument("--instances", type=Path, default=None,
                            help="Output instances file (will append if exists)")
     
     # build command
     build_parser = subparsers.add_parser("build", help="Build full graph from study directories")
-    build_parser.add_argument("--studies-dir", type=Path, required=True, help="Directory containing study subdirs")
+    build_parser.add_argument("--studies-dir", type=Path, default=None, 
+                             help="Directory containing study subdirs")
+    build_parser.add_argument("--data-dir", type=Path, default=None,
+                             help="Data directory (uses config-by-convention)")
     build_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
-    build_parser.add_argument("--instances", type=Path, default=Path(".data/processed/mcbo_instances.ttl"))
-    build_parser.add_argument("--output", type=Path, default=Path(".data/graph.ttl"))
+    build_parser.add_argument("--instances", type=Path, default=None)
+    build_parser.add_argument("--output", type=Path, default=None)
     
     # merge command
     merge_parser = subparsers.add_parser("merge", help="Merge ontology + instances into graph.ttl")
+    merge_parser.add_argument("--data-dir", type=Path, default=None,
+                             help="Data directory (uses config-by-convention)")
     merge_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
-    merge_parser.add_argument("--instances", type=Path, default=Path(".data/processed/mcbo_instances.ttl"))
-    merge_parser.add_argument("--output", type=Path, default=Path(".data/graph.ttl"))
+    merge_parser.add_argument("--instances", type=Path, default=None)
+    merge_parser.add_argument("--output", type=Path, default=None)
     
     args = parser.parse_args()
+    
+    # Resolve paths using config-by-convention
+    data_dir = getattr(args, 'data_dir', None)
     
     if args.command == "bootstrap":
         if args.expression_matrix and args.expression_dir:
             parser.error("Cannot specify both --expression-matrix and --expression-dir")
-        bootstrap_from_csv(args.csv, args.ontology, args.output, 
-                          args.expression_matrix, args.expression_dir)
+        
+        # Resolve paths
+        if data_dir:
+            csv_file = args.csv or resolve_data_dir_path(data_dir, "metadata")
+            output_file = args.output or resolve_data_dir_path(data_dir, "graph")
+            expr_dir = args.expression_dir or (resolve_data_dir_path(data_dir, "expression") 
+                        if resolve_data_dir_path(data_dir, "expression").exists() else None)
+        else:
+            if not args.csv:
+                parser.error("bootstrap requires --csv or --data-dir")
+            csv_file = args.csv
+            output_file = args.output or Path(".data/graph.ttl")
+            expr_dir = args.expression_dir
+        
+        bootstrap_from_csv(csv_file, args.ontology, output_file, 
+                          args.expression_matrix, expr_dir)
+    
     elif args.command == "add-study":
-        add_study(args.study_dir, args.instances)
+        if data_dir:
+            instances_file = args.instances or resolve_data_dir_path(data_dir, "instances")
+        else:
+            instances_file = args.instances or Path(".data/mcbo-instances.ttl")
+        add_study(args.study_dir, instances_file)
+    
     elif args.command == "build":
-        build_full_graph(args.studies_dir, args.ontology, args.instances, args.output)
+        if data_dir:
+            studies_dir = args.studies_dir or resolve_data_dir_path(data_dir, "studies")
+            instances_file = args.instances or resolve_data_dir_path(data_dir, "instances")
+            output_file = args.output or resolve_data_dir_path(data_dir, "graph")
+        else:
+            if not args.studies_dir:
+                parser.error("build requires --studies-dir or --data-dir")
+            studies_dir = args.studies_dir
+            instances_file = args.instances or Path(".data/mcbo-instances.ttl")
+            output_file = args.output or Path(".data/graph.ttl")
+        build_full_graph(studies_dir, args.ontology, instances_file, output_file)
+    
     elif args.command == "merge":
-        merge_ontology_instances(args.ontology, args.instances, args.output)
+        if data_dir:
+            instances_file = args.instances or resolve_data_dir_path(data_dir, "instances")
+            output_file = args.output or resolve_data_dir_path(data_dir, "graph")
+        else:
+            instances_file = args.instances or Path(".data/mcbo-instances.ttl")
+            output_file = args.output or Path(".data/graph.ttl")
+        merge_ontology_instances(args.ontology, instances_file, output_file)
 
 
 if __name__ == "__main__":

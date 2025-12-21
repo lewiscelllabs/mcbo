@@ -22,7 +22,7 @@ data.sample/
 │       ├── sample_metadata.csv
 │       └── expression_matrix.csv
 ├── processed/                # Generated instances
-│   └── mcbo_instances.ttl
+│   └── mcbo-instances.ttl
 ├── results/                  # CQ evaluation results
 └── graph.ttl                 # Generated evaluation graph
 ```
@@ -88,13 +88,13 @@ Or using `mcbo-csv-to-rdf` + `mcbo-build-graph merge`:
 # Step 1: Convert CSV to instances with expression data
 mcbo-csv-to-rdf \
   --csv_file data.sample/sample_metadata.csv \
-  --output_file data.sample/processed/mcbo_instances.ttl \
+  --output_file data.sample/mcbo-instances.ttl \
   --expression_dir data.sample/expression/
 
 # Step 2: Merge with ontology
 mcbo-build-graph merge \
   --ontology ontology/mcbo.owl.ttl \
-  --instances data.sample/processed/mcbo_instances.ttl \
+  --instances data.sample/mcbo-instances.ttl \
   --output data.sample/graph.ttl
 ```
 
@@ -108,11 +108,11 @@ After bootstrapping, add new studies incrementally:
 # Add a new study
 mcbo-build-graph add-study \
   --study-dir data.sample/studies/study_demo_003 \
-  --instances data.sample/processed/mcbo_instances.ttl
+  --instances data.sample/mcbo-instances.ttl
 
 # Rebuild the graph
 mcbo-build-graph merge \
-  --instances data.sample/processed/mcbo_instances.ttl \
+  --instances data.sample/mcbo-instances.ttl \
   --output data.sample/graph.ttl
 ```
 

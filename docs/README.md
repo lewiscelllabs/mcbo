@@ -110,7 +110,7 @@ For curated real-world data, use the `.data/` directory (not tracked in git):
 │       ├── sample_metadata.csv
 │       └── expression_matrix.csv
 ├── processed/
-│   └── mcbo_instances.ttl         # generated
+│   └── mcbo-instances.ttl         # generated
 └── graph.ttl                      # generated
 ```
 
@@ -145,18 +145,18 @@ pip install -e python/  # Install mcbo package (first time only)
 # Option A: Add study incrementally
 mcbo-build-graph add-study \
   --study-dir .data/studies/my_study_2024 \
-  --instances .data/processed/mcbo_instances.ttl
+  --instances .data/mcbo-instances.ttl
 
 # Option B: Rebuild all studies
 mcbo-build-graph build \
   --studies-dir .data/studies \
-  --instances .data/processed/mcbo_instances.ttl \
+  --instances .data/mcbo-instances.ttl \
   --output .data/graph.ttl
 
 # Merge with ontology (if using Option A)
 mcbo-build-graph merge \
   --ontology ontology/mcbo.owl.ttl \
-  --instances .data/processed/mcbo_instances.ttl \
+  --instances .data/mcbo-instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
@@ -169,7 +169,7 @@ mcbo-run-eval \
 # Rebuild studies
 mcbo-build-graph build \
   --studies-dir data.sample/studies \
-  --instances data.sample/processed/mcbo_instances.ttl \
+  --instances data.sample/mcbo-instances.ttl \
   --output data.sample/graph.ttl
 
 # Evaluate

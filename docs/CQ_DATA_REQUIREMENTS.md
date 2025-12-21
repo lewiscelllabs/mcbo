@@ -25,17 +25,17 @@ pip install -e python/  # Install mcbo package (first time only)
 # Add first study
 mcbo-build-graph add-study \
   --study-dir .data/studies/study_001 \
-  --instances .data/processed/mcbo_instances.ttl
+  --instances .data/mcbo-instances.ttl
 
 # Add another study (appends to existing)
 mcbo-build-graph add-study \
   --study-dir .data/studies/study_002 \
-  --instances .data/processed/mcbo_instances.ttl
+  --instances .data/mcbo-instances.ttl
 
 # Merge with ontology to create graph.ttl
 mcbo-build-graph merge \
   --ontology ontology/mcbo.owl.ttl \
-  --instances .data/processed/mcbo_instances.ttl \
+  --instances .data/mcbo-instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
@@ -52,7 +52,7 @@ mcbo-run-eval \
 mcbo-build-graph build \
   --studies-dir .data/studies \
   --ontology ontology/mcbo.owl.ttl \
-  --instances .data/processed/mcbo_instances.ttl \
+  --instances .data/mcbo-instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
@@ -212,7 +212,7 @@ The following 10 columns should be added to `data/sample_metadata.csv` (empty va
    mcbo-csv-to-rdf \
      --csv_file data/sample_metadata.csv \
      --expression_matrix data/expression_matrix.csv \
-     --output_file data/processed/mcbo_instances.ttl
+     --output_file data/mcbo-instances.ttl
    ```
 
    Expression matrix format (genes as columns, samples as rows):

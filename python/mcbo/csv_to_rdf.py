@@ -483,10 +483,10 @@ def main():
     """CLI entry point for CSV to RDF conversion.
     
     Usage (after pip install -e python/):
-      mcbo-csv-to-rdf --csv_file data/sample_metadata.csv --output_file data/processed/mcbo_instances.ttl
+      mcbo-csv-to-rdf --csv_file data/sample_metadata.csv --output_file data/mcbo-instances.ttl
     
     Or run directly:
-      python -m mcbo.csv_to_rdf --csv_file data/sample_metadata.csv --output_file data/processed/mcbo_instances.ttl
+      python -m mcbo.csv_to_rdf --csv_file data/sample_metadata.csv --output_file data/mcbo-instances.ttl
     """
     import argparse
     
@@ -501,25 +501,25 @@ Examples:
   # Scenario 1: Single metadata file, no expression data
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
-    --output_file .data/processed/mcbo_instances.ttl
+    --output_file .data/mcbo-instances.ttl
 
   # Scenario 2: Single metadata + single expression matrix
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
-    --output_file .data/processed/mcbo_instances.ttl \\
+    --output_file .data/mcbo-instances.ttl \\
     --expression_matrix .data/expression_matrix.csv
 
   # Scenario 3: Single metadata + multiple expression matrices (per-study)
   # Expression files in directory are matched to samples by SampleAccession
   mcbo-csv-to-rdf \\
     --csv_file .data/sample_metadata.csv \\
-    --output_file .data/processed/mcbo_instances.ttl \\
+    --output_file .data/mcbo-instances.ttl \\
     --expression_dir .data/expression/
 
   # Demo data example with per-study expression
   mcbo-csv-to-rdf \\
     --csv_file data.sample/sample_metadata.csv \\
-    --output_file data.sample/processed/mcbo_instances.ttl \\
+    --output_file data.sample/mcbo-instances.ttl \\
     --expression_dir data.sample/expression/
 
 Note: For multi-study workflows with separate directories, use mcbo-build-graph instead.
@@ -527,7 +527,7 @@ Note: For multi-study workflows with separate directories, use mcbo-build-graph 
     )
     parser.add_argument("--csv_file", type=str, default="data/sample_metadata.csv", 
                         help="Input CSV file with sample metadata")
-    parser.add_argument("--output_file", type=str, default="data/processed/mcbo_instances.ttl", 
+    parser.add_argument("--output_file", type=str, default="data/mcbo-instances.ttl", 
                         help="Output TTL file")
     parser.add_argument("--expression_matrix", type=str, default=None, 
                         help="Single expression matrix CSV (genes as columns, samples as rows)")

@@ -5,6 +5,7 @@ Compute statistics from the evaluation graph to verify sample/process counts.
 Usage (after pip install -e python/):
   mcbo-stats --graph .data/graph.ttl          # Real data
   mcbo-stats --graph data.sample/graph.ttl    # Demo data
+  mcbo-stats --data-dir .data                 # Use config-by-convention
 
 Or run directly:
   python -m mcbo.stats_eval_graph --graph data.sample/graph.ttl
@@ -18,6 +19,20 @@ import argparse
 from pathlib import Path
 
 from .graph_utils import load_graph
+
+
+# Configuration by convention defaults
+DEFAULT_PATHS = {
+    "graph": "graph.ttl",
+    "instances": "mcbo-instances.ttl",
+    "ontology": "ontology/mcbo.owl.ttl",
+    "results": "results",
+}
+
+
+def resolve_data_dir_path(data_dir: Path, key: str) -> Path:
+    """Resolve a path relative to data_dir using convention defaults."""
+    return data_dir / DEFAULT_PATHS[key]
 
 
 def count_processes(g) -> dict:
@@ -67,11 +82,43 @@ def count_samples(g) -> int:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Compute statistics from evaluation graph")
-    ap.add_argument("--graph", type=str, required=True, help="Path to evaluation graph TTL file")
+    ap = argparse.ArgumentParser(
+        description="Compute statistics from evaluation graph",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Specify graph directly
+  mcbo-stats --graph data.sample/graph.ttl
+
+  # Use config-by-convention (looks for <data-dir>/graph.ttl)
+  mcbo-stats --data-dir data.sample
+  mcbo-stats --data-dir .data
+
+  # Real data stats
+  mcbo-stats --graph .data/graph.ttl
+
+Convention: When using --data-dir, the tool looks for:
+  <data-dir>/graph.ttl          - merged evaluation graph
+  <data-dir>/mcbo-instances.ttl - instance data (ABox)
+  <data-dir>/results/           - query results directory
+"""
+    )
+    ap.add_argument("--graph", type=str, default=None, 
+                    help="Path to evaluation graph TTL file")
+    ap.add_argument("--data-dir", type=str, default=None,
+                    help="Data directory (uses config-by-convention: <dir>/graph.ttl)")
     args = ap.parse_args()
     
-    graph_path = Path(args.graph)
+    # Resolve graph path
+    if args.data_dir:
+        data_dir = Path(args.data_dir)
+        graph_path = resolve_data_dir_path(data_dir, "graph")
+    elif args.graph:
+        graph_path = Path(args.graph)
+    else:
+        ap.error("Provide either --graph or --data-dir")
+        return 1
+    
     if not graph_path.exists():
         print(f"Error: Graph file not found: {graph_path}")
         return 1
