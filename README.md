@@ -10,9 +10,14 @@ A hub-and-spoke, IOF-anchored application ontology for mammalian cell bioprocess
 
 ## Quick Start
 
+**Pre-requisites**: 
+- Python 3.9+ (3.10 recommended)
+- Conda (for environment management)
+- Java (for ROBOT ontology tool)
+
 ```bash
-conda create -n mcbo python=3.10 && conda activate mcbo
-pip install -r requirements.txt
+make conda-env
+conda activate mcbo
 make install
 make demo
 ```
