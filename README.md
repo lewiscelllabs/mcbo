@@ -8,16 +8,35 @@ A hub-and-spoke, IOF-anchored application ontology for mammalian cell bioprocess
 
 📖 **[Full Documentation](https://mcbo.readthedocs.io/)**
 
+## Term Requests
+
+Please click [New Term Request](https://github.com/lewiscelllabs/mcbo/issues/new?template=mcbo-term-request.md) to submit your request.
+
+(Issues > New Issue > MCBO Term Request)
+
+
 ## Quick Start
 
+**Pre-requisites**: 
+- Conda/Miniconda (for environment management)
+
 ```bash
-conda create -n mcbo python=3.10 && conda activate mcbo
-pip install -r requirements.txt
+make conda-env
+conda activate mcbo
 make install
 make demo
 ```
 
 See the [Installation Guide](https://mcbo.readthedocs.io/en/latest/installation.html) for detailed setup instructions.
+
+## Ontology Overview
+<img width="2561" height="1781" alt="MCBO Ontology Diagram" src="https://github.com/user-attachments/assets/781c1af6-8238-45a3-b26b-c6c9010dd77e" />
+
+## Competency Questions
+
+MCBO supports 8 competency questions.
+
+See the [full CQ documentation](https://mcbo.readthedocs.io/en/latest/index.html#competency-questions).
 
 ## Documentation
 
@@ -31,24 +50,14 @@ See the [Installation Guide](https://mcbo.readthedocs.io/en/latest/installation.
 | [API Reference](https://mcbo.readthedocs.io/en/latest/api.html) | Python package documentation |
 | [Development](https://mcbo.readthedocs.io/en/latest/development.html) | Contributing and QC checks |
 
-## Competency Questions
+## License
 
-MCBO supports 8 competency questions - see the [full CQ documentation](https://mcbo.readthedocs.io/en/latest/index.html#competency-questions).
+MIT License - see [LICENSE](LICENSE) for details.
 
 ## Citation
 
 > Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025). 
 > MCBO: Mammalian Cell Bioprocessing Ontology, A Hub-and-Spoke, IOF-Anchored Application Ontology.
 > *ICBO-EAST 2025*.
-
-## Term Requests
-
-Please click `Issues > New Issue > MCBO Term Request` to submit your request.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
 ---
 
-<img width="2561" height="1781" alt="MCBO Ontology Diagram" src="https://github.com/user-attachments/assets/781c1af6-8238-45a3-b26b-c6c9010dd77e" />
