@@ -2,9 +2,12 @@
 """
 Compute statistics from the evaluation graph to verify sample/process counts.
 
-Usage:
-  python python/stats_eval_graph.py --graph .data/graph.ttl          # Real data
-  python python/stats_eval_graph.py --graph data.sample/graph.ttl    # Demo data
+Usage (after pip install -e python/):
+  mcbo-stats --graph .data/graph.ttl          # Real data
+  mcbo-stats --graph data.sample/graph.ttl    # Demo data
+
+Or run directly:
+  python -m mcbo.stats_eval_graph --graph data.sample/graph.ttl
 
 Output:
   - Cell culture process count by type (Batch, Fed-batch, Perfusion, Unknown)
@@ -13,18 +16,12 @@ Output:
 
 import argparse
 from pathlib import Path
-from rdflib import Graph, Namespace
-from rdflib.namespace import RDF
 
-MCBO = Namespace("http://example.org/mcbo#")
-BFO = Namespace("http://purl.obolibrary.org/obo/BFO_")
+from .graph_utils import load_graph
 
 
-def count_processes(g: Graph) -> dict:
+def count_processes(g) -> dict:
     """Count cell culture process instances by type."""
-    counts = {}
-    
-    # Query for all process instances
     query = """
     PREFIX mcbo: <http://example.org/mcbo#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -48,12 +45,10 @@ def count_processes(g: Graph) -> dict:
         type_label = str(row.typeLabel) if row.typeLabel else type_uri.split("#")[-1]
         by_type[type_label] = by_type.get(type_label, 0) + 1
     
-    counts["total"] = total
-    counts["by_type"] = by_type
-    return counts
+    return {"total": total, "by_type": by_type}
 
 
-def count_samples(g: Graph) -> int:
+def count_samples(g) -> int:
     """Count bioprocess sample instances."""
     query = """
     PREFIX mcbo: <http://example.org/mcbo#>
@@ -67,7 +62,6 @@ def count_samples(g: Graph) -> int:
     
     results = g.query(query)
     for row in results:
-        # Access the first (and only) binding
         return int(row[0])
     return 0
 
@@ -82,8 +76,7 @@ def main():
         print(f"Error: Graph file not found: {graph_path}")
         return 1
     
-    g = Graph()
-    g.parse(str(graph_path), format="turtle")
+    g = load_graph(graph_path)
     
     print(f"Statistics for: {graph_path}")
     print("=" * 60)

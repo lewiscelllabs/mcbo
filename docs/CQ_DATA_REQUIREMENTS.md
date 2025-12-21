@@ -20,24 +20,26 @@ data/studies/
 ### Workflow 1: Add Studies Incrementally
 
 ```bash
+pip install -e python/  # Install mcbo package (first time only)
+
 # Add first study
-python python/build_graph.py add-study \
+mcbo-build-graph add-study \
   --study-dir .data/studies/study_001 \
   --instances .data/processed/mcbo_instances.ttl
 
 # Add another study (appends to existing)
-python python/build_graph.py add-study \
+mcbo-build-graph add-study \
   --study-dir .data/studies/study_002 \
   --instances .data/processed/mcbo_instances.ttl
 
 # Merge with ontology to create graph.ttl
-python python/build_graph.py merge \
+mcbo-build-graph merge \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
-python python/run_eval.py \
+mcbo-run-eval \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -47,14 +49,14 @@ python python/run_eval.py \
 
 ```bash
 # Process all studies and merge with ontology in one step
-python python/build_graph.py build \
+mcbo-build-graph build \
   --studies-dir .data/studies \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Evaluate
-python python/run_eval.py \
+mcbo-run-eval \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -64,11 +66,11 @@ python python/run_eval.py \
 
 ```bash
 # Build and evaluate demo data
-python python/build_graph.py build \
+mcbo-build-graph build \
   --studies-dir data.sample/studies \
   --output data.sample/graph.ttl
 
-python python/run_eval.py \
+mcbo-run-eval \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -207,7 +209,7 @@ The following 10 columns should be added to `data/sample_metadata.csv` (empty va
 3. **Gene expression data**: For real RNA-seq data with thousands of genes per sample, use a separate **expression matrix file**:
 
    ```bash
-   python python/csv_to_rdf.py \
+   mcbo-csv-to-rdf \
      --csv_file data/sample_metadata.csv \
      --expression_matrix data/expression_matrix.csv \
      --output_file data/processed/mcbo_instances.ttl

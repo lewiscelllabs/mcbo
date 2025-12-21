@@ -10,7 +10,7 @@ The ontology is designed to support:
 - RNA-seq analysis
 - Culture condition optimization
 - Product development for CHO cell bioprocessing
-- Integration of 725+ curated bioprocessing samples from published studies
+- Integration of 724 curated bioprocessing samples from published studies
 
 ## Development Commands
 
@@ -42,12 +42,20 @@ java -jar .robot/robot.jar query \
 
 QC passes if every report is empty (only header line).
 
+### Python Package Installation
+
+Install the mcbo package for CLI commands:
+
+```bash
+pip install -e python/
+```
+
 ### Data Conversion (CSV to RDF)
 
 Convert bioprocess metadata CSV to RDF instances:
 
 ```bash
-python src/csv_to_rdf.py \
+mcbo-csv-to-rdf \
   --csv_file data/sample_metadata.csv \
   --output_file data/processed/mcbo_instances.ttl
 ```
@@ -58,28 +66,41 @@ Run SPARQL competency questions against the ontology + instance data:
 
 ```bash
 # Option 1: Using ontology + instances separately
-python run_eval.py \
+mcbo-run-eval \
   --ontology ontology/mcbo.owl.ttl \
   --instances data/processed/mcbo_instances.ttl \
   --queries eval/queries \
   --results eval/results
 
-# Option 2: Using pre-merged graph
-python run_eval.py \
-  --graph eval/graph.sample.ttl \
+# Option 2: Using pre-merged graph (demo data)
+mcbo-run-eval \
+  --graph data.sample/graph.ttl \
   --queries eval/queries \
-  --results eval/results
+  --results data.sample/results
 
-# Option 3: Generate merged graph for separate use
-python run_eval.py \
-  --ontology ontology/mcbo.owl.ttl \
-  --instances data/processed/mcbo_instances.ttl \
-  --queries eval/queries \
-  --results eval/results \
-  --write-merged eval/graph.ttl
+# Option 3: Verify graph parses without running queries
+mcbo-run-eval --graph data.sample/graph.ttl --verify
 ```
 
 Query results are written as TSV files to `eval/results/`.
+
+### Available CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `mcbo-csv-to-rdf` | Convert CSV metadata to RDF instances (with optional expression data) |
+| `mcbo-build-graph` | Build graphs from studies or single CSV (bootstrap, build, merge, add-study) |
+| `mcbo-run-eval` | Run SPARQL competency queries |
+| `mcbo-stats` | Generate graph statistics |
+
+### Data Workflow Scenarios
+
+| Scenario | Command | Use Case |
+|----------|---------|----------|
+| 1. Single CSV, no expression | `mcbo-build-graph bootstrap --csv FILE` | Hand-curated metadata, no RNA-seq |
+| 2. Multi-study dirs, no expression | `mcbo-build-graph build --studies-dir DIR` | Per-study CSVs, no RNA-seq |
+| 3. Multi-study dirs + expression | `mcbo-build-graph build --studies-dir DIR` | Per-study CSVs with expression_matrix.csv |
+| 4. Single CSV + per-study expression | `mcbo-build-graph bootstrap --csv FILE --expression-dir DIR` | Bootstrap large curated datasets |
 
 ## Architecture
 
@@ -120,12 +141,12 @@ The ontology uses BFO/OBO-compliant patterns:
 ### Key Data Structures
 
 - **TBox (Ontology)**: `ontology/mcbo.owl.ttl` contains the ontology schema
-- **ABox (Instances)**: `data/processed/mcbo_instances.ttl` contains instance data
-- **Evaluation Graph**: Union of TBox + ABox, optionally at `eval/graph.ttl`
+- **ABox (Instances)**: `.data/processed/mcbo_instances.ttl` contains instance data (real data)
+- **Evaluation Graphs**: Union of TBox + ABox at `.data/graph.ttl` (real) or `data.sample/graph.ttl` (demo)
 
 ### CSV to RDF Conversion Logic
 
-The `src/csv_to_rdf.py` script transforms tabular metadata into RDF:
+The `mcbo.csv_to_rdf` module (CLI: `mcbo-csv-to-rdf`) transforms tabular metadata into RDF:
 
 - Maps process types (Batch, FedBatch, Perfusion, etc.) to ontology classes
 - Creates material entities (CellCultureSystem, cell lines, culture media)
@@ -158,7 +179,7 @@ The ontology is evaluated against 8 competency questions (CQs):
 
 Implemented queries: CQ1, CQ2, CQ5 (see `eval/queries/`)
 
-Current evaluation results: 75% CQ coverage, 725 samples, sub-second query times.
+Current evaluation results: 75% CQ coverage, 724 samples, sub-second query times.
 
 ## Directory Structure
 
@@ -170,17 +191,25 @@ mcbo/
 │   ├── sample_metadata.csv
 │   └── processed/      # Generated RDF instances (ABox)
 │       └── mcbo_instances.ttl
-├── src/                # Data conversion scripts
-│   └── csv_to_rdf.py
+├── python/             # Python package (pip install -e python/)
+│   ├── mcbo/           # Core library + CLI modules
+│   │   ├── __init__.py      # Package exports
+│   │   ├── namespaces.py    # Shared RDF namespaces
+│   │   ├── graph_utils.py   # Graph loading/creation utilities
+│   │   ├── csv_to_rdf.py    # CSV-to-RDF conversion (mcbo-csv-to-rdf)
+│   │   ├── build_graph.py   # Graph building (mcbo-build-graph)
+│   │   ├── run_eval.py      # SPARQL evaluation (mcbo-run-eval)
+│   │   └── stats_eval_graph.py  # Statistics (mcbo-stats)
+│   └── pyproject.toml  # Package metadata and entry points
+├── scripts/            # Shell scripts
+│   └── run_all_checks.sh    # Full QC + evaluation runner
 ├── eval/               # Competency question evaluation
 │   ├── queries/        # SPARQL query files (*.rq)
-│   ├── results/        # Query outputs (*.tsv)
-│   └── graph.sample.ttl  # Public sample evaluation graph
-├── sparql/             # QC queries for ROBOT
+│   └── results/        # Query outputs (*.tsv)
+├── sparql/             # QC queries for ROBOT (see sparql/README.md)
 ├── reports/            # QC reports
 │   └── robot/
-├── docs/               # Documentation and figures
-└── run_eval.py         # Main evaluation runner
+└── docs/               # Documentation and figures
 ```
 
 ## Testing and Validation
@@ -190,7 +219,8 @@ Ontology validation uses ROBOT queries in CI/CD:
 - Detects duplicate labels
 - Identifies missing definitions
 
-See `.github/qc.yml` for automated QC workflow.
+See `sparql/README.md` for manual ROBOT commands and query details.
+See `.github/workflows/qc.yml` for automated QC workflow.
 
 ## Important Notes
 
@@ -198,4 +228,4 @@ See `.github/qc.yml` for automated QC workflow.
 - Instance data is generated from CSV, not hand-curated
 - Merged graphs (TBox + ABox) are required for queries using `rdfs:subClassOf*`
 - Gene overexpression inference uses heuristics when explicit gene columns absent
-- Public evaluation uses `eval/graph.sample.ttl`; full private data in `eval/graph.ttl` (local only)
+- Demo data evaluation uses `data.sample/graph.ttl`; real curated data in `.data/graph.ttl` (git-ignored)

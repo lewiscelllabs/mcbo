@@ -59,8 +59,22 @@ mcbo:run_DEMO002_RUN_C a mcbo:PerfusionCultureProcess ;
     obo:RO_0000057 mcbo:cellline_HEK293,
         mcbo:system_DEMO002_RUN_C .
 
-mcbo:AntibodyProductGene a mcbo:Gene ;
-    rdfs:label "antibody product gene" .
+mcbo:run_DEMO003_RUN_A a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_A ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_A ;
+    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
+        mcbo:clone_Clone_X ;
+    obo:RO_0000057 mcbo:cellline_CHO-DG44,
+        mcbo:system_DEMO003_RUN_A .
+
+mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO003_RUN_B ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_B ;
+    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
+        mcbo:clone_Clone_X ;
+    obo:RO_0000057 mcbo:cellline_CHO-DG44,
+        mcbo:system_DEMO003_RUN_B .
 
 mcbo:culture_condition_quality_DEMO001_RUN_A a mcbo:CultureConditionQuality ;
     mcbo:hasDissolvedOxygen 40.0 ;
@@ -96,6 +110,16 @@ mcbo:culture_condition_quality_DEMO002_RUN_C a mcbo:CultureConditionQuality ;
     mcbo:hasDissolvedOxygen 60.0 ;
     mcbo:hasPH 7.1 ;
     mcbo:hasTemperature 37.0 .
+
+mcbo:culture_condition_quality_DEMO003_RUN_A a mcbo:CultureConditionQuality ;
+    mcbo:hasDissolvedOxygen 45.0 ;
+    mcbo:hasPH 7.1 ;
+    mcbo:hasTemperature 36.5 .
+
+mcbo:culture_condition_quality_DEMO003_RUN_B a mcbo:CultureConditionQuality ;
+    mcbo:hasDissolvedOxygen 55.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 36.5 .
 
 mcbo:expr_DEMO001_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
     mcbo:hasExpressionValue 1000.0 ;
@@ -281,6 +305,54 @@ mcbo:expr_DEMO002_SAMPLE_C_TNF a mcbo:GeneExpressionMeasurement ;
     mcbo:hasExpressionValue 200.0 ;
     obo:IAO_0000136 mcbo:gene_TNF .
 
+mcbo:expr_DEMO003_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 920.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO003_SAMPLE_A_AKT1 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_AKT1 .
+
+mcbo:expr_DEMO003_SAMPLE_A_EGFR a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 280.0 ;
+    obo:IAO_0000136 mcbo:gene_EGFR .
+
+mcbo:expr_DEMO003_SAMPLE_A_ERBB2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 350.0 ;
+    obo:IAO_0000136 mcbo:gene_ERBB2 .
+
+mcbo:expr_DEMO003_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 780.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO003_SAMPLE_A_MET a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 120.0 ;
+    obo:IAO_0000136 mcbo:gene_MET .
+
+mcbo:expr_DEMO003_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 980.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO003_SAMPLE_B_AKT1 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 250.0 ;
+    obo:IAO_0000136 mcbo:gene_AKT1 .
+
+mcbo:expr_DEMO003_SAMPLE_B_EGFR a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 320.0 ;
+    obo:IAO_0000136 mcbo:gene_EGFR .
+
+mcbo:expr_DEMO003_SAMPLE_B_ERBB2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 400.0 ;
+    obo:IAO_0000136 mcbo:gene_ERBB2 .
+
+mcbo:expr_DEMO003_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 820.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO003_SAMPLE_B_MET a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 150.0 ;
+    obo:IAO_0000136 mcbo:gene_MET .
+
 mcbo:gene_IgG a mcbo:Gene ;
     rdfs:label "IgG" .
 
@@ -308,6 +380,18 @@ mcbo:glutamine_DEMO001_RUN_D a mcbo:GlutamineConcentration,
     mcbo:hasConcentrationUnit "mM" ;
     mcbo:hasConcentrationValue 4.0 .
 
+mcbo:glutamine_DEMO003_RUN_A a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 3.5mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 3.5 .
+
+mcbo:glutamine_DEMO003_RUN_B a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 3.5mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 3.5 .
+
 mcbo:medium_DEMO001_RUN_A a mcbo:CultureMedium ;
     rdfs:label "Culture Medium" ;
     mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_A .
@@ -324,6 +408,14 @@ mcbo:medium_DEMO001_RUN_D a mcbo:CultureMedium ;
     rdfs:label "Culture Medium" ;
     mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_D .
 
+mcbo:medium_DEMO003_RUN_A a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_A .
+
+mcbo:medium_DEMO003_RUN_B a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_B .
+
 mcbo:phase_DEMO001_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO001_RUN_B a mcbo:ExponentialPhase .
@@ -337,6 +429,10 @@ mcbo:phase_DEMO002_RUN_A a mcbo:ExponentialPhase .
 mcbo:phase_DEMO002_RUN_B a mcbo:StationaryPhase .
 
 mcbo:phase_DEMO002_RUN_C a mcbo:StationaryPhase .
+
+mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
+
+mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
 mcbo:product_DEMO002_RUN_A a mcbo:TherapeuticProtein ;
     rdfs:label "IgG" ;
@@ -352,6 +448,10 @@ mcbo:product_DEMO002_RUN_C a mcbo:TherapeuticProtein ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_C_Aggregation ;
     mcbo:hasTiterValue 450.0 .
+
+mcbo:product_DEMO003_RUN_B a mcbo:TherapeuticProtein ;
+    rdfs:label "BsAb" ;
+    mcbo:hasTiterValue 280.0 .
 
 mcbo:productivity_DEMO001_RUN_A a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
@@ -380,6 +480,14 @@ mcbo:productivity_DEMO002_RUN_B a mcbo:HighProductivity ;
 mcbo:productivity_DEMO002_RUN_C a mcbo:VeryHighProductivity ;
     mcbo:hasProductivityCategory "VeryHigh" ;
     mcbo:hasProductivityValue 5.0 .
+
+mcbo:productivity_DEMO003_RUN_A a mcbo:MediumProductivity ;
+    mcbo:hasProductivityCategory "Medium" ;
+    mcbo:hasProductivityValue 3.0 .
+
+mcbo:productivity_DEMO003_RUN_B a mcbo:HighProductivity ;
+    mcbo:hasProductivityCategory "High" ;
+    mcbo:hasProductivityValue 4.0 .
 
 mcbo:quality_DEMO002_RUN_A_Glycosylation a mcbo:QualityMeasurement ;
     rdfs:label "Glycosylation" .
@@ -471,6 +579,28 @@ mcbo:sample_DEMO002_SAMPLE_C a mcbo:BioprocessSample ;
         mcbo:expr_DEMO002_SAMPLE_C_TNF ;
     mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_C .
 
+mcbo:sample_DEMO003_SAMPLE_A a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_A ;
+    mcbo:hasCollectionDay 4 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_A_ACTB,
+        mcbo:expr_DEMO003_SAMPLE_A_AKT1,
+        mcbo:expr_DEMO003_SAMPLE_A_EGFR,
+        mcbo:expr_DEMO003_SAMPLE_A_ERBB2,
+        mcbo:expr_DEMO003_SAMPLE_A_GAPDH,
+        mcbo:expr_DEMO003_SAMPLE_A_MET ;
+    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_A .
+
+mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_B ;
+    mcbo:hasCollectionDay 8 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_B_ACTB,
+        mcbo:expr_DEMO003_SAMPLE_B_AKT1,
+        mcbo:expr_DEMO003_SAMPLE_B_EGFR,
+        mcbo:expr_DEMO003_SAMPLE_B_ERBB2,
+        mcbo:expr_DEMO003_SAMPLE_B_GAPDH,
+        mcbo:expr_DEMO003_SAMPLE_B_MET ;
+    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_B .
+
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
@@ -503,6 +633,16 @@ mcbo:system_DEMO002_RUN_C a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
     obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_C .
 
+mcbo:system_DEMO003_RUN_A a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
+        mcbo:medium_DEMO003_RUN_A ;
+    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_A .
+
+mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
+        mcbo:medium_DEMO003_RUN_B ;
+    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_B .
+
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
     mcbo:hasViableCellDensity 8000000.0 .
@@ -531,11 +671,37 @@ mcbo:viability_DEMO002_SAMPLE_C a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 92.0 ;
     mcbo:hasViableCellDensity 15000000.0 .
 
+mcbo:viability_DEMO003_SAMPLE_A a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 94.0 ;
+    mcbo:hasViableCellDensity 7000000.0 .
+
+mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 89.0 ;
+    mcbo:hasViableCellDensity 11000000.0 .
+
+mcbo:AntibodyProductGene a mcbo:Gene ;
+    rdfs:label "antibody product gene" .
+
+mcbo:gene_AKT1 a mcbo:Gene ;
+    rdfs:label "AKT1" .
+
+mcbo:gene_EGFR a mcbo:Gene ;
+    rdfs:label "EGFR" .
+
+mcbo:gene_ERBB2 a mcbo:Gene ;
+    rdfs:label "ERBB2" .
+
+mcbo:gene_MET a mcbo:Gene ;
+    rdfs:label "MET" .
+
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .
 
 mcbo:clone_Clone_B a mcbo:Clone ;
     rdfs:label "Clone_B" .
+
+mcbo:clone_Clone_X a mcbo:Clone ;
+    rdfs:label "Clone_X" .
 
 mcbo:gene_CXCL8 a mcbo:Gene ;
     rdfs:label "CXCL8" .
@@ -564,16 +730,22 @@ mcbo:gene_TP53 a mcbo:Gene ;
 mcbo:gene_VEGFA a mcbo:Gene ;
     rdfs:label "VEGFA" .
 
-mcbo:gene_ACTB a mcbo:Gene ;
-    rdfs:label "ACTB" .
-
-mcbo:gene_GAPDH a mcbo:Gene ;
-    rdfs:label "GAPDH" .
+mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
+    rdfs:label "CHO-DG44" ;
+    mcbo:hasClone mcbo:clone_Clone_X ;
+    mcbo:overexpressesGene mcbo:AntibodyProductGene ;
+    mcbo:producesProduct "BsAb" .
 
 mcbo:cellline_HEK293 a mcbo:HEK293CellLine ;
     rdfs:label "HEK293" ;
     mcbo:overexpressesGene mcbo:gene_IgG ;
     mcbo:producesProduct "IgG" .
+
+mcbo:gene_ACTB a mcbo:Gene ;
+    rdfs:label "ACTB" .
+
+mcbo:gene_GAPDH a mcbo:Gene ;
+    rdfs:label "GAPDH" .
 
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;

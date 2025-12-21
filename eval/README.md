@@ -50,13 +50,15 @@ This is **generated** from `.data/studies/`:
 ### Demo data (generated from data.sample/)
 
 ```bash
+pip install -e python/  # Install mcbo package (first time only)
+
 # Build graph
-python python/build_graph.py build \
+mcbo-build-graph build \
   --studies-dir data.sample/studies \
   --output data.sample/graph.ttl
 
 # Evaluate
-python python/run_eval.py \
+mcbo-run-eval \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results
@@ -66,12 +68,12 @@ python python/run_eval.py \
 
 ```bash
 # Build graph
-python python/build_graph.py build \
+mcbo-build-graph build \
   --studies-dir .data/studies \
   --output .data/graph.ttl
 
 # Evaluate
-python python/run_eval.py \
+mcbo-run-eval \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -87,10 +89,10 @@ bash scripts/run_all_checks.sh
 
 ```bash
 # Stats on real data
-python python/stats_eval_graph.py --graph .data/graph.ttl
+mcbo-stats --graph .data/graph.ttl
 
 # Stats on demo data
-python python/stats_eval_graph.py --graph data.sample/graph.ttl
+mcbo-stats --graph data.sample/graph.ttl
 ```
 
 Output includes:

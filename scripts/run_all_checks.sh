@@ -36,20 +36,19 @@ if [ ! -f "$ROBOT_JAR" ]; then
     exit 1
 fi
 
-# Check for Python and required scripts
+# Check for Python and mcbo package
 if ! command -v python &> /dev/null; then
     echo "Error: python not found in PATH"
     exit 1
 fi
 
-if [ ! -f "$REPO_ROOT/python/run_eval.py" ]; then
-    echo "Error: run_eval.py not found at $REPO_ROOT/python/run_eval.py"
-    exit 1
-fi
-
-if [ ! -f "$REPO_ROOT/python/build_graph.py" ]; then
-    echo "Error: build_graph.py not found at $REPO_ROOT/python/build_graph.py"
-    exit 1
+# Check if mcbo package is installed
+if ! python -c "import mcbo" 2>/dev/null; then
+    echo "Warning: mcbo package not installed. Installing with: pip install -e python/"
+    pip install -e "$REPO_ROOT/python/" || {
+        echo "Error: Failed to install mcbo package"
+        exit 1
+    }
 fi
 
 # Create output directories
@@ -69,7 +68,7 @@ verify_graph() {
     fi
     
     local result
-    result=$(python "$REPO_ROOT/python/run_eval.py" --graph "$file_path" --verify 2>&1)
+    result=$(mcbo-run-eval --graph "$file_path" --verify 2>&1)
     if [[ "$result" == PASS:* ]]; then
         echo "    ✅ $result ($description)"
         return 0
@@ -189,7 +188,7 @@ process_dataset() {
         fi
         echo "  Building graph from: $studies_dir ($study_count studies)"
         
-        if python "$REPO_ROOT/python/build_graph.py" build \
+        if mcbo-build-graph build \
             --studies-dir "$studies_dir" \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
@@ -210,7 +209,7 @@ process_dataset() {
             echo "    + Expression matrix: $data_dir/expression_matrix.csv"
         fi
         
-        if ! python "$REPO_ROOT/python/csv_to_rdf.py" \
+        if ! mcbo-csv-to-rdf \
             --csv_file "$data_dir/sample_metadata.csv" \
             --output_file "$data_dir/processed/mcbo_instances.ttl" \
             $expr_flag 2>&1; then
@@ -220,7 +219,7 @@ process_dataset() {
         echo ""
         
         echo "  Merging with ontology..."
-        if python "$REPO_ROOT/python/build_graph.py" merge \
+        if mcbo-build-graph merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
             --output "$graph_file" 2>&1; then
@@ -233,7 +232,7 @@ process_dataset() {
     elif [ -f "$data_dir/processed/mcbo_instances.ttl" ]; then
         echo "  Found pre-existing instances: $data_dir/processed/mcbo_instances.ttl"
         echo "  Merging with ontology..."
-        if python "$REPO_ROOT/python/build_graph.py" merge \
+        if mcbo-build-graph merge \
             --ontology "$REPO_ROOT/ontology/mcbo.owl.ttl" \
             --instances "$data_dir/processed/mcbo_instances.ttl" \
             --output "$graph_file" 2>&1; then
@@ -259,7 +258,7 @@ process_dataset() {
     
     # Evaluate
     echo "  Evaluating graph..."
-    python "$REPO_ROOT/python/run_eval.py" \
+    mcbo-run-eval \
         --graph "$graph_file" \
         --queries "$REPO_ROOT/eval/queries" \
         --results "$data_dir/results" || echo "    ⚠️  WARNING: Evaluation had issues"
@@ -273,7 +272,7 @@ process_dataset() {
     echo ""
     
     # Generate stats
-    python "$REPO_ROOT/python/stats_eval_graph.py" --graph "$graph_file" > "$data_dir/STATS.txt" 2>&1
+    mcbo-stats --graph "$graph_file" > "$data_dir/STATS.txt" 2>&1
     echo "  Stats written to: $data_dir/STATS.txt"
     
     return 0

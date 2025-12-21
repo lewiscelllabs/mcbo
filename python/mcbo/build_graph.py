@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
 """
-build_graph.py — Build MCBO evaluation graph from multiple studies.
+Build MCBO evaluation graph from multiple studies.
 
-This script supports two workflows:
+Usage (after pip install -e python/):
+  mcbo-build-graph add-study --study-dir .data/studies/study_001 --instances .data/processed/mcbo_instances.ttl
+  mcbo-build-graph build --studies-dir data.sample/studies --output data.sample/graph.ttl
 
-1. INCREMENTAL: Add studies one at a time
-   python python/build_graph.py add-study \
-     --study-dir .data/studies/study_001 \
-     --instances .data/processed/mcbo_instances.ttl
-
-2. FULL BUILD: Combine all studies into final graph
-   python python/build_graph.py build \
-     --studies-dir .data/studies \
-     --ontology ontology/mcbo.owl.ttl \
-     --output .data/graph.ttl
+Or run directly:
+  python -m mcbo.build_graph build --studies-dir data.sample/studies --output data.sample/graph.ttl
 
 Expected study directory structure:
   .data/studies/           # Real data (git-ignored)
@@ -35,17 +29,13 @@ The script will:
 """
 
 import argparse
-import sys
 from pathlib import Path
 
-# Add src to path for csv_to_rdf import
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from rdflib import Graph, Namespace
-from csv_to_rdf import convert_csv_to_rdf, load_expression_matrix, add_expression_data, iri_safe
 import pandas as pd
 
-MCBO = Namespace("http://example.org/mcbo#")
+from .namespaces import MCBO
+from .graph_utils import iri_safe, create_graph, ensure_parent_dir
+from .csv_to_rdf import convert_csv_to_rdf, load_expression_matrix, add_expression_data
 
 
 def find_study_files(study_dir: Path) -> tuple:
@@ -70,7 +60,7 @@ def find_study_files(study_dir: Path) -> tuple:
     return metadata_file, expr_file
 
 
-def process_study(study_dir: Path, created_genes: set = None) -> Graph:
+def process_study(study_dir: Path, created_genes: set = None):
     """Process a single study directory and return its RDF graph."""
     if created_genes is None:
         created_genes = set()
@@ -79,7 +69,7 @@ def process_study(study_dir: Path, created_genes: set = None) -> Graph:
     
     if metadata_file is None:
         print(f"  WARNING: No metadata file found in {study_dir}, skipping")
-        return Graph()
+        return create_graph()
     
     print(f"  Processing: {metadata_file.name}")
     
@@ -108,8 +98,7 @@ def add_study(study_dir: Path, instances_file: Path):
     print(f"\n=== Adding study: {study_dir.name} ===")
     
     # Load existing instances if file exists
-    main_graph = Graph()
-    main_graph.bind("mcbo", MCBO)
+    main_graph = create_graph()
     
     if instances_file.exists():
         print(f"Loading existing instances from: {instances_file}")
@@ -117,7 +106,7 @@ def add_study(study_dir: Path, instances_file: Path):
         print(f"  Existing triples: {len(main_graph)}")
     
     # Process the new study
-    created_genes = set()  # Track genes across the merge
+    created_genes = set()
     study_graph = process_study(study_dir, created_genes)
     
     # Merge
@@ -129,6 +118,7 @@ def add_study(study_dir: Path, instances_file: Path):
     print(f"  Total triples: {len(main_graph)}")
     
     # Save
+    ensure_parent_dir(instances_file)
     main_graph.serialize(destination=str(instances_file), format="turtle")
     print(f"  Saved to: {instances_file}")
 
@@ -144,8 +134,7 @@ def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Pat
     print(f"Found {len(study_dirs)} study directories")
     
     # Process all studies
-    main_graph = Graph()
-    main_graph.bind("mcbo", MCBO)
+    main_graph = create_graph()
     created_genes = set()
     
     for study_dir in study_dirs:
@@ -157,7 +146,7 @@ def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Pat
     print(f"\n  Total instance triples: {len(main_graph)}")
     
     # Save instances
-    instances_file.parent.mkdir(parents=True, exist_ok=True)
+    ensure_parent_dir(instances_file)
     main_graph.serialize(destination=str(instances_file), format="turtle")
     print(f"  Saved instances to: {instances_file}")
     
@@ -167,7 +156,7 @@ def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Pat
     print(f"  Total triples (ontology + instances): {len(main_graph)}")
     
     # Save final graph
-    output_file.parent.mkdir(parents=True, exist_ok=True)
+    ensure_parent_dir(output_file)
     main_graph.serialize(destination=str(output_file), format="turtle")
     print(f"  Saved full graph to: {output_file}")
 
@@ -176,8 +165,7 @@ def merge_ontology_instances(ontology_file: Path, instances_file: Path, output_f
     """Simple merge: ontology + instances -> graph.ttl"""
     print(f"\n=== Merging ontology + instances ===")
     
-    g = Graph()
-    g.bind("mcbo", MCBO)
+    g = create_graph()
     
     print(f"Loading ontology: {ontology_file}")
     g.parse(str(ontology_file), format="turtle")
@@ -189,43 +177,122 @@ def merge_ontology_instances(ontology_file: Path, instances_file: Path, output_f
     print(f"  Instance triples: {len(g) - onto_count}")
     print(f"  Total triples: {len(g)}")
     
-    output_file.parent.mkdir(parents=True, exist_ok=True)
+    ensure_parent_dir(output_file)
+    g.serialize(destination=str(output_file), format="turtle")
+    print(f"  Saved to: {output_file}")
+
+
+def bootstrap_from_csv(csv_file: Path, ontology_file: Path, output_file: Path, 
+                       expression_matrix: Path = None, expression_dir: Path = None):
+    """Bootstrap a graph from a single CSV file with optional expression data.
+    
+    This is the "single curated CSV" workflow where all study data is in one file,
+    with optional per-study expression matrices in a directory.
+    """
+    from .csv_to_rdf import convert_csv_to_rdf, load_expression_matrix, load_expression_dir, add_expression_data
+    
+    print(f"\n=== Bootstrapping graph from single CSV ===")
+    print(f"Metadata CSV: {csv_file}")
+    
+    # Create temporary instances file
+    instances_file = output_file.parent / "mcbo_instances.ttl"
+    ensure_parent_dir(instances_file)
+    
+    # Load expression data
+    expr_data = {}
+    if expression_matrix:
+        print(f"Loading expression matrix: {expression_matrix}")
+        expr_data = load_expression_matrix(str(expression_matrix))
+        print(f"  Loaded expression data for {len(expr_data)} samples")
+    elif expression_dir:
+        expr_data = load_expression_dir(str(expression_dir))
+    
+    # Convert CSV to RDF
+    g = convert_csv_to_rdf(str(csv_file), str(instances_file))
+    
+    # Add expression data if available
+    if expr_data:
+        df = pd.read_csv(csv_file)
+        created_genes = set()
+        matched_count = 0
+        for _, row in df.iterrows():
+            sample_id = str(row.get("SampleAccession", "")).strip()
+            if sample_id and sample_id in expr_data:
+                sample_uri = MCBO[f"sample_{iri_safe(sample_id)}"]
+                add_expression_data(g, sample_uri, sample_id, expr_data, created_genes)
+                matched_count += 1
+        g.serialize(destination=str(instances_file), format="turtle")
+        print(f"Added expression data for {matched_count} samples ({len(created_genes)} unique genes)")
+    
+    # Merge with ontology
+    print(f"\nMerging with ontology: {ontology_file}")
+    g.parse(str(ontology_file), format="turtle")
+    print(f"  Total triples: {len(g)}")
+    
+    # Save final graph
+    ensure_parent_dir(output_file)
     g.serialize(destination=str(output_file), format="turtle")
     print(f"  Saved to: {output_file}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Build MCBO evaluation graph from multiple studies",
+        description="Build MCBO evaluation graph from studies or single CSV",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Add a single study to existing instances
-  python python/build_graph.py add-study \\
+  # SCENARIO 1: Bootstrap from single curated CSV (no expression)
+  mcbo-build-graph bootstrap \\
+    --csv .data/sample_metadata.csv \\
+    --output .data/graph.ttl
+
+  # SCENARIO 4: Bootstrap from single CSV + per-study expression matrices
+  mcbo-build-graph bootstrap \\
+    --csv .data/sample_metadata.csv \\
+    --expression-dir .data/expression/ \\
+    --output .data/graph.ttl
+
+  # SCENARIO 2 & 3: Build from multi-study directories (each with own CSV)
+  mcbo-build-graph build \\
+    --studies-dir .data/studies \\
+    --output .data/graph.ttl
+
+  # Add a single study incrementally
+  mcbo-build-graph add-study \\
     --study-dir .data/studies/my_study \\
     --instances .data/processed/mcbo_instances.ttl
 
-  # Build full graph from all studies
-  python python/build_graph.py build \\
-    --studies-dir .data/studies \\
+  # Merge existing instances with ontology
+  mcbo-build-graph merge \\
     --ontology ontology/mcbo.owl.ttl \\
     --instances .data/processed/mcbo_instances.ttl \\
     --output .data/graph.ttl
 
-  # Just merge ontology + instances (no study processing)
-  python python/build_graph.py merge \\
-    --ontology ontology/mcbo.owl.ttl \\
-    --instances .data/processed/mcbo_instances.ttl \\
-    --output .data/graph.ttl
-  
-  # Demo data example
-  python python/build_graph.py build \\
+  # Demo data examples
+  mcbo-build-graph bootstrap \\
+    --csv data.sample/sample_metadata.csv \\
+    --expression-dir data.sample/expression/ \\
+    --output data.sample/graph.ttl
+
+  mcbo-build-graph build \\
     --studies-dir data.sample/studies \\
     --output data.sample/graph.ttl
 """
     )
     
     subparsers = parser.add_subparsers(dest="command", required=True)
+    
+    # bootstrap command (single CSV workflow)
+    bootstrap_parser = subparsers.add_parser("bootstrap", 
+        help="Bootstrap graph from single curated CSV (+ optional expression dir)")
+    bootstrap_parser.add_argument("--csv", type=Path, required=True, 
+                                  help="Single CSV file with all sample metadata")
+    bootstrap_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
+    bootstrap_parser.add_argument("--output", type=Path, default=Path(".data/graph.ttl"))
+    bootstrap_parser.add_argument("--expression-matrix", type=Path, default=None,
+                                  help="Single expression matrix CSV")
+    bootstrap_parser.add_argument("--expression-dir", type=Path, default=None,
+                                  help="Directory of per-study expression matrices")
     
     # add-study command
     add_parser = subparsers.add_parser("add-study", help="Add a single study to instances")
@@ -234,7 +301,7 @@ Examples:
                            help="Output instances file (will append if exists)")
     
     # build command
-    build_parser = subparsers.add_parser("build", help="Build full graph from all studies")
+    build_parser = subparsers.add_parser("build", help="Build full graph from study directories")
     build_parser.add_argument("--studies-dir", type=Path, required=True, help="Directory containing study subdirs")
     build_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
     build_parser.add_argument("--instances", type=Path, default=Path(".data/processed/mcbo_instances.ttl"))
@@ -248,7 +315,12 @@ Examples:
     
     args = parser.parse_args()
     
-    if args.command == "add-study":
+    if args.command == "bootstrap":
+        if args.expression_matrix and args.expression_dir:
+            parser.error("Cannot specify both --expression-matrix and --expression-dir")
+        bootstrap_from_csv(args.csv, args.ontology, args.output, 
+                          args.expression_matrix, args.expression_dir)
+    elif args.command == "add-study":
         add_study(args.study_dir, args.instances)
     elif args.command == "build":
         build_full_graph(args.studies_dir, args.ontology, args.instances, args.output)

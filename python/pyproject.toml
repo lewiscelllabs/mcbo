@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcbo"
+version = "0.1.0"
+description = "MCBO - Mammalian Cell BioProcess Ontology Python utilities"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "MCBO Authors"}
+]
+keywords = ["ontology", "rdf", "bioprocess", "cell-culture"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "rdflib>=6.0.0",
+    "pandas>=1.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+mcbo-csv-to-rdf = "mcbo.csv_to_rdf:main"
+mcbo-build-graph = "mcbo.build_graph:main"
+mcbo-run-eval = "mcbo.run_eval:main"
+mcbo-stats = "mcbo.stats_eval_graph:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mcbo*"]
+
+[tool.setuptools.package-data]
+mcbo = ["py.typed"]
+

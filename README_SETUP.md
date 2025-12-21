@@ -43,15 +43,16 @@ To run evaluations manually:
 ```bash
 # Activate environment
 conda activate mcbo
+pip install -e python/  # Install mcbo package (first time only)
 
 # Run on real data (if available)
-python python/run_eval.py \
+mcbo-run-eval \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
 
 # Run on demo data
-python python/run_eval.py \
+mcbo-run-eval \
   --graph data.sample/graph.ttl \
   --queries eval/queries \
   --results data.sample/results

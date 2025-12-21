@@ -18,7 +18,7 @@ Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J.
 Main MCBO ontology diagram below (click to get github doc, then right-click and open in new tab to zoom in).
 
 - `ontology/`: The MCBO ontology (TBox)
-- `python/`: All Python scripts (`csv_to_rdf.py`, `build_graph.py`, `run_eval.py`, `stats_eval_graph.py`)
+- `python/`: Python package with CLI tools (`mcbo-csv-to-rdf`, `mcbo-build-graph`, `mcbo-run-eval`, `mcbo-stats`)
 - `scripts/`: Shell scripts (`run_all_checks.sh`)
 - `eval/`: Competency question queries and results
 - `data.sample/`: **Demo data** - try this first to test the workflow!
@@ -59,20 +59,21 @@ Real-world curated data goes in `.data/` (git-ignored). Each study has its own s
 
 ```bash
 conda activate mcbo
+pip install -e python/  # Install mcbo package (first time only)
 
 # Step 1: Add a new study (can repeat for multiple studies)
-python python/build_graph.py add-study \
+mcbo-build-graph add-study \
   --study-dir .data/studies/my_new_study \
   --instances .data/processed/mcbo_instances.ttl
 
 # Step 2: Merge with ontology to create evaluation graph
-python python/build_graph.py merge \
+mcbo-build-graph merge \
   --ontology ontology/mcbo.owl.ttl \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl
 
 # Step 3: Run CQ evaluation
-python python/run_eval.py \
+mcbo-run-eval \
   --graph .data/graph.ttl \
   --queries eval/queries \
   --results .data/results
@@ -81,7 +82,7 @@ python python/run_eval.py \
 ### Alternative: Rebuild Everything at Once
 
 ```bash
-python python/build_graph.py build \
+mcbo-build-graph build \
   --studies-dir .data/studies \
   --instances .data/processed/mcbo_instances.ttl \
   --output .data/graph.ttl

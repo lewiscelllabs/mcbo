@@ -2,44 +2,28 @@
 """
 Run MCBO competency question evaluation queries.
 
-Usage examples:
+Usage (after pip install -e python/):
+  mcbo-run-eval --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
+  mcbo-run-eval --graph data.sample/graph.ttl --verify
 
-1) Demo data:
-  python python/run_eval.py --graph data.sample/graph.ttl --queries eval/queries --results data.sample/results
-
-2) Real data:
-  python python/run_eval.py --graph .data/graph.ttl --queries eval/queries --results .data/results
-
-3) Run on ontology + instances directly:
-  python python/run_eval.py --ontology ontology/mcbo.owl.ttl --instances .data/processed/mcbo_instances.ttl \
-    --queries eval/queries --results .data/results
-
-4) Verify graph parses (no queries):
-  python python/run_eval.py --graph data.sample/graph.ttl --verify
+Or run directly:
+  python -m mcbo.run_eval --graph data.sample/graph.ttl --verify
 """
 
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, Tuple
 
 from rdflib import Graph
 from rdflib.query import Result
 
-
-def load_graph_from_files(paths: List[Path]) -> Graph:
-    g = Graph()
-    for p in paths:
-        if not p.exists():
-            raise FileNotFoundError(f"File not found: {p}")
-        # rdflib guesses format from suffix; ttl is fine
-        g.parse(str(p))
-    return g
+from .graph_utils import load_graphs, ensure_dir, ensure_parent_dir
 
 
 def iter_query_files(query_dir: Path) -> Iterable[Path]:
+    """Iterate over SPARQL query files in a directory."""
     if not query_dir.exists():
         raise FileNotFoundError(f"Query directory not found: {query_dir}")
     for p in sorted(query_dir.glob("*.rq")):
@@ -47,10 +31,8 @@ def iter_query_files(query_dir: Path) -> Iterable[Path]:
 
 
 def result_to_tsv(res: Result) -> Tuple[str, int]:
-    """
-    Convert rdflib SPARQL Result to TSV string and return (tsv, row_count).
-    """
-    vars_ = [str(v) for v in res.vars]  # variable names without '?'
+    """Convert rdflib SPARQL Result to TSV string and return (tsv, row_count)."""
+    vars_ = [str(v) for v in res.vars]
     lines = ["\t".join(vars_)]
     row_count = 0
     for row in res:
@@ -64,15 +46,12 @@ def result_to_tsv(res: Result) -> Tuple[str, int]:
 
 
 def run_query(g: Graph, query_text: str) -> Result:
+    """Execute a SPARQL query on a graph."""
     return g.query(query_text)
 
 
-def ensure_dir(p: Path) -> None:
-    p.mkdir(parents=True, exist_ok=True)
-
-
 def main() -> None:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Run MCBO competency question evaluation queries")
     ap.add_argument("--graph", type=str, default=None,
                     help="Path to a single TTL file containing the merged evaluation graph (ontology + instances).")
     ap.add_argument("--ontology", type=str, default=None,
@@ -96,7 +75,6 @@ def main() -> None:
     ensure_dir(results_dir)
 
     # Load graph
-    # Always load ontology first for rdfs:subClassOf* queries to work
     ontology_path = Path("ontology/mcbo.owl.ttl")
     try:
         if args.graph:
@@ -104,12 +82,12 @@ def main() -> None:
             # If ontology exists and graph is not the ontology itself, load it too
             if ontology_path.exists() and str(ontology_path) != args.graph:
                 graph_paths.insert(0, ontology_path)
-            g = load_graph_from_files(graph_paths)
+            g = load_graphs(graph_paths)
             source_desc = f"graph={args.graph}" + (f" + ontology" if len(graph_paths) > 1 else "")
         else:
             if not args.ontology or not args.instances:
                 raise SystemExit("Provide either --graph OR both --ontology and --instances.")
-            g = load_graph_from_files([Path(args.ontology), Path(args.instances)])
+            g = load_graphs([Path(args.ontology), Path(args.instances)])
             source_desc = f"ontology={args.ontology}, instances={args.instances}"
     except Exception as e:
         if args.verify:
@@ -126,7 +104,7 @@ def main() -> None:
     # Optionally write merged graph
     if args.write_merged:
         out_path = Path(args.write_merged)
-        ensure_dir(out_path.parent)
+        ensure_parent_dir(out_path)
         g.serialize(destination=str(out_path), format="turtle")
 
     # Run each query
@@ -160,3 +138,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
