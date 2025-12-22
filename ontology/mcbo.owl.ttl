@@ -35,6 +35,30 @@ mcbo:ChemostatCultureProcess a owl:Class ;
     uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and culture broth is continuously removed, typically without deliberate cell retention, to maintain a constant culture volume." ;
     rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
+mcbo:BatchCultureProcess a owl:Class ;
+    rdfs:label "Batch culture process" ;
+    uo:IAO_0000115 "A cell culture process in which cells are cultured in a closed system with no addition or removal of materials during the cultivation period." ;
+    rdfs:comment "Closed-system culture without nutrient addition or product removal during cultivation." ;
+    rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:PerfusionCultureProcess a owl:Class ;
+    rdfs:label "Perfusion culture process" ;
+    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture vessel." ;
+    rdfs:comment "Continuous culture with cell retention, distinguishing it from chemostat." ;
+    rdfs:subClassOf mcbo:ContinuousCultureProcess .
+
+mcbo:MammalianCell a owl:Class ;
+    rdfs:label "Mammalian cell" ;
+    uo:IAO_0000115 "A cell that is part of or derived from a mammalian organism." ;
+    rdfs:comment "Cell entity from mammalian species (e.g., CHO, HEK293). Distinguishes mammalian from other cell types like yeast or bacteria." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:CultureConditionQuality a owl:Class ;
+    rdfs:label "Culture condition quality" ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration." ;
+    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
+    rdfs:subClassOf uo:BFO_0000019 .
+
 mcbo:ExponentialPhase_001 a mcbo:ExponentialPhase,
         owl:NamedIndividual ;
     rdfs:label "Exponential phase at 72h" .
@@ -73,7 +97,6 @@ mcbo:LowProductivity a owl:Class ;
 mcbo:MammalianCellCultureProcess a owl:Class ;
     rdfs:label "Mammalian cell culture process"@en ;
     uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
-    rdfs:subClassOf mcbo:CellCultureProcess ;
     owl:equivalentClass [ a owl:Class ;
             owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
                         owl:onProperty uo:RO_0000057 ;

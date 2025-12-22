@@ -43,7 +43,6 @@ mcbo:LowMediumProductivity a owl:Class ;
 mcbo:MammalianCellCultureProcess a owl:Class ;
     rdfs:label "Mammalian cell culture process"@en ;
     uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
-    rdfs:subClassOf mcbo:CellCultureProcess ;
     owl:equivalentClass [ a owl:Class ;
             owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
                         owl:onProperty obo:RO_0000057 ;
@@ -444,8 +443,11 @@ mcbo:LowProductivity a owl:Class ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
 mcbo:MammalianCell a owl:Class ;
-    rdfs:label "Mammalian cell"@en ;
-    uo:IAO_0000115 "A material entity that is a cell of a mammal."@en ;
+    rdfs:label "Mammalian cell",
+        "Mammalian cell"@en ;
+    uo:IAO_0000115 "A cell that is part of or derived from a mammalian organism.",
+        "A material entity that is a cell of a mammal."@en ;
+    rdfs:comment "Cell entity from mammalian species (e.g., CHO, HEK293). Distinguishes mammalian from other cell types like yeast or bacteria." ;
     rdfs:subClassOf uo:BFO_0000040 .
 
 mcbo:QuantityValue a owl:Class ;
@@ -1306,7 +1308,9 @@ mcbo:CulturePhase a owl:Class ;
 
 mcbo:PerfusionCultureProcess a owl:Class ;
     rdfs:label "Perfusion culture process" ;
-    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture system." ;
+    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture system.",
+        "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture vessel." ;
+    rdfs:comment "Continuous culture with cell retention, distinguishing it from chemostat." ;
     rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
 mcbo:clone_Clone_A a mcbo:Clone ;
@@ -1324,8 +1328,19 @@ uo:IAO_0000030 rdfs:label "information content entity" .
 
 mcbo:BatchCultureProcess a owl:Class ;
     rdfs:label "Batch culture process" ;
-    uo:IAO_0000115 "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
+    uo:IAO_0000115 "A cell culture process in which cells are cultured in a closed system with no addition or removal of materials during the cultivation period.",
+        "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
+    rdfs:comment "Closed-system culture without nutrient addition or product removal during cultivation." ;
     rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:CellCultureProcess a owl:Class ;
+    rdfs:label "Cell culture process" ;
+    uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
+    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty mcbo:hasProcessOutput ;
+            owl:someValuesFrom mcbo:BioprocessSample ],
+        uo:BFO_0000015 .
 
 mcbo:Clone a owl:Class ;
     rdfs:label "Clone" ;
@@ -1366,15 +1381,6 @@ mcbo:gene_VEGFA a mcbo:Gene ;
     rdfs:label "VEGFA" .
 
 uo:OBI_0001271 rdfs:label "RNA sequencing assay" .
-
-mcbo:CellCultureProcess a owl:Class ;
-    rdfs:label "Cell culture process" ;
-    uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf [ a owl:Restriction ;
-            owl:onProperty mcbo:hasProcessOutput ;
-            owl:someValuesFrom mcbo:BioprocessSample ],
-        uo:BFO_0000015 .
 
 mcbo:HighProductivity a owl:Class ;
     rdfs:label "High productivity" ;
@@ -1496,8 +1502,11 @@ mcbo:CellViabilityMeasurement a owl:Class ;
     rdfs:subClassOf uo:IAO_0000109 .
 
 mcbo:CultureConditionQuality a owl:Class ;
-    rdfs:label "Culture condition quality"@en ;
-    uo:IAO_0000115 "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
+    rdfs:label "Culture condition quality",
+        "Culture condition quality"@en ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration.",
+        "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
+    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
     rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:Gene a owl:Class ;
