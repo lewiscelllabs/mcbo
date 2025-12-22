@@ -11,8 +11,7 @@
 #
 # Prerequisites:
 #   - Conda environment: make conda-env && conda activate mcbo
-#   - Python package installed: make install
-#   - ROBOT jar at .robot/robot.jar (for QC checks)
+#   - Python package + ROBOT installed: make install
 
 .PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology
 
@@ -149,7 +148,7 @@ check-env:
 	fi
 
 # Installation (requires active conda environment)
-install: check-env $(INSTALL_STAMP)
+install: check-env $(INSTALL_STAMP) $(ROBOT_JAR)
 
 $(INSTALL_STAMP): requirements.txt python/pyproject.toml
 	pip install -r requirements.txt
@@ -157,13 +156,15 @@ $(INSTALL_STAMP): requirements.txt python/pyproject.toml
 	@touch $(INSTALL_STAMP)
 	@echo ""
 	@echo "✅ mcbo package installed"
+	@echo "   (ROBOT will be downloaded next if needed)"
 
 robot: $(ROBOT_JAR)
 
 $(ROBOT_JAR):
 	@echo "Downloading ROBOT..."
 	@mkdir -p .robot
-	curl -L -o $(ROBOT_JAR) "https://github.com/ontodev/robot/releases/download/v1.9.6/robot.jar"
+	@curl -L -o $(ROBOT_JAR) "https://github.com/ontodev/robot/releases/download/v1.9.6/robot.jar"
+	@echo "✅ ROBOT downloaded to $(ROBOT_JAR)"
 
 # =============================================================================
 # Demo Data Targets

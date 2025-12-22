@@ -154,32 +154,185 @@ mcbo-run-eval --graph data.sample/graph.ttl --results data.sample/results
 
 ## CSV Column Reference
 
+This section explains how to format the CSV (real data) for subsequent parsing by `mcbo-csv-to-rdf` (`--csv_file`) into the `mcbo-instances.ttl` file.
+
 ### Required Columns
 
 | Column | CQs | Description |
 |--------|-----|-------------|
-| `RunAccession` | all | Unique run ID |
-| `SampleAccession` | all | Unique sample ID |
 | `CellLine` | CQ1-8 | Cell line name (CHO-K1, HEK293) |
 | `ProcessType` | CQ5 | Batch, FedBatch, Perfusion |
+| `RunAccession` | all | Unique run ID |
+| `SampleAccession` | all | Unique sample ID |
 
-### Optional Columns
+### Optional(?) Columns
 
 | Column | CQs | Description |
 |--------|-----|-------------|
-| `Temperature` | CQ1 | Culture temperature (°C) |
-| `pH` | CQ1 | Culture medium pH |
-| `DissolvedOxygen` | CQ1 | Dissolved oxygen (% saturation) |
-| `Productivity` | CQ1, CQ6 | High/Medium/Low or numeric |
+| `CloneID` | CQ4, CQ8 | Clone identifier |
 | `CollectionDay` | CQ3 | Day of sample collection |
+| `DissolvedOxygen` | CQ1 | Dissolved oxygen (% saturation) |
+| `ExpressionValue` | decimal | CQ4, CQ6, CQ7 | Gene expression value (e.g., TPM, FPKM) |
+| `GeneSymbol` | string | CQ4, CQ6, CQ7 | Gene symbol for expression measurements |
+| `GlutamineConcentration` | CQ3 | mM glutamine |
+| `OverexpressedGene` | string | CQ2 | Gene the cell line overexpresses (engineering) |
+| `pH` | CQ1 | Culture medium pH |
+| `Producer` | CQ2 | Boolean: TRUE if producer line |
+| `Productivity` | CQ1, CQ6 | High/Medium/Low or numeric |
+| `ProductType` | CQ2 | Product name (mAb, BsAb, gene symbol) |
+| `QualityType` | CQ8 | Quality attribute type |
+| `Temperature` | CQ1 | Culture temperature (°C) |
+| `TiterValue` | CQ8 | Product titer (mg/L) |
 | `ViableCellDensity` | CQ3 | Viable cells/mL |
 | `ViabilityPercentage` | CQ7 | Cell viability % |
-| `CloneID` | CQ4, CQ8 | Clone identifier |
-| `GlutamineConcentration` | CQ3 | mM glutamine |
-| `TiterValue` | CQ8 | Product titer (mg/L) |
-| `QualityType` | CQ8 | Quality attribute type |
-| `Producer` | CQ2 | Boolean: TRUE if producer line |
-| `ProductType` | CQ2 | Product name (mAb, BsAb, gene symbol) |
+
+
+
+### Detailed CQ-to-Column Mapping
+
+#### CQ1: Culture conditions for HIGH productivity samples
+**Query**: What culture conditions (temperature, pH, DO) are associated with high 
+productivity?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `Temperature` | ✅ Exists | Used in current csv_to_rdf.py |
+| `pH` | ❌ **NEW** | Add to CSV |
+| `DissolvedOxygen` | ❌ **NEW** | Add to CSV |
+| `Productivity` | ✅ Exists | Categorical: High/Medium/Low/VeryHigh |
+| `ProcessType` | ✅ Exists | Used to identify CellCultureProcess subtypes |
+
+#### CQ2: Overexpression / CHO engineering
+**Query**: Which CHO cell lines overexpress gene X for producing therapeutic 
+protein Y?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `CellLine` | ✅ Exists | |
+| `Producer` | ✅ Exists | Boolean: TRUE if producer line |
+| `ProductType` | ✅ Exists | Product name (mAb, BsAb, or gene symbol) |
+
+#### CQ3: Nutrient concentrations for viability at day 6
+**Query**: Which nutrient concentrations in cell line K are most associated with 
+viable cell density above Z at day 6?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `CellLine` | ✅ Exists | |
+| `Glutamine` | ✅ Exists | Boolean presence |
+| `GlutamineConcentration` | ✅ Exists | Numeric (mM) |
+| `CollectionDay` | ❌ **NEW** | Integer: day of sample collection |
+| `ViableCellDensity` | ❌ **NEW** | Decimal: cells/mL |
+
+#### CQ4: Gene expression between clones
+**Query**: How does the expression of gene X vary between clone A and clone B?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `CellLine` | ✅ Exists | Base cell line |
+| `CloneID` | ❌ **NEW** | Specific clone within cell line |
+| `GeneSymbol` | ❌ **NEW** | Gene being measured |
+| `ExpressionValue` | ❌ **NEW** | Expression level (TPM/FPKM/etc.) |
+| `CulturePhase` | ✅ Exists | For comparing at same phase |
+
+#### CQ5: Process types comparison
+**Query**: How many processes of each type (Fed-batch vs Perfusion)?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `ProcessType` | ✅ Exists | Batch/FedBatch/Perfusion/Continuous |
+
+**Status**: ✅ Fully supported
+
+#### CQ6: Genes correlated with productivity in stationary phase
+**Query**: Which genes are most correlated with recombinant protein productivity in 
+stationary phase?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `CulturePhase` | ✅ Exists | Filter for "Stationary" or "Stat" |
+| `Productivity` | ✅ Exists | |
+| `GeneSymbol` | ❌ **NEW** | Gene being measured |
+| `ExpressionValue` | ❌ **NEW** | Expression level |
+
+#### CQ7: Genes with fold change by viability
+**Query**: Which genes have the highest fold change between cells with viability 
+>90% vs <50%?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `ViabilityPercentage` | ❌ **NEW** | Cell viability as percentage |
+| `GeneSymbol` | ❌ **NEW** | Gene being measured |
+| `ExpressionValue` | ❌ **NEW** | Expression level |
+
+#### CQ8: Cell lines for glycosylation profiles
+**Query**: Which cell lines or subclones are best suited for glycosylation profiles 
+required for therapeutic protein X?
+
+| Column | Status | Notes |
+|--------|--------|-------|
+| `CellLine` | ✅ Exists | |
+| `CloneID` | ❌ **NEW** | Specific clone |
+| `ProductType` | ✅ Exists | Therapeutic protein name |
+| `TiterValue` | ❌ **NEW** | Product titer |
+| `QualityType` | ❌ **NEW** | Quality attribute (e.g., "Glycosylation") |
+
+### Design Decision: Single Table vs. Normalized Schema
+
+**We chose a single flat table (`sample_metadata.csv`) because:**
+
+1. **Curation simplicity**: Domain experts can edit in Excel/Google Sheets without 
+joins
+2. **1:1 relationships**: Most bioprocessing studies have one run → one sample
+3. **Sparse data**: Not every study has every column; flat tables handle this 
+naturally
+4. **Expression is separate**: The high-dimensional gene expression data is already 
+in its own matrix file
+
+**Trade-offs accepted:**
+- Wide tables with many columns (37+)
+- Some column redundancy across rows (e.g., same CellLine repeated)
+- Not ideal for complex many-to-many relationships
+
+**If you need normalized schema later:**
+- The RDF output IS normalized (each entity is a distinct node)
+- You could create `studies.csv`, `runs.csv`, `samples.csv` and modify `build_graph.
+py`
+- For now, the flat approach works well for <1000 samples per study
+
+---
+
+### Implementation Notes
+
+1. **Empty values are OK**: The csv_to_rdf.py converter handles missing/NA values 
+gracefully. Adding empty columns won't break existing data.
+
+2. **Multi-valued fields**: If a sample has multiple quality types, use 
+semicolon-separated values (e.g., `"Glycosylation;Aggregation"`).
+
+3. **Gene expression data**: For real RNA-seq data with thousands of genes per 
+sample, use a separate **expression matrix file**:
+
+   ```bash
+   mcbo-csv-to-rdf \
+     --csv_file data/sample_metadata.csv \
+     --expression_matrix data/expression_matrix.csv \
+     --output_file data/mcbo-instances.ttl
+   ```
+
+   Expression matrix format (genes as columns, samples as rows):
+   ```csv
+   SampleAccession,GeneX,GeneY,GeneZ,ACTB,GAPDH
+   ERS4805133,150,200,50,1000,800
+   ERS4805134,180,220,45,950,850
+   ```
+
+   This creates one `mcbo:GeneExpressionMeasurement` per gene-sample pair, all 
+   linked via `mcbo:hasGeneExpression`.
+
+4. **Quality measurements**: The `QualityType` column could contain values like 
+"Glycosylation", "Aggregation", "ChargeVariants", etc.
+
 
 ### Expression Matrix Format
 

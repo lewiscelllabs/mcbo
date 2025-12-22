@@ -4,16 +4,19 @@ This guide covers setting up the MCBO development environment.
 
 ## Prerequisites
 
-- **Conda** or **Miniconda** (for environment management), which will install:
+- **Conda** or **Miniconda** 
+
+Conda is used in `make conda-env` to install:
 - **Python 3.9+** (3.10 recommended)
 - **Java** (for ROBOT ontology tool)
+- **robot**
 
 ## Creating the Conda Environment
 
 1. Create a new conda environment named `mcbo`:
 
 ```bash
-conda create -n mcbo python=3.10
+make conda-env
 ```
 
 2. Activate the environment:
@@ -22,21 +25,12 @@ conda create -n mcbo python=3.10
 conda activate mcbo
 ```
 
-3. Install Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Installing the MCBO Package
 
-Install the `mcbo` Python package in development mode:
+Install the `mcbo` Python package and ROBOT:
 
 ```bash
-# From repository root
-pip install -e python/
-
-# Or using Make
+# Using Make (recommended) - installs Python packages + ROBOT
 make install
 ```
 
@@ -47,24 +41,20 @@ This provides the following CLI commands:
 - `mcbo-run-eval` - Run SPARQL competency queries
 - `mcbo-stats` - Generate graph statistics
 
-## Installing ROBOT
+## ROBOT
 
-ROBOT is used for ontology quality control checks. Install it to `.robot/robot.jar`:
+ROBOT is automatically downloaded by `make install`. It's used for ontology quality control checks and is located at `.robot/robot.jar`.
 
-```bash
-# Using Make (recommended)
-make robot
-
-# Or manually
-mkdir -p .robot
-curl -L -o .robot/robot.jar \
-  "https://github.com/ontodev/robot/releases/download/v1.9.6/robot.jar"
-```
-
-Verify ROBOT works:
+To verify ROBOT works:
 
 ```bash
 java -jar .robot/robot.jar --version
+```
+
+To re-download manually:
+
+```bash
+make robot
 ```
 
 ## Verifying Installation

@@ -18,14 +18,14 @@ Output: `docs/_build/html/index.html`
 
 | File | Description |
 |------|-------------|
-| `index.rst` | Landing page |
-| `installation.rst` | Setup guide |
-| `quickstart.rst` | Getting started |
-| `workflows.rst` | Data ingestion |
-| `cli.rst` | CLI reference |
-| `ontology.rst` | Modeling patterns |
+| `index.md` | Landing page |
+| `installation.md` | Setup guide |
+| `quickstart.md` | Getting started |
+| `workflows.md` | Data ingestion |
+| `cli.md` | CLI reference |
+| `ontology.md` | Modeling patterns |
 | `api.rst` | Python API |
-| `development.rst` | Contributing |
+| `development.md` | Contributing |
 
 ## ReadTheDocs
 

@@ -5,11 +5,15 @@
 ## Quick Setup
 
 ```bash
-conda create -n mcbo python=3.10
+make conda-env         # Creates conda env with Python + Java
 conda activate mcbo
-pip install -r requirements.txt
-make install
-make demo
+make install           # Installs Python packages + downloads ROBOT
+make demo              # Verify setup with demo data
 ```
 
-For complete installation instructions including ROBOT setup and troubleshooting, see the [Installation Guide](https://mcbo.readthedocs.io/en/latest/installation.html).
+This sets up everything you need including:
+- Python dependencies from `requirements.txt`
+- The `mcbo` CLI tools
+- ROBOT ontology tool (at `.robot/robot.jar`)
+
+For troubleshooting, see the [Installation Guide](https://mcbo.readthedocs.io/en/latest/installation.html).
