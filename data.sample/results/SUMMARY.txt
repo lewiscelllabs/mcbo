@@ -1,11 +1,11 @@
 MCBO CQ evaluation run
 Source: graph=data.sample/graph.ttl + ontology
 
-cq1.rq	13	->	data.sample/results/cq1.tsv
+cq1.rq	15	->	data.sample/results/cq1.tsv
 cq2.rq	2	->	data.sample/results/cq2.tsv
 cq3.rq	4	->	data.sample/results/cq3.tsv
 cq4.rq	144	->	data.sample/results/cq4.tsv
 cq5.rq	3	->	data.sample/results/cq5.tsv
-cq6.rq	38	->	data.sample/results/cq6.tsv
+cq6.rq	44	->	data.sample/results/cq6.tsv
 cq7.rq	7	->	data.sample/results/cq7.tsv
-cq8.rq	3	->	data.sample/results/cq8.tsv
+cq8.rq	5	->	data.sample/results/cq8.tsv

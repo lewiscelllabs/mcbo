@@ -1,4 +1,6 @@
 cellLine	cellLineLabel	clone	cloneLabel	product	productLabel	qualityMeas	qualityLabel	titerValue
 http://example.org/mcbo#cellline_HEK293	HEK293			http://example.org/mcbo#product_DEMO002_RUN_C	IgG	http://example.org/mcbo#quality_DEMO002_RUN_C_Aggregation	Aggregation	450.0
+http://example.org/mcbo#cellline_HEK293	HEK293			http://example.org/mcbo#product_DEMO002_RUN_E	IgG	http://example.org/mcbo#quality_DEMO002_RUN_E_Glycosylation	Glycosylation	350.0
 http://example.org/mcbo#cellline_HEK293	HEK293			http://example.org/mcbo#product_DEMO002_RUN_B	IgG	http://example.org/mcbo#quality_DEMO002_RUN_B_Glycosylation	Glycosylation	320.0
+http://example.org/mcbo#cellline_HEK293	HEK293			http://example.org/mcbo#product_DEMO002_RUN_D	IgG	http://example.org/mcbo#quality_DEMO002_RUN_D_Glycosylation	Glycosylation	180.0
 http://example.org/mcbo#cellline_HEK293	HEK293			http://example.org/mcbo#product_DEMO002_RUN_A	IgG	http://example.org/mcbo#quality_DEMO002_RUN_A_Glycosylation	Glycosylation	150.0

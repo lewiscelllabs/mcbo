@@ -38,6 +38,29 @@ MCBO supports 8 competency questions.
 
 See the [full CQ documentation](https://mcbo.readthedocs.io/en/latest/index.html#competency-questions).
 
+## LLM Agent
+
+Answer competency questions using natural language with an LLM-powered agent:
+
+```bash
+# Install agent dependencies
+make install-agent
+
+# Set your API key
+export OPENAI_API_KEY=sk-...  # or ANTHROPIC_API_KEY
+
+# Ask questions!
+mcbo-agent-eval --data-dir data.sample --cq CQ1
+mcbo-agent-eval --data-dir data.sample \
+  --cq "What genes are differentially expressed under Fed-batch vs Perfusion?"
+
+# Or use local LLM (free, private)
+make install-ollama
+mcbo-agent-eval --data-dir data.sample --cq CQ1 --provider ollama
+```
+
+📖 **[Agent Documentation](docs/AGENT.md)** - Full setup, customization, and MCP server integration.
+
 ## Documentation
 
 | Section | Description |

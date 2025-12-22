@@ -3,12 +3,14 @@ http://example.org/mcbo#cellline_CHO-DG44	36.5	7.0	55.0	http://example.org/mcbo#
 http://example.org/mcbo#cellline_CHO-K1	37.0	7.0	40.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#cellline_CHO-K1	37.0	7.0	40.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#cellline_HEK293	37.0	7.2	50.0	http://example.org/mcbo#HighProductivity
+http://example.org/mcbo#cellline_HEK293	37.0	7.0	45.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#clone_Clone_A	37.0	7.0	40.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#clone_Clone_A	37.0	7.0	40.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#clone_Clone_X	36.5	7.0	55.0	http://example.org/mcbo#HighProductivity
 http://example.org/mcbo#cellline_CHO-DG44	36.5	7.1	45.0	http://example.org/mcbo#MediumProductivity
 http://example.org/mcbo#cellline_CHO-K1	37.0	7.0	40.0	http://example.org/mcbo#MediumProductivity
 http://example.org/mcbo#cellline_HEK293	37.0	7.2	50.0	http://example.org/mcbo#MediumProductivity
+http://example.org/mcbo#cellline_HEK293	37.0	7.0	45.0	http://example.org/mcbo#MediumProductivity
 http://example.org/mcbo#clone_Clone_B	37.0	7.0	40.0	http://example.org/mcbo#MediumProductivity
 http://example.org/mcbo#clone_Clone_X	36.5	7.1	45.0	http://example.org/mcbo#MediumProductivity
 http://example.org/mcbo#cellline_HEK293	37.0	7.1	60.0	http://example.org/mcbo#VeryHighProductivity

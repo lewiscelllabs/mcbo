@@ -13,7 +13,7 @@
 #   - Conda environment: make conda-env && conda activate mcbo
 #   - Python package + ROBOT installed: make install
 
-.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology
+.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology install-agent install-ollama clean-agent
 
 # Configuration
 PYTHON := python
@@ -76,6 +76,18 @@ help:
 	@echo "  make all          Run demo + qc (default)"
 	@echo "  make clean        Remove generated files"
 	@echo "  make robot        Download ROBOT jar"
+	@echo ""
+	@echo "Agent (LLM-powered queries):"
+	@echo "  make install-agent   Install agent deps (ollama, anthropic, openai)"
+	@echo "  make install-ollama  Install Ollama for local LLM inference"
+	@echo ""
+	@echo "  After install, set API key:"
+	@echo "    export OPENAI_API_KEY=sk-...    # For OpenAI"
+	@echo "    export ANTHROPIC_API_KEY=...   # For Anthropic"
+	@echo ""
+	@echo "  Test agent:"
+	@echo "    mcbo-agent-eval --data-dir data.sample --cq CQ1"
+	@echo "    mcbo-agent-eval --data-dir data.sample --cq CQ1 --provider ollama"
 	@echo ""
 	@echo "Individual targets:"
 	@echo "  make demo-build   Build demo graph only"
@@ -157,6 +169,48 @@ $(INSTALL_STAMP): requirements.txt python/pyproject.toml
 	@echo ""
 	@echo "✅ mcbo package installed"
 	@echo "   (ROBOT will be downloaded next if needed)"
+
+# Agent installation with LLM provider dependencies
+AGENT_STAMP := .agent-install.stamp
+
+install-agent: check-env $(AGENT_STAMP)
+
+$(AGENT_STAMP): $(INSTALL_STAMP) python/pyproject.toml
+	@echo "Installing agent dependencies (scipy, anthropic, openai, requests)..."
+	pip install -e python/[agent]
+	@touch $(AGENT_STAMP)
+	@echo ""
+	@echo "✅ Agent dependencies installed"
+	@echo ""
+	@echo "Configure your LLM provider:"
+	@echo "  OpenAI:    export OPENAI_API_KEY=sk-..."
+	@echo "  Anthropic: export ANTHROPIC_API_KEY=sk-ant-..."
+	@echo "  Ollama:    No key needed (install: https://ollama.ai)"
+	@echo ""
+	@echo "Test with: mcbo-agent-eval --data-dir data.sample --cq CQ1"
+
+install-ollama: check-env $(AGENT_STAMP)
+	@echo "Installing Ollama and pulling models..."
+	@if command -v ollama >/dev/null 2>&1; then \
+		echo "✅ Ollama already installed"; \
+	else \
+		echo "❌ Ollama not found. Install from: https://ollama.ai"; \
+		echo ""; \
+		echo "Quick install (Linux):"; \
+		echo "  curl -fsSL https://ollama.ai/install.sh | sh"; \
+		echo ""; \
+		echo "Quick install (macOS):"; \
+		echo "  brew install ollama"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "Pulling recommended model (qwen2.5:3b - fast, good for tool calling)..."
+	ollama pull qwen2.5:3b
+	@echo ""
+	@echo "✅ Ollama setup complete"
+	@echo ""
+	@echo "Start Ollama server (if not running): ollama serve"
+	@echo "Test: mcbo-agent-eval --data-dir data.sample --cq CQ1 --provider ollama --model qwen2.5:3b"
 
 robot: $(ROBOT_JAR)
 
@@ -353,7 +407,13 @@ clean-reports:
 	@if [ -n "$(REPORTS_DIR)" ] && [ "$(REPORTS_DIR)" != "/" ]; then rm -rf $(REPORTS_DIR); fi
 
 clean-install:
-	@rm -f $(INSTALL_STAMP) $(DOCS_STAMP)
+	@rm -f $(INSTALL_STAMP) $(DOCS_STAMP) $(AGENT_STAMP)
+
+clean-agent:
+	@echo "Cleaning agent artifacts..."
+	@rm -f $(AGENT_STAMP)
+	@rm -rf data.sample/agent_results
+	@rm -rf .data/agent_results
 
 # =============================================================================
 # CI/CD Target

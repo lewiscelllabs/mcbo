@@ -6,6 +6,8 @@ DEMO001_RUN_D,DEMO001_SAMPLE_D,study_demo_001,CHO-K1,FedBatch,37,7.0,40,Stationa
 DEMO002_RUN_A,DEMO002_SAMPLE_A,study_demo_002,HEK293,Batch,37,7.2,50,Exponential,Medium,TRUE,IgG,2,5000000,98,,,150,Glycosylation
 DEMO002_RUN_B,DEMO002_SAMPLE_B,study_demo_002,HEK293,Batch,37,7.2,50,Stationary,High,TRUE,IgG,5,9000000,85,,,320,Glycosylation
 DEMO002_RUN_C,DEMO002_SAMPLE_C,study_demo_002,HEK293,Perfusion,37,7.1,60,Stationary,VeryHigh,TRUE,IgG,7,15000000,92,,,450,Aggregation
+DEMO002_RUN_D,DEMO002_SAMPLE_D,study_demo_002,HEK293,FedBatch,37,7.0,45,Exponential,Medium,TRUE,IgG,3,6500000,96,,,180,Glycosylation
+DEMO002_RUN_E,DEMO002_SAMPLE_E,study_demo_002,HEK293,FedBatch,37,7.0,45,Stationary,High,TRUE,IgG,6,10000000,88,,,350,Glycosylation
 DEMO003_RUN_A,DEMO003_SAMPLE_A,study_demo_003,CHO-DG44,Batch,36.5,7.1,45,Exponential,Medium,TRUE,BsAb,4,7000000,94,Clone_X,3.5,,
 DEMO003_RUN_B,DEMO003_SAMPLE_B,study_demo_003,CHO-DG44,Perfusion,36.5,7.0,55,Stationary,High,TRUE,BsAb,8,11000000,89,Clone_X,3.5,280,
 
