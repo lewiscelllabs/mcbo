@@ -77,6 +77,7 @@ installation
 quickstart
 workflows
 cli
+agent
 ```
 
 ```{toctree}

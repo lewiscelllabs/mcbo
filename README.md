@@ -59,7 +59,7 @@ make install-ollama
 mcbo-agent-eval --data-dir data.sample --cq CQ1 --provider ollama
 ```
 
-📖 **[Agent Documentation](docs/AGENT.md)** - Full setup, customization, and MCP server integration.
+📖 **[Agent Documentation](docs/agent.md)** - Full setup, customization, and MCP server integration.
 
 ## Documentation
 
