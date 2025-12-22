@@ -180,6 +180,70 @@ mcbo-stats --data-dir data.sample
 
 ---
 
+## 12. Add LLM Agent Subsection
+
+**Location:** After "Evaluation" section, before "Discussion" section (or as a new subsection within "Implementation/Tools")
+
+**Rationale:** The Introduction mentions that "ontologies also complement Large Language Models (LLMs) by adding explicit background knowledge." The MCBO Agent is the concrete implementation of this vision and demonstrates practical utility of the ontology for natural language querying.
+
+**Content to add:**
+
+### LLM-Powered Query Agent
+
+To demonstrate practical utility beyond manual SPARQL querying, we developed an LLM-powered agent that enables natural language interaction with MCBO-curated data. The agent translates user questions into appropriate SPARQL queries, executes statistical analyses, and synthesizes results into human-readable answers.
+
+**Architecture.** The agent follows a tool-calling paradigm where an LLM orchestrator selects from a library of specialized tools:
+
+- **SPARQL execution** using parameterized query templates aligned to the 8 competency questions
+- **Statistical analysis** including correlation, fold-change, and differential expression calculations
+- **Pathway enrichment** via KEGG and Reactome API integration
+
+The agent supports multiple LLM backends (OpenAI GPT-4, Anthropic Claude, and local models via Ollama), enabling deployment in both cloud and privacy-sensitive on-premises environments.
+
+**Example interaction:**
+
+```
+User: "What genes are differentially expressed under Fed-batch vs Perfusion in HEK293?"
+
+Agent: [Executes SPARQL template for process-type comparison]
+       [Computes fold-change and statistical significance]
+       [Returns ranked gene list with p-values]
+```
+
+**MCP Integration.** The agent implements the Model Context Protocol (MCP), enabling integration with AI assistants such as Claude Desktop and Cursor IDE. This allows researchers to query MCBO data directly from their development environment without writing SPARQL.
+
+The agent is available as a command-line tool (`mcbo-agent-eval`) and as an MCP server. Full documentation is provided at `docs/agent.md` in the repository.
+
+**Figure suggestion:** Include a diagram showing:
+```
+┌─────────────────────────────────────────────────────┐
+│              Natural Language Query                  │
+│   "What culture conditions maximize productivity?"   │
+└─────────────────────┬───────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                  LLM Orchestrator                    │
+│         (GPT-4 / Claude / Ollama)                   │
+└─────────────────────┬───────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                  Tool Selection                      │
+│   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐  │
+│   │   SPARQL    │ │   Stats     │ │  Pathway    │  │
+│   │  Templates  │ │  Analysis   │ │ Enrichment  │  │
+│   └─────────────┘ └─────────────┘ └─────────────┘  │
+└─────────────────────┬───────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│              MCBO RDF Knowledge Graph                │
+│                   (graph.ttl)                        │
+└─────────────────────────────────────────────────────┘
+```
+
+**Note:** This section supersedes item #8 ("Soften/Remove LLM Claims"). With the Agent implementation complete, we now have substantive LLM functionality to report. Update the Introduction's LLM mention to reference this concrete implementation rather than softening/removing.
+
+---
+
 ## Summary Checklist
 
 - [ ] Add "Modeling Patterns" subsection with process–participant–quality chain
@@ -191,8 +255,9 @@ mcbo-stats --data-dir data.sample
 - [ ] Justify IOF PPP vs BFO:process classification
 - [x] Fix "permissive license" → "MIT License"
 - [x] Resolve "biomanufacturing" vs "biopharmaceutical manufacturing" terminology
-- [x] Soften/remove unsupported LLM claims
+- [x] ~~Soften/remove unsupported LLM claims~~ → **Superseded by item #12 (Agent section)**
 - [ ] Add dataset classification clarification
 - [ ] General grammar/wording proofreading pass
 - [ ] Sample data section
+- [ ] **Add LLM Agent subsection (item #12) with architecture diagram**
 
