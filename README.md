@@ -30,7 +30,7 @@ make demo
 See the [Installation Guide](https://mcbo.readthedocs.io/en/latest/installation.html) for detailed setup instructions.
 
 ## Ontology Overview
-<img width="2561" height="1781" alt="MCBO Ontology Diagram" src="https://github.com/user-attachments/assets/781c1af6-8238-45a3-b26b-c6c9010dd77e" />
+<img width="2561" height="1781" alt="MCBO Ontology Diagram" src="docs/figures/fig1.png" />
 
 ## Competency Questions
 
