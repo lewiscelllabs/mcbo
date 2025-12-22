@@ -2,7 +2,7 @@
   "total_cqs": 1,
   "successful": 1,
   "cqs": {
-    "CQ1": {
+    "CQ7": {
       "iterations": 2,
       "tool_calls": 1,
       "has_error": false
