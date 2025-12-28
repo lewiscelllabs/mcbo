@@ -82,6 +82,13 @@ mcbo:analyzedBySequencing a owl:ObjectProperty ;
     rdfs:domain mcbo:BioprocessSample ;
     rdfs:range mcbo:SequencingRun .
 
+mcbo:encodedByGene a owl:ObjectProperty ;
+    rdfs:label "encoded by gene" ;
+    uo:IAO_0000115 "A relation between a protein product and the gene whose coding sequence specifies that protein." ;
+    rdfs:comment "Links a recombinant protein product to its encoding transgene. For antibodies, this relationship may be omitted or point to a synthetic construct." ;
+    rdfs:domain mcbo:ProteinProduct ;
+    rdfs:range mcbo:Gene .
+
 mcbo:fromStudy a owl:ObjectProperty ;
     rdfs:label "from study" ;
     rdfs:domain mcbo:BioprocessSample ;
@@ -136,6 +143,13 @@ mcbo:hasDissolvedOxygenUnit a owl:ObjectProperty ;
     rdfs:label "has dissolved oxygen unit" ;
     rdfs:comment "UO unit for dissolved oxygen (e.g., uo:UO_0000273 for mg/L)" ;
     rdfs:domain mcbo:CultureEnvironmentalCondition .
+
+mcbo:hasEnsemblGeneID a owl:DatatypeProperty ;
+    rdfs:label "has Ensembl gene ID" ;
+    uo:IAO_0000115 "An identifier that denotes a gene record in the Ensembl database." ;
+    rdfs:comment "Ensembl stable gene identifier (e.g., ENSG00000115009 for human CCL20). Supports both human transgene IDs and CHO native gene IDs." ;
+    rdfs:domain mcbo:Gene ;
+    rdfs:range xsd:string .
 
 mcbo:hasExpressionUnit a owl:DatatypeProperty ;
     rdfs:label "has expression unit" ;
@@ -293,6 +307,7 @@ mcbo:overexpressesGene a owl:ObjectProperty ;
 
 mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_A ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_A ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_A ;
@@ -301,6 +316,7 @@ mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_B ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_B ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_B ;
@@ -309,6 +325,7 @@ mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_C ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_C ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_C ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_A ;
@@ -317,6 +334,7 @@ mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_D a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_D ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_D ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_D ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_B ;
@@ -365,6 +383,7 @@ mcbo:run_DEMO002_RUN_E a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO003_RUN_A a mcbo:BatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO003_RUN_A ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_A ;
     mcbo:usesCellLine mcbo:cellline_CHO-DG44,
         mcbo:clone_Clone_X ;
@@ -840,7 +859,8 @@ mcbo:expressesGene a owl:ObjectProperty ;
     rdfs:range mcbo:Gene .
 
 mcbo:gene_IgG a mcbo:Gene ;
-    rdfs:label "IgG" .
+    rdfs:label "IgG" ;
+    mcbo:hasGeneSymbol "IgG" .
 
 mcbo:glutamine_DEMO001_RUN_A a mcbo:GlutamineConcentration,
         mcbo:NutrientConcentration ;
@@ -930,32 +950,47 @@ mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
-mcbo:product_DEMO002_RUN_A a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_B a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_C a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_D a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO002_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_A_Glycosylation ;
     mcbo:hasTiterValue 150.0 .
 
-mcbo:product_DEMO002_RUN_B a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_B a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_B_Glycosylation ;
     mcbo:hasTiterValue 320.0 .
 
-mcbo:product_DEMO002_RUN_C a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_C a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_C_Aggregation ;
     mcbo:hasTiterValue 450.0 .
 
-mcbo:product_DEMO002_RUN_D a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_D a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_D_Glycosylation ;
     mcbo:hasTiterValue 180.0 .
 
-mcbo:product_DEMO002_RUN_E a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_E a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_E_Glycosylation ;
     mcbo:hasTiterValue 350.0 .
 
-mcbo:product_DEMO003_RUN_B a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO003_RUN_A a mcbo:ProteinProduct ;
+    rdfs:label "BsAb" .
+
+mcbo:product_DEMO003_RUN_B a mcbo:ProteinProduct ;
     rdfs:label "BsAb" ;
     mcbo:hasTiterValue 280.0 .
 
@@ -1262,7 +1297,8 @@ uo:UO_0000201 rdfs:label "cells per milliliter" .
 uo:UO_0000273 rdfs:label "milligram per liter" .
 
 mcbo:AntibodyProductGene a mcbo:Gene ;
-    rdfs:label "antibody product gene" .
+    rdfs:label "antibody product gene" ;
+    mcbo:hasGeneSymbol "antibody product gene" .
 
 mcbo:CHO_K1 a mcbo:CHOCellLine,
         owl:NamedIndividual ;
@@ -1292,16 +1328,20 @@ mcbo:Sample_D7 a mcbo:BioprocessSample,
     mcbo:sampleContainsProduct mcbo:Product_mAb .
 
 mcbo:gene_AKT1 a mcbo:Gene ;
-    rdfs:label "AKT1" .
+    rdfs:label "AKT1" ;
+    mcbo:hasGeneSymbol "AKT1" .
 
 mcbo:gene_EGFR a mcbo:Gene ;
-    rdfs:label "EGFR" .
+    rdfs:label "EGFR" ;
+    mcbo:hasGeneSymbol "EGFR" .
 
 mcbo:gene_ERBB2 a mcbo:Gene ;
-    rdfs:label "ERBB2" .
+    rdfs:label "ERBB2" ;
+    mcbo:hasGeneSymbol "ERBB2" .
 
 mcbo:gene_MET a mcbo:Gene ;
-    rdfs:label "MET" .
+    rdfs:label "MET" ;
+    mcbo:hasGeneSymbol "MET" .
 
 iof:hasOutput a owl:ObjectProperty ;
     rdfs:label "has output" .
@@ -1377,11 +1417,11 @@ mcbo:MediumProductivity a owl:Class ;
     uo:IAO_0000115 "A productivity category indicating medium production output relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
-mcbo:ProductMaterial a owl:Class ;
-    rdfs:label "Product material" ;
-    uo:IAO_0000115 "A material entity that is the intended product of a cell culture process, such as a recombinant therapeutic protein." ;
-    rdfs:comment "Manufactured product (e.g., therapeutic mAb). Could align to ChEBI or PRO specific entries." ;
-    rdfs:subClassOf uo:BFO_0000040 .
+mcbo:ProteinProduct a owl:Class ;
+    rdfs:label "Protein product" ;
+    uo:IAO_0000115 "A material entity that is a protein produced as the intended output of a cell culture bioprocess." ;
+    rdfs:comment "Recombinant protein product (e.g., cytokines, enzymes, therapeutic proteins). Distinguished from the gene that encodes it." ;
+    rdfs:subClassOf mcbo:ProductMaterial .
 
 mcbo:RNASeqDataset a owl:Class ;
     rdfs:label "RNA-seq reads dataset" ;
@@ -1390,19 +1430,24 @@ mcbo:RNASeqDataset a owl:Class ;
     rdfs:subClassOf uo:IAO_0000100 .
 
 mcbo:gene_BCL2 a mcbo:Gene ;
-    rdfs:label "BCL2" .
+    rdfs:label "BCL2" ;
+    mcbo:hasGeneSymbol "BCL2" .
 
 mcbo:gene_HIF1A a mcbo:Gene ;
-    rdfs:label "HIF1A" .
+    rdfs:label "HIF1A" ;
+    mcbo:hasGeneSymbol "HIF1A" .
 
 mcbo:gene_MYC a mcbo:Gene ;
-    rdfs:label "MYC" .
+    rdfs:label "MYC" ;
+    mcbo:hasGeneSymbol "MYC" .
 
 mcbo:gene_TP53 a mcbo:Gene ;
-    rdfs:label "TP53" .
+    rdfs:label "TP53" ;
+    mcbo:hasGeneSymbol "TP53" .
 
 mcbo:gene_VEGFA a mcbo:Gene ;
-    rdfs:label "VEGFA" .
+    rdfs:label "VEGFA" ;
+    mcbo:hasGeneSymbol "VEGFA" .
 
 uo:OBI_0001271 rdfs:label "RNA sequencing assay" .
 
@@ -1418,6 +1463,12 @@ mcbo:MammalianCellBioprocess a owl:Class ;
     rdfs:seeAlso iof:ManufacturingProcess ;
     rdfs:subClassOf uo:BFO_0000015 .
 
+mcbo:ProductMaterial a owl:Class ;
+    rdfs:label "Product material" ;
+    uo:IAO_0000115 "A material entity that is the intended product of a cell culture process, such as a recombinant therapeutic protein." ;
+    rdfs:comment "Manufactured product (e.g., therapeutic mAb). Could align to ChEBI or PRO specific entries." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
 mcbo:SequencingRun a owl:Class ;
     rdfs:label "Sequencing run" ;
     uo:IAO_0000115 "An information content entity representing the execution record and outputs of a sequencing instrument run." ;
@@ -1425,16 +1476,20 @@ mcbo:SequencingRun a owl:Class ;
     rdfs:subClassOf uo:OBI_0001271 .
 
 mcbo:gene_CXCL8 a mcbo:Gene ;
-    rdfs:label "CXCL8" .
+    rdfs:label "CXCL8" ;
+    mcbo:hasGeneSymbol "CXCL8" .
 
 mcbo:gene_HSP90 a mcbo:Gene ;
-    rdfs:label "HSP90" .
+    rdfs:label "HSP90" ;
+    mcbo:hasGeneSymbol "HSP90" .
 
 mcbo:gene_IL6 a mcbo:Gene ;
-    rdfs:label "IL6" .
+    rdfs:label "IL6" ;
+    mcbo:hasGeneSymbol "IL6" .
 
 mcbo:gene_TNF a mcbo:Gene ;
-    rdfs:label "TNF" .
+    rdfs:label "TNF" ;
+    mcbo:hasGeneSymbol "TNF" .
 
 uo:IAO_0000109 rdfs:label "measurement datum" .
 
@@ -1490,6 +1545,12 @@ mcbo:ProductivityMeasurement a owl:Class ;
     rdfs:comment "Measurement of bioprocess productivity." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
+mcbo:AntibodyProduct a owl:Class ;
+    rdfs:label "Antibody product" ;
+    uo:IAO_0000115 "A protein product that is an antibody or antibody fragment." ;
+    rdfs:comment "Includes monoclonal antibodies (mAbs), bispecifics, Fc-fusions, etc. May not be linked to a single encoding gene due to heavy/light chain complexity." ;
+    rdfs:subClassOf mcbo:ProteinProduct .
+
 mcbo:NutrientConcentration a owl:Class ;
     rdfs:label "Nutrient concentration" ;
     uo:IAO_0000115 "A measurement datum or quantity value that specifies the concentration of a nutrient in a culture medium or sample." ;
@@ -1497,10 +1558,12 @@ mcbo:NutrientConcentration a owl:Class ;
     rdfs:subClassOf uo:IAO_0000109 .
 
 mcbo:gene_ACTB a mcbo:Gene ;
-    rdfs:label "ACTB" .
+    rdfs:label "ACTB" ;
+    mcbo:hasGeneSymbol "ACTB" .
 
 mcbo:gene_GAPDH a mcbo:Gene ;
-    rdfs:label "GAPDH" .
+    rdfs:label "GAPDH" ;
+    mcbo:hasGeneSymbol "GAPDH" .
 
 mcbo:CellCultureSystem a owl:Class ;
     rdfs:label "cell culture system" ;
@@ -1531,17 +1594,17 @@ mcbo:CultureEnvironmentalCondition a owl:Class ;
     rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
     rdfs:subClassOf uo:BFO_0000019 .
 
-mcbo:Gene a owl:Class ;
-    rdfs:label "Gene" ;
-    uo:IAO_0000115 "A genomic entity that encodes a functional product such as a protein or functional RNA." ;
-    rdfs:comment "Gene entity with expression measurements." ;
-    rdfs:subClassOf uo:SO_0000704 .
-
 mcbo:BioprocessSample a owl:Class ;
     rdfs:label "Bioprocess sample" ;
     uo:IAO_0000115 "A material sample taken from a bioprocess or its outputs for measurement or analysis." ;
     rdfs:comment "Material aliquot/timepoint produced by a bioprocess for analysis (e.g., RNA-seq)." ;
     rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:Gene a owl:Class ;
+    rdfs:label "Gene" ;
+    uo:IAO_0000115 "A genomic entity that encodes a functional product such as a protein or functional RNA." ;
+    rdfs:comment "Gene entity with expression measurements." ;
+    rdfs:subClassOf uo:SO_0000704 .
 
 mcbo:GeneExpressionMeasurement a owl:Class ;
     rdfs:label "Gene expression measurement" ;

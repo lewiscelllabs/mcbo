@@ -5,6 +5,7 @@
 
 mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_A ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_A ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_A ;
@@ -13,6 +14,7 @@ mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_B ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_B ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_B ;
@@ -21,6 +23,7 @@ mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_C ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_C ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_C ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_A ;
@@ -29,6 +32,7 @@ mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_D a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_D ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_D ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_D ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_B ;
@@ -77,6 +81,7 @@ mcbo:run_DEMO002_RUN_E a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO003_RUN_A a mcbo:BatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO003_RUN_A ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_A ;
     mcbo:usesCellLine mcbo:cellline_CHO-DG44,
         mcbo:clone_Clone_X ;
@@ -428,7 +433,8 @@ mcbo:expr_DEMO003_SAMPLE_B_MET a mcbo:GeneExpressionMeasurement ;
     obo:IAO_0000136 mcbo:gene_MET .
 
 mcbo:gene_IgG a mcbo:Gene ;
-    rdfs:label "IgG" .
+    rdfs:label "IgG" ;
+    mcbo:hasGeneSymbol "IgG" .
 
 mcbo:glutamine_DEMO001_RUN_A a mcbo:GlutamineConcentration,
         mcbo:NutrientConcentration ;
@@ -512,32 +518,47 @@ mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
-mcbo:product_DEMO002_RUN_A a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_B a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_C a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_D a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO002_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_A_Glycosylation ;
     mcbo:hasTiterValue 150.0 .
 
-mcbo:product_DEMO002_RUN_B a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_B a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_B_Glycosylation ;
     mcbo:hasTiterValue 320.0 .
 
-mcbo:product_DEMO002_RUN_C a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_C a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_C_Aggregation ;
     mcbo:hasTiterValue 450.0 .
 
-mcbo:product_DEMO002_RUN_D a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_D a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_D_Glycosylation ;
     mcbo:hasTiterValue 180.0 .
 
-mcbo:product_DEMO002_RUN_E a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_E a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_E_Glycosylation ;
     mcbo:hasTiterValue 350.0 .
 
-mcbo:product_DEMO003_RUN_B a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO003_RUN_A a mcbo:ProteinProduct ;
+    rdfs:label "BsAb" .
+
+mcbo:product_DEMO003_RUN_B a mcbo:ProteinProduct ;
     rdfs:label "BsAb" ;
     mcbo:hasTiterValue 280.0 .
 
@@ -820,19 +841,24 @@ mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
     mcbo:hasViableCellDensity 11000000.0 .
 
 mcbo:AntibodyProductGene a mcbo:Gene ;
-    rdfs:label "antibody product gene" .
+    rdfs:label "antibody product gene" ;
+    mcbo:hasGeneSymbol "antibody product gene" .
 
 mcbo:gene_AKT1 a mcbo:Gene ;
-    rdfs:label "AKT1" .
+    rdfs:label "AKT1" ;
+    mcbo:hasGeneSymbol "AKT1" .
 
 mcbo:gene_EGFR a mcbo:Gene ;
-    rdfs:label "EGFR" .
+    rdfs:label "EGFR" ;
+    mcbo:hasGeneSymbol "EGFR" .
 
 mcbo:gene_ERBB2 a mcbo:Gene ;
-    rdfs:label "ERBB2" .
+    rdfs:label "ERBB2" ;
+    mcbo:hasGeneSymbol "ERBB2" .
 
 mcbo:gene_MET a mcbo:Gene ;
-    rdfs:label "MET" .
+    rdfs:label "MET" ;
+    mcbo:hasGeneSymbol "MET" .
 
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .
@@ -844,31 +870,40 @@ mcbo:clone_Clone_X a mcbo:Clone ;
     rdfs:label "Clone_X" .
 
 mcbo:gene_BCL2 a mcbo:Gene ;
-    rdfs:label "BCL2" .
+    rdfs:label "BCL2" ;
+    mcbo:hasGeneSymbol "BCL2" .
 
 mcbo:gene_HIF1A a mcbo:Gene ;
-    rdfs:label "HIF1A" .
+    rdfs:label "HIF1A" ;
+    mcbo:hasGeneSymbol "HIF1A" .
 
 mcbo:gene_MYC a mcbo:Gene ;
-    rdfs:label "MYC" .
+    rdfs:label "MYC" ;
+    mcbo:hasGeneSymbol "MYC" .
 
 mcbo:gene_TP53 a mcbo:Gene ;
-    rdfs:label "TP53" .
+    rdfs:label "TP53" ;
+    mcbo:hasGeneSymbol "TP53" .
 
 mcbo:gene_VEGFA a mcbo:Gene ;
-    rdfs:label "VEGFA" .
+    rdfs:label "VEGFA" ;
+    mcbo:hasGeneSymbol "VEGFA" .
 
 mcbo:gene_CXCL8 a mcbo:Gene ;
-    rdfs:label "CXCL8" .
+    rdfs:label "CXCL8" ;
+    mcbo:hasGeneSymbol "CXCL8" .
 
 mcbo:gene_HSP90 a mcbo:Gene ;
-    rdfs:label "HSP90" .
+    rdfs:label "HSP90" ;
+    mcbo:hasGeneSymbol "HSP90" .
 
 mcbo:gene_IL6 a mcbo:Gene ;
-    rdfs:label "IL6" .
+    rdfs:label "IL6" ;
+    mcbo:hasGeneSymbol "IL6" .
 
 mcbo:gene_TNF a mcbo:Gene ;
-    rdfs:label "TNF" .
+    rdfs:label "TNF" ;
+    mcbo:hasGeneSymbol "TNF" .
 
 mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
     rdfs:label "CHO-DG44" ;
@@ -877,10 +912,12 @@ mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
     mcbo:producesProduct "BsAb" .
 
 mcbo:gene_ACTB a mcbo:Gene ;
-    rdfs:label "ACTB" .
+    rdfs:label "ACTB" ;
+    mcbo:hasGeneSymbol "ACTB" .
 
 mcbo:gene_GAPDH a mcbo:Gene ;
-    rdfs:label "GAPDH" .
+    rdfs:label "GAPDH" ;
+    mcbo:hasGeneSymbol "GAPDH" .
 
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;

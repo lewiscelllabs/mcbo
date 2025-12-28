@@ -266,6 +266,13 @@ mcbo:hasGeneSymbol a owl:DatatypeProperty ;
     rdfs:domain mcbo:Gene ;
     rdfs:range xsd:string .
 
+mcbo:hasEnsemblGeneID a owl:DatatypeProperty ;
+    rdfs:label "has Ensembl gene ID" ;
+    uo:IAO_0000115 "An identifier that denotes a gene record in the Ensembl database." ;
+    rdfs:comment "Ensembl stable gene identifier (e.g., ENSG00000115009 for human CCL20). Supports both human transgene IDs and CHO native gene IDs." ;
+    rdfs:domain mcbo:Gene ;
+    rdfs:range xsd:string .
+
 mcbo:hasHumidity a owl:DatatypeProperty ;
     rdfs:label "has humidity (%)" ;
     rdfs:domain mcbo:CultureEnvironmentalCondition ;
@@ -599,6 +606,25 @@ mcbo:ProductMaterial a owl:Class ;
     uo:IAO_0000115 "A material entity that is the intended product of a cell culture process, such as a recombinant therapeutic protein." ;
     rdfs:comment "Manufactured product (e.g., therapeutic mAb). Could align to ChEBI or PRO specific entries." ;
     rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:ProteinProduct a owl:Class ;
+    rdfs:label "Protein product" ;
+    uo:IAO_0000115 "A material entity that is a protein produced as the intended output of a cell culture bioprocess." ;
+    rdfs:comment "Recombinant protein product (e.g., cytokines, enzymes, therapeutic proteins). Distinguished from the gene that encodes it." ;
+    rdfs:subClassOf mcbo:ProductMaterial .
+
+mcbo:AntibodyProduct a owl:Class ;
+    rdfs:label "Antibody product" ;
+    uo:IAO_0000115 "A protein product that is an antibody or antibody fragment." ;
+    rdfs:comment "Includes monoclonal antibodies (mAbs), bispecifics, Fc-fusions, etc. May not be linked to a single encoding gene due to heavy/light chain complexity." ;
+    rdfs:subClassOf mcbo:ProteinProduct .
+
+mcbo:encodedByGene a owl:ObjectProperty ;
+    rdfs:label "encoded by gene" ;
+    uo:IAO_0000115 "A relation between a protein product and the gene whose coding sequence specifies that protein." ;
+    rdfs:comment "Links a recombinant protein product to its encoding transgene. For antibodies, this relationship may be omitted or point to a synthetic construct." ;
+    rdfs:domain mcbo:ProteinProduct ;
+    rdfs:range mcbo:Gene .
 
 mcbo:RNASeqDataset a owl:Class ;
     rdfs:label "RNA-seq reads dataset" ;

@@ -21,6 +21,15 @@ CQ support - columns used:
   CQ7: ViabilityPercentage, GeneSymbol, ExpressionValue
   CQ8: CellLine, CloneID, TiterValue, QualityType
 
+  Gene identification:
+    GeneSymbol - gene symbol for expression measurements (e.g., TP53, GAPDH)
+    EnsemblGeneID - optional Ensembl stable ID (e.g., ENSG00000141510)
+
+  Product classification (from ProductType column):
+    - Gene symbols (e.g., CCL20, FN1) → ProteinProduct + encodedByGene link
+    - Antibody terms (e.g., mAb, IgG) → AntibodyProduct
+    - Control terms (e.g., Control, WT) → ignored (not a product)
+
 Note: GeneSymbol is for expression MEASUREMENTS (CQ4/6/7).
       OverexpressedGene is for cell line ENGINEERING (CQ2).
       These are semantically different and use separate columns!
@@ -52,6 +61,38 @@ OVEREXPRESSION_COLUMN_CANDIDATES = [
 
 # Split multiple genes / products in a cell by these separators
 GENE_SPLIT_RE = re.compile(r"[;,|/]+|\s+")
+
+# Product type classification keywords
+ANTIBODY_KEYWORDS = {"mab", "antibody", "igg", "bispecific", "fc-fusion", "nanobody"}
+CONTROL_KEYWORDS = {"control", "mock", "untransfected", "parental", "wt", "wildtype", "wild-type"}
+
+
+def classify_product_type(product_type_str: str) -> tuple:
+    """Classify product type string into (class_uri, is_gene_symbol).
+
+    Returns:
+        (class_uri, is_gene_symbol): The MCBO class and whether this looks like a gene symbol
+    """
+    if not product_type_str or not str(product_type_str).strip():
+        return (None, False)
+
+    s = str(product_type_str).strip()
+    s_lower = s.lower()
+
+    # Check for control/non-product
+    if s_lower in CONTROL_KEYWORDS:
+        return (None, False)
+
+    # Check for antibody keywords
+    if any(kw in s_lower for kw in ANTIBODY_KEYWORDS):
+        return (MCBO.AntibodyProduct, False)
+
+    # Check if it looks like a gene symbol (all caps, 2-10 chars, alphanumeric)
+    if s.isupper() and 2 <= len(s) <= 10 and s.replace("_", "").isalnum():
+        return (MCBO.ProteinProduct, True)
+
+    # Default to generic protein product
+    return (MCBO.ProteinProduct, False)
 
 
 def map_process_type(process_type_str):
@@ -123,6 +164,7 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
     antibody_gene = MCBO.AntibodyProductGene
     g.add((antibody_gene, RDF.type, MCBO.Gene))
     g.add((antibody_gene, RDFS.label, Literal("antibody product gene")))
+    g.add((antibody_gene, MCBO.hasGeneSymbol, Literal("antibody product gene")))
 
     for idx, row in df.iterrows():
         run_id = row.get("RunAccession", idx)
@@ -310,7 +352,13 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
                 if gene_uri not in created_genes:
                     g.add((gene_uri, RDF.type, MCBO.Gene))
                     g.add((gene_uri, RDFS.label, Literal(gene_sym)))
+                    g.add((gene_uri, MCBO.hasGeneSymbol, Literal(gene_sym)))
                     created_genes.add(gene_uri)
+
+                # Check for corresponding EnsemblGeneID
+                ensembl_id = get_case_insensitive(row, "EnsemblGeneID")
+                if pd.notna(ensembl_id) and str(ensembl_id).strip() not in {"", "NA", "nan"}:
+                    g.add((gene_uri, MCBO.hasEnsemblGeneID, Literal(str(ensembl_id).strip())))
 
                 expr_uri = MCBO[f"expr_{iri_safe(sample_id)}_{iri_safe(gene_sym)}"]
                 g.add((expr_uri, RDF.type, MCBO.GeneExpressionMeasurement))
@@ -321,20 +369,41 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
                         g.add((expr_uri, MCBO.hasExpressionValue, Literal(ev_val, datatype=ev_dt)))
                 g.add((sample_uri, MCBO.hasGeneExpression, expr_uri))
 
-        # 13) TiterValue (CQ8)
+        # 13) TiterValue and ProductType (CQ8)
         titer_value = get_case_insensitive(row, "TiterValue")
+        product_type_val = get_case_insensitive(row, "ProductType")
+        product_uri = None
+
+        # Classify and create product from ProductType
+        if pd.notna(product_type_val):
+            pt_str = str(product_type_val).strip()
+            product_class, is_gene_symbol = classify_product_type(pt_str)
+
+            if product_class is not None:
+                product_uri = MCBO[f"product_{iri_safe(run_id)}"]
+                g.add((product_uri, RDF.type, product_class))
+                g.add((product_uri, RDFS.label, Literal(pt_str)))
+                g.add((run_uri, MCBO.hasProduct, product_uri))
+
+                # If product type looks like a gene symbol, create gene and link
+                if is_gene_symbol:
+                    gene_uri = MCBO[f"gene_{iri_safe(pt_str)}"]
+                    if gene_uri not in created_genes:
+                        g.add((gene_uri, RDF.type, MCBO.Gene))
+                        g.add((gene_uri, RDFS.label, Literal(pt_str)))
+                        g.add((gene_uri, MCBO.hasGeneSymbol, Literal(pt_str)))
+                        created_genes.add(gene_uri)
+                    g.add((product_uri, MCBO.encodedByGene, gene_uri))
+
+        # Add titer value if present
         if pd.notna(titer_value) and str(titer_value).strip() not in {"", "NA", "nan"}:
-            product_uri = MCBO[f"product_{iri_safe(run_id)}"]
-            g.add((product_uri, RDF.type, MCBO.TherapeuticProtein))
+            if product_uri is None:
+                product_uri = MCBO[f"product_{iri_safe(run_id)}"]
+                g.add((product_uri, RDF.type, MCBO.ProteinProduct))
+                g.add((run_uri, MCBO.hasProduct, product_uri))
             titer_val, titer_dt = safe_numeric(titer_value)
             if titer_val is not None:
                 g.add((product_uri, MCBO.hasTiterValue, Literal(titer_val, datatype=titer_dt)))
-            g.add((run_uri, MCBO.hasProduct, product_uri))
-
-            if pd.notna(get_case_insensitive(row, "ProductType")):
-                pt = str(get_case_insensitive(row, "ProductType")).strip()
-                if pt and pt.lower() not in {"na", "nan", "control"}:
-                    g.add((product_uri, RDFS.label, Literal(pt)))
 
         # 14) QualityType (CQ8)
         quality_type = get_case_insensitive(row, "QualityType")
@@ -343,11 +412,11 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
             quality_uri = MCBO[f"quality_{iri_safe(run_id)}_{iri_safe(quality_str)}"]
             g.add((quality_uri, RDF.type, MCBO.QualityMeasurement))
             g.add((quality_uri, RDFS.label, Literal(quality_str)))
-            if pd.notna(titer_value):
+            if product_uri is not None:
                 g.add((product_uri, MCBO.hasQualityMeasurement, quality_uri))
             else:
                 product_uri = MCBO[f"product_{iri_safe(run_id)}"]
-                g.add((product_uri, RDF.type, MCBO.TherapeuticProtein))
+                g.add((product_uri, RDF.type, MCBO.ProteinProduct))
                 g.add((product_uri, MCBO.hasQualityMeasurement, quality_uri))
                 g.add((run_uri, MCBO.hasProduct, product_uri))
 
@@ -404,6 +473,7 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
                 if gene_uri not in created_genes:
                     g.add((gene_uri, RDF.type, MCBO.Gene))
                     g.add((gene_uri, RDFS.label, Literal(gene_sym)))
+                    g.add((gene_uri, MCBO.hasGeneSymbol, Literal(gene_sym)))
                     created_genes.add(gene_uri)
 
                 g.add((cell_line_uri, MCBO.overexpressesGene, gene_uri))
@@ -497,6 +567,7 @@ def add_expression_data(g, sample_uri, sample_id: str, expr_data: dict, created_
         if gene_uri not in created_genes:
             g.add((gene_uri, RDF.type, MCBO.Gene))
             g.add((gene_uri, RDFS.label, Literal(gene_sym)))
+            g.add((gene_uri, MCBO.hasGeneSymbol, Literal(gene_sym)))
             created_genes.add(gene_uri)
         
         expr_uri = MCBO[f"expr_{iri_safe(sample_id)}_{iri_safe(gene_sym)}"]
