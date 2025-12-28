@@ -6,11 +6,13 @@ the MCBO ontology design:
 
   - A run is a process instance (BatchCultureProcess, FedBatchCultureProcess, ...)
   - The run obo:RO_0000057 (has participant) a mcbo:CellCultureSystem (material entity)
-  - The CellCultureSystem obo:RO_0000086 (has quality) a mcbo:CultureConditionQuality instance
-  - Temperature/pH/DO literals are attached to the CultureConditionQuality instance
+  - The CellCultureSystem obo:RO_0000086 (has quality) a mcbo:CultureEnvironmentalCondition instance
+  - Temperature/pH/DO literals are attached to the CultureEnvironmentalCondition instance
+  - Optional setpoints (TemperatureSetpoint, pHSetpoint, DOSetpoint) indicate controlled conditions
 
 CQ support - columns used:
   CQ1: Temperature, pH, DissolvedOxygen, Productivity
+       Setpoints: TemperatureSetpoint, pHSetpoint, DOSetpoint (or DissolvedOxygenSetpoint)
   CQ2: CellLine, Producer, ProductType (or OverexpressedGene for explicit column)
   CQ3: CellLine, GlutamineConcentration, CollectionDay, ViableCellDensity
   CQ4: CellLine, CloneID, GeneSymbol, ExpressionValue, CulturePhase
@@ -172,24 +174,49 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
                 created_media.add(medium_uri)
             g.add((system_uri, BFO_HAS_PART, medium_uri))
 
-        # 6) Culture condition quality (quality of the system)
-        ccq_uri = MCBO[f"culture_condition_quality_{iri_safe(run_id)}"]
-        g.add((ccq_uri, RDF.type, MCBO.CultureConditionQuality))
-        g.add((system_uri, RO_HAS_QUALITY, ccq_uri))
+        # 6a) Culture environmental condition (quality of the system)
+        cec_uri = MCBO[f"environmental_condition_{iri_safe(run_id)}"]
+        g.add((cec_uri, RDF.type, MCBO.CultureEnvironmentalCondition))
+        g.add((system_uri, RO_HAS_QUALITY, cec_uri))
 
         temp_val, temp_dt = safe_numeric(row.get("Temperature"))
         if temp_val is not None:
-            g.add((ccq_uri, MCBO.hasTemperature, Literal(temp_val, datatype=temp_dt)))
+            g.add((cec_uri, MCBO.hasTemperature, Literal(temp_val, datatype=temp_dt)))
 
         ph_raw = row.get("pH") if "pH" in row else row.get("PH")
         ph_val, ph_dt = safe_numeric(ph_raw)
         if ph_val is not None:
-            g.add((ccq_uri, MCBO.hasPH, Literal(ph_val, datatype=ph_dt)))
+            g.add((cec_uri, MCBO.hasPH, Literal(ph_val, datatype=ph_dt)))
 
         do_raw = row.get("DissolvedOxygen") or row.get("DO")
         do_val, do_dt = safe_numeric(do_raw)
         if do_val is not None:
-            g.add((ccq_uri, MCBO.hasDissolvedOxygen, Literal(do_val, datatype=do_dt)))
+            g.add((cec_uri, MCBO.hasDissolvedOxygen, Literal(do_val, datatype=do_dt)))
+
+        # 6b) Setpoints (optional - indicates controlled conditions)
+        temp_sp_raw = row.get("TemperatureSetpoint")
+        temp_sp_val, temp_sp_dt = safe_numeric(temp_sp_raw)
+        if temp_sp_val is not None:
+            temp_sp_uri = MCBO[f"setpoint_temp_{iri_safe(run_id)}"]
+            g.add((temp_sp_uri, RDF.type, MCBO.EnvironmentalSetpoint))
+            g.add((temp_sp_uri, MCBO.hasSetpointValue, Literal(temp_sp_val, datatype=temp_sp_dt)))
+            g.add((cec_uri, MCBO.hasSetpoint, temp_sp_uri))
+
+        ph_sp_raw = row.get("pHSetpoint")
+        ph_sp_val, ph_sp_dt = safe_numeric(ph_sp_raw)
+        if ph_sp_val is not None:
+            ph_sp_uri = MCBO[f"setpoint_ph_{iri_safe(run_id)}"]
+            g.add((ph_sp_uri, RDF.type, MCBO.EnvironmentalSetpoint))
+            g.add((ph_sp_uri, MCBO.hasSetpointValue, Literal(ph_sp_val, datatype=ph_sp_dt)))
+            g.add((cec_uri, MCBO.hasSetpoint, ph_sp_uri))
+
+        do_sp_raw = row.get("DOSetpoint") or row.get("DissolvedOxygenSetpoint")
+        do_sp_val, do_sp_dt = safe_numeric(do_sp_raw)
+        if do_sp_val is not None:
+            do_sp_uri = MCBO[f"setpoint_do_{iri_safe(run_id)}"]
+            g.add((do_sp_uri, RDF.type, MCBO.EnvironmentalSetpoint))
+            g.add((do_sp_uri, MCBO.hasSetpointValue, Literal(do_sp_val, datatype=do_sp_dt)))
+            g.add((cec_uri, MCBO.hasSetpoint, do_sp_uri))
 
         # 7) Culture phase (attach to sample)
         phase_val = row.get("CulturePhase")

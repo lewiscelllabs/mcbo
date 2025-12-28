@@ -224,6 +224,22 @@ mcbo:hasSampleAccession a owl:DatatypeProperty ;
     rdfs:domain mcbo:BioprocessSample ;
     rdfs:range xsd:string .
 
+mcbo:hasSetpoint a owl:ObjectProperty ;
+    rdfs:label "has setpoint" ;
+    rdfs:comment "Links a culture environmental condition to its target setpoint value, indicating the condition is actively controlled." ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
+    rdfs:range mcbo:EnvironmentalSetpoint .
+
+mcbo:hasSetpointUnit a owl:ObjectProperty ;
+    rdfs:label "has setpoint unit" ;
+    rdfs:comment "UO unit for the setpoint value." ;
+    rdfs:domain mcbo:EnvironmentalSetpoint .
+
+mcbo:hasSetpointValue a owl:DatatypeProperty ;
+    rdfs:label "has setpoint value" ;
+    rdfs:domain mcbo:EnvironmentalSetpoint ;
+    rdfs:range xsd:decimal .
+
 mcbo:hasTemperature a owl:DatatypeProperty ;
     rdfs:label "has temperature" ;
     rdfs:domain mcbo:CultureEnvironmentalCondition ;
@@ -483,57 +499,57 @@ mcbo:Viability_72h a mcbo:CellViabilityMeasurement,
     mcbo:hasViableCellDensity 8500000.0 ;
     mcbo:hasViableCellDensityUnit uo:UO_0000201 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_C a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_C a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_D a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_D a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_C a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_C a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 60.0 ;
     mcbo:hasPH 7.1 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_D a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_D a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_E a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_E a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO003_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO003_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.1 ;
     mcbo:hasTemperature 36.5 .
 
-mcbo:culture_condition_quality_DEMO003_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 55.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 36.5 .
@@ -1130,52 +1146,52 @@ mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_A .
 
 mcbo:system_DEMO001_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_B .
 
 mcbo:system_DEMO001_RUN_C a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_C ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_C .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_C .
 
 mcbo:system_DEMO001_RUN_D a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_D ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_D .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_D .
 
 mcbo:system_DEMO002_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_A .
 
 mcbo:system_DEMO002_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_B .
 
 mcbo:system_DEMO002_RUN_C a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_C .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_C .
 
 mcbo:system_DEMO002_RUN_D a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_D .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_D .
 
 mcbo:system_DEMO002_RUN_E a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_E .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_E .
 
 mcbo:system_DEMO003_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-DG44,
         mcbo:medium_DEMO003_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_A .
 
 mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-DG44,
         mcbo:medium_DEMO003_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_B .
 
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
@@ -1232,6 +1248,8 @@ uo:IAO_0000311 rdfs:label "publication" .
 uo:OBI_0000293 rdfs:label "has specified input" ;
     rdfs:domain uo:OBI_0001271 ;
     rdfs:range mcbo:BioprocessSample .
+
+uo:OBI_0000674 rdfs:label "setting datum" .
 
 uo:SO_0000704 rdfs:label "gene" .
 
@@ -1305,6 +1323,12 @@ mcbo:CulturePhase a owl:Class ;
     uo:IAO_0000115 "A temporal portion of a cell culture process characterized by a distinctive growth or metabolic regime." ;
     rdfs:comment "Temporal phase of cell culture process." ;
     rdfs:subClassOf uo:BFO_0000003 .
+
+mcbo:EnvironmentalSetpoint a owl:Class ;
+    rdfs:label "Environmental setpoint" ;
+    uo:IAO_0000115 "A setting datum that specifies the target value for a controlled environmental condition in a cell culture system." ;
+    rdfs:comment "When present and linked to a CultureEnvironmentalCondition, indicates that condition is actively controlled. Absence of a linked setpoint indicates the condition is measured but not controlled." ;
+    rdfs:subClassOf uo:OBI_0000674 .
 
 mcbo:PerfusionCultureProcess a owl:Class ;
     rdfs:label "Perfusion culture process" ;
@@ -1466,12 +1490,6 @@ mcbo:ProductivityMeasurement a owl:Class ;
     rdfs:comment "Measurement of bioprocess productivity." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
-mcbo:CultureEnvironmentalCondition a owl:Class ;
-    rdfs:label "Culture environmental condition" ;
-    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration." ;
-    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
-    rdfs:subClassOf uo:BFO_0000019 .
-
 mcbo:NutrientConcentration a owl:Class ;
     rdfs:label "Nutrient concentration" ;
     uo:IAO_0000115 "A measurement datum or quantity value that specifies the concentration of a nutrient in a culture medium or sample." ;
@@ -1506,6 +1524,12 @@ mcbo:CellViabilityMeasurement a owl:Class ;
     uo:IAO_0000115 "A measurement datum that records the proportion or count of viable cells in a sample." ;
     rdfs:comment "Measurement of cell viability and density." ;
     rdfs:subClassOf uo:IAO_0000109 .
+
+mcbo:CultureEnvironmentalCondition a owl:Class ;
+    rdfs:label "Culture environmental condition" ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration." ;
+    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
+    rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:Gene a owl:Class ;
     rdfs:label "Gene" ;

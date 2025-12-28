@@ -92,57 +92,57 @@ mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
     obo:RO_0000057 mcbo:cellline_CHO-DG44,
         mcbo:system_DEMO003_RUN_B .
 
-mcbo:culture_condition_quality_DEMO001_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_C a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_C a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_D a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_D a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_C a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_C a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 60.0 ;
     mcbo:hasPH 7.1 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_D a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_D a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_E a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_E a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO003_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO003_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 45.0 ;
     mcbo:hasPH 7.1 ;
     mcbo:hasTemperature 36.5 .
 
-mcbo:culture_condition_quality_DEMO003_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 55.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 36.5 .
@@ -728,52 +728,52 @@ mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_A .
 
 mcbo:system_DEMO001_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_B .
 
 mcbo:system_DEMO001_RUN_C a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_C ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_C .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_C .
 
 mcbo:system_DEMO001_RUN_D a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_D ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_D .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_D .
 
 mcbo:system_DEMO002_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_A .
 
 mcbo:system_DEMO002_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_B .
 
 mcbo:system_DEMO002_RUN_C a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_C .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_C .
 
 mcbo:system_DEMO002_RUN_D a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_D .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_D .
 
 mcbo:system_DEMO002_RUN_E a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_E .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_E .
 
 mcbo:system_DEMO003_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-DG44,
         mcbo:medium_DEMO003_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_A .
 
 mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-DG44,
         mcbo:medium_DEMO003_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_B .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_B .
 
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;

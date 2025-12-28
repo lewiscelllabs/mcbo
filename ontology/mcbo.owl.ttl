@@ -59,6 +59,28 @@ mcbo:CultureEnvironmentalCondition a owl:Class ;
     rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
     rdfs:subClassOf uo:BFO_0000019 .
 
+mcbo:EnvironmentalSetpoint a owl:Class ;
+    rdfs:label "Environmental setpoint" ;
+    uo:IAO_0000115 "A setting datum that specifies the target value for a controlled environmental condition in a cell culture system." ;
+    rdfs:comment "When present and linked to a CultureEnvironmentalCondition, indicates that condition is actively controlled. Absence of a linked setpoint indicates the condition is measured but not controlled." ;
+    rdfs:subClassOf uo:OBI_0000674 .
+
+mcbo:hasSetpoint a owl:ObjectProperty ;
+    rdfs:label "has setpoint" ;
+    rdfs:comment "Links a culture environmental condition to its target setpoint value, indicating the condition is actively controlled." ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
+    rdfs:range mcbo:EnvironmentalSetpoint .
+
+mcbo:hasSetpointValue a owl:DatatypeProperty ;
+    rdfs:label "has setpoint value" ;
+    rdfs:domain mcbo:EnvironmentalSetpoint ;
+    rdfs:range xsd:decimal .
+
+mcbo:hasSetpointUnit a owl:ObjectProperty ;
+    rdfs:label "has setpoint unit" ;
+    rdfs:comment "UO unit for the setpoint value." ;
+    rdfs:domain mcbo:EnvironmentalSetpoint .
+
 mcbo:ExponentialPhase_001 a mcbo:ExponentialPhase,
         owl:NamedIndividual ;
     rdfs:label "Exponential phase at 72h" .
@@ -493,6 +515,8 @@ uo:BFO_0000003 rdfs:label "occurrent" .
 uo:BFO_0000015 rdfs:label "process" .
 
 uo:BFO_0000019 rdfs:label "quality" .
+
+uo:OBI_0000674 rdfs:label "setting datum" .
 
 uo:IAO_0000100 rdfs:label "dataset" .
 
