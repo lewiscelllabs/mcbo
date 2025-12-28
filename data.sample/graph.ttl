@@ -89,13 +89,13 @@ mcbo:fromStudy a owl:ObjectProperty ;
 
 mcbo:hasCO2Concentration a owl:DatatypeProperty ;
     rdfs:label "has CO2 concentration (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasCO2ConcentrationUnit a owl:ObjectProperty ;
     rdfs:label "has CO2 concentration unit" ;
     rdfs:comment "UO unit for CO2 concentration (e.g., uo:UO_0000169 for ppm)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
 
 mcbo:hasCellViabilityMeasurement a owl:ObjectProperty ;
     rdfs:label "has cell viability measurement" ;
@@ -129,13 +129,13 @@ mcbo:hasDatasetAccession a owl:DatatypeProperty ;
 
 mcbo:hasDissolvedOxygen a owl:DatatypeProperty ;
     rdfs:label "has dissolved oxygen (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasDissolvedOxygenUnit a owl:ObjectProperty ;
     rdfs:label "has dissolved oxygen unit" ;
     rdfs:comment "UO unit for dissolved oxygen (e.g., uo:UO_0000273 for mg/L)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
 
 mcbo:hasExpressionUnit a owl:DatatypeProperty ;
     rdfs:label "has expression unit" ;
@@ -169,7 +169,7 @@ mcbo:hasGeneSymbol a owl:DatatypeProperty ;
 
 mcbo:hasHumidity a owl:DatatypeProperty ;
     rdfs:label "has humidity (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasNutrientConcentration a owl:ObjectProperty ;
@@ -179,7 +179,7 @@ mcbo:hasNutrientConcentration a owl:ObjectProperty ;
 
 mcbo:hasPH a owl:DatatypeProperty ;
     rdfs:label "has pH" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasProduct a owl:ObjectProperty ;
@@ -226,13 +226,13 @@ mcbo:hasSampleAccession a owl:DatatypeProperty ;
 
 mcbo:hasTemperature a owl:DatatypeProperty ;
     rdfs:label "has temperature" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasTemperatureUnit a owl:ObjectProperty ;
     rdfs:label "has temperature unit" ;
     rdfs:comment "UO unit for temperature (e.g., uo:UO_0000027 for Celsius, uo:UO_0000195 for Fahrenheit)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
 
 mcbo:hasTiterValue a owl:DatatypeProperty ;
     rdfs:label "has titer value" ;
@@ -401,7 +401,7 @@ mcbo:CellCultureSystem_001 a mcbo:CellCultureSystem,
     obo:BFO_0000051 mcbo:CHO_K1 ;
     obo:RO_0000086 mcbo:Conditions_001 .
 
-mcbo:Conditions_001 a mcbo:CultureConditionQuality,
+mcbo:Conditions_001 a mcbo:CultureEnvironmentalCondition,
         owl:NamedIndividual ;
     rdfs:label "Standard culture conditions" ;
     mcbo:hasCO2Concentration 50000 ;
@@ -1466,6 +1466,12 @@ mcbo:ProductivityMeasurement a owl:Class ;
     rdfs:comment "Measurement of bioprocess productivity." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
+mcbo:CultureEnvironmentalCondition a owl:Class ;
+    rdfs:label "Culture environmental condition" ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration." ;
+    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
+    rdfs:subClassOf uo:BFO_0000019 .
+
 mcbo:NutrientConcentration a owl:Class ;
     rdfs:label "Nutrient concentration" ;
     uo:IAO_0000115 "A measurement datum or quantity value that specifies the concentration of a nutrient in a culture medium or sample." ;
@@ -1500,14 +1506,6 @@ mcbo:CellViabilityMeasurement a owl:Class ;
     uo:IAO_0000115 "A measurement datum that records the proportion or count of viable cells in a sample." ;
     rdfs:comment "Measurement of cell viability and density." ;
     rdfs:subClassOf uo:IAO_0000109 .
-
-mcbo:CultureConditionQuality a owl:Class ;
-    rdfs:label "Culture condition quality",
-        "Culture condition quality"@en ;
-    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration.",
-        "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
-    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
-    rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:Gene a owl:Class ;
     rdfs:label "Gene" ;
