@@ -18,13 +18,6 @@ mcbo:AlignedReadsDataset a owl:Class ;
     rdfs:comment "A dataset containing RNA sequencing reads aligned to a reference genome, typically in BAM or CRAM format." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
-mcbo:Assay_RNASeq_001 a uo:OBI_0001271,
-        owl:NamedIndividual ;
-    rdfs:label "assayRun_001" ;
-    uo:OBI_0000293 mcbo:Sample_D7 ;
-    uo:OBI_0000299 mcbo:ExprMx_001,
-        mcbo:Reads_001 .
-
 mcbo:CellCultureSystem a owl:Class ;
     rdfs:label "cell culture system" ;
     uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
@@ -81,10 +74,6 @@ mcbo:hasSetpointUnit a owl:ObjectProperty ;
     rdfs:comment "UO unit for the setpoint value." ;
     rdfs:domain mcbo:EnvironmentalSetpoint .
 
-mcbo:ExponentialPhase_001 a mcbo:ExponentialPhase,
-        owl:NamedIndividual ;
-    rdfs:label "Exponential phase at 72h" .
-
 mcbo:FedBatchCultureProcess a owl:Class ;
     rdfs:label "Fed-batch culture process" ;
     uo:IAO_0000115 "A batch cell culture process in which one or more nutrient feeds are added during cultivation without continuous removal of culture broth." ;
@@ -139,21 +128,6 @@ mcbo:RNASeqMethod a owl:Class ;
     rdfs:label "RNA-seq method" ;
     uo:IAO_0000115 "An analytical method that generates sequence reads from RNA molecules to quantify transcript abundance." ;
     rdfs:subClassOf mcbo:AnalyticalMethod .
-
-mcbo:CellCultureSystem_001 a mcbo:CellCultureSystem,
-        owl:NamedIndividual ;
-    rdfs:label "Cell culture system for Run_001" ;
-    uo:RO_0000086 mcbo:Conditions_001 ;
-    uo:BFO_0000051 mcbo:CHO_K1 .
-
-mcbo:Run_001 a mcbo:PerfusionCultureProcess,
-        owl:NamedIndividual ;
-    rdfs:label "Run_001 (perfusion)" ;
-    uo:RO_0000057 mcbo:CellCultureSystem_001 ;
-    mcbo:hasProcessOutput mcbo:Sample_D7 ;
-    mcbo:hasProduct mcbo:Product_mAb ;
-    mcbo:usesCellLine mcbo:CHO_K1 .
-
 
 mcbo:StationaryPhase a owl:Class ;
     rdfs:label "Stationary phase" ;
@@ -412,20 +386,11 @@ uo:OBI_0000299 rdfs:label "has specified output" ;
 iof:ProductProductionProcess a owl:Class ;
     rdfs:label "product production process" .
 
-mcbo:BatchCultureProcess a owl:Class ;
-    rdfs:label "Batch culture process" ;
-    uo:IAO_0000115 "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
-    rdfs:subClassOf mcbo:CellCultureProcess .
-
 mcbo:CHOCellLine a owl:Class ;
     rdfs:label "CHO cell line" ;
     uo:IAO_0000115 "A cell line whose cells are derived from Chinese hamster ovary (CHO) lineage." ;
     rdfs:comment "Chinese Hamster Ovary cell line family." ;
     rdfs:subClassOf mcbo:CellLine .
-
-mcbo:CHO_K1 a mcbo:CHOCellLine,
-        owl:NamedIndividual ;
-    rdfs:label "CHO-K1 cell line" .
 
 mcbo:Clone a owl:Class ;
     rdfs:label "Clone" ;
@@ -433,25 +398,10 @@ mcbo:Clone a owl:Class ;
     rdfs:comment "Specific engineered clone derived from a parent cell line." ;
     rdfs:subClassOf mcbo:CellLine .
 
-mcbo:Conditions_001 a mcbo:CultureEnvironmentalCondition,
-        owl:NamedIndividual ;
-    rdfs:label "Standard culture conditions" ;
-    mcbo:hasCO2Concentration 50000 ;
-    mcbo:hasCO2ConcentrationUnit uo:UO_0000169 ;
-    mcbo:hasDissolvedOxygen 8.5 ;
-    mcbo:hasDissolvedOxygenUnit uo:UO_0000273 ;
-    mcbo:hasPH 7.0 ;
-    mcbo:hasTemperature 37.0 ;
-    mcbo:hasTemperatureUnit uo:UO_0000027 .
-
 mcbo:ExponentialPhase a owl:Class ;
     rdfs:label "Exponential phase" ;
     uo:IAO_0000115 "A culture phase during which the viable cell population increases approximately exponentially." ;
     rdfs:subClassOf mcbo:CulturePhase .
-
-mcbo:ExprMx_001 a mcbo:ExpressionMatrix,
-        owl:NamedIndividual ;
-    rdfs:label "TPM matrix" .
 
 mcbo:ExpressionMatrix a owl:Class ;
     rdfs:label "Expression matrix" ;
@@ -468,16 +418,6 @@ mcbo:GeneCountsMatrixDataset a owl:Class ;
     rdfs:comment "A dataset containing quantified gene expression data in matrix format, with genes/transcripts as rows and samples as columns." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
-mcbo:MammalianCell a owl:Class ;
-    rdfs:label "Mammalian cell"@en ;
-    uo:IAO_0000115 "A material entity that is a cell of a mammal."@en ;
-    rdfs:subClassOf uo:BFO_0000040 .
-
-mcbo:PerfusionCultureProcess a owl:Class ;
-    rdfs:label "Perfusion culture process" ;
-    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture system." ;
-    rdfs:subClassOf mcbo:ContinuousCultureProcess .
-
 mcbo:QuantityValue a owl:Class ;
     rdfs:label "quantity value" ;
     uo:IAO_0000115 "An information content entity that specifies a numeric value together with a unit for some measured quantity." ;
@@ -489,22 +429,11 @@ mcbo:RawReadsDataset a owl:Class ;
     rdfs:comment "A dataset containing unprocessed RNA sequencing reads in FASTQ format." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
-mcbo:Reads_001 a mcbo:RNASeqRawReads,
-        owl:NamedIndividual ;
-    rdfs:label "FASTQ (R1/R2)" .
-
 mcbo:Study a owl:Class ;
     rdfs:label "Study" ;
     uo:IAO_0000115 "An information content entity that denotes a scientific study describing one or more bioprocess experiments and their results." ;
     rdfs:comment "Research study containing bioprocessing experiments." ;
     rdfs:subClassOf uo:IAO_0000030 .
-
-mcbo:Viability_72h a mcbo:CellViabilityMeasurement,
-        owl:NamedIndividual ;
-    rdfs:label "Viability measurement at 72h" ;
-    mcbo:hasViabilityPercentage 85.0 ;
-    mcbo:hasViableCellDensity 8500000.0 ;
-    mcbo:hasViableCellDensityUnit uo:UO_0000201 .
 
 mcbo:expressesGene a owl:ObjectProperty ;
     rdfs:label "expresses gene" ;
@@ -554,10 +483,6 @@ mcbo:CultureMedium a owl:Class ;
     rdfs:comment "Nutrient medium used for cell culture." ;
     rdfs:subClassOf uo:BFO_0000040 .
 
-mcbo:Product_mAb a mcbo:ProductMaterial,
-        owl:NamedIndividual ;
-    rdfs:label "Monoclonal antibody product" .
-
 mcbo:QualityMeasurement a owl:Class ;
     rdfs:label "Quality measurement" ;
     uo:IAO_0000115 "A measurement datum that records a product quality attribute value for a sample or product material." ;
@@ -569,14 +494,6 @@ mcbo:RNASeqRawReads a owl:Class ;
     uo:IAO_0000115 "A raw reads dataset that consists specifically of RNA sequencing reads." ;
     rdfs:comment "Raw RNA sequencing reads in FASTQ format." ;
     rdfs:subClassOf mcbo:RawReadsDataset .
-
-mcbo:Sample_D7 a mcbo:BioprocessSample,
-        owl:NamedIndividual ;
-    rdfs:label "Day 7 aliquot" ;
-    mcbo:hasCellViabilityMeasurement mcbo:Viability_72h ;
-    mcbo:hasCollectionDay 7 ;
-    mcbo:inCulturePhase mcbo:StationaryPhase_001 ;
-    mcbo:sampleContainsProduct mcbo:Product_mAb .
 
 iof:hasOutput a owl:ObjectProperty ;
     rdfs:label "has output" .

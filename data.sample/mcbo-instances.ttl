@@ -105,6 +105,13 @@ mcbo:run_DEMO_PROTEIN_A a mcbo:BatchCultureProcess ;
     obo:RO_0000057 mcbo:cellline_Vero,
         mcbo:system_DEMO_PROTEIN_A .
 
+mcbo:run_Run_001 a mcbo:PerfusionCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_Sample_D7 ;
+    mcbo:hasProduct mcbo:product_Run_001 ;
+    mcbo:usesCellLine mcbo:cellline_CHO-K1 ;
+    obo:RO_0000057 mcbo:cellline_CHO-K1,
+        mcbo:system_Run_001 .
+
 mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
@@ -162,6 +169,11 @@ mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition 
 
 mcbo:environmental_condition_DEMO_PROTEIN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_Run_001 a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 8.5 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
@@ -538,6 +550,8 @@ mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
 mcbo:phase_DEMO_PROTEIN_A a mcbo:ExponentialPhase .
 
+mcbo:phase_Run_001 a mcbo:StationaryPhase .
+
 mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "mAb" .
 
@@ -585,6 +599,9 @@ mcbo:product_DEMO003_RUN_B a mcbo:AntibodyProduct ;
 mcbo:product_DEMO_PROTEIN_A a mcbo:ProteinProduct ;
     rdfs:label "AMBP" ;
     mcbo:encodedByGene mcbo:gene_AMBP .
+
+mcbo:product_Run_001 a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
 
 mcbo:productivity_DEMO001_RUN_A a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
@@ -779,6 +796,11 @@ mcbo:sample_DEMO_PROTEIN_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCollectionDay 4 ;
     mcbo:inCulturePhase mcbo:phase_DEMO_PROTEIN_A .
 
+mcbo:sample_Sample_D7 a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_Sample_D7 ;
+    mcbo:hasCollectionDay 7 ;
+    mcbo:inCulturePhase mcbo:phase_Run_001 .
+
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
@@ -833,6 +855,10 @@ mcbo:system_DEMO_PROTEIN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_Vero ;
     obo:RO_0000086 mcbo:environmental_condition_DEMO_PROTEIN_A .
 
+mcbo:system_Run_001 a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-K1 ;
+    obo:RO_0000086 mcbo:environmental_condition_Run_001 .
+
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
     mcbo:hasViableCellDensity 8000000.0 .
@@ -880,6 +906,10 @@ mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
 mcbo:viability_DEMO_PROTEIN_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 75.0 ;
     mcbo:hasViableCellDensity 7000000.0 .
+
+mcbo:viability_Sample_D7 a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 85.0 ;
+    mcbo:hasViableCellDensity 8500000.0 .
 
 mcbo:AntibodyProductGene a mcbo:Gene ;
     rdfs:label "antibody product gene" ;

@@ -3,3 +3,4 @@ DEMO001_RUN_A,DEMO001_SAMPLE_A,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,
 DEMO001_RUN_B,DEMO001_SAMPLE_B,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Exponential,,,,37,7.0,40,,,FedBatch,Medium,,,3,6000000,92,Clone_B,,
 DEMO002_RUN_A,DEMO002_SAMPLE_A,study_demo_002,,,,,,,,,HEK293,TRUE,IgG,,,,Exponential,,,,37,7.2,50,,,Batch,Medium,,,2,5000000,98,,150,Glycosylation
 DEMO_PROTEIN_A,DEMO_PROTEIN_SAMPLE_A,study_demo_protein,,,,,,,,,Vero,FALSE,AMBP,ENSG00000106927,,,Exponential,,,,37,7.0,40,,,Batch,Low,,,4,7000000,75,,,
+Run_001,Sample_D7,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,,,Stationary,,,,37,7.0,8.5,,,Perfusion,,,,7,8500000,85,,,
