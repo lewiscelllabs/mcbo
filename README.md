@@ -2,7 +2,7 @@
 
 [![CI/CD](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml/badge.svg)](https://github.com/lewiscelllabs/mcbo/actions/workflows/qc.yml)
 [![Documentation Status](https://readthedocs.org/projects/mcbo/badge/?version=latest)](https://mcbo.readthedocs.io/en/latest/?badge=latest)
-[![YouTube](https://img.shields.io/badge/YouTube-Video-red?logo=youtube)](https://youtu.be/YTvCv-l0ia4)
+
 
 A hub-and-spoke, IOF-anchored application ontology for mammalian cell bioprocessing and RNA-seq data curation.
 
