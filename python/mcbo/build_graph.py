@@ -56,6 +56,7 @@ DEFAULT_PATHS = {
     "studies": "studies",
     "expression": "expression",
     "metadata": "sample_metadata.csv",
+    "gene_annotations": "gene_annotations.csv",
     "results": "results",
 }
 
@@ -63,6 +64,58 @@ DEFAULT_PATHS = {
 def resolve_data_dir_path(data_dir: Path, key: str) -> Path:
     """Resolve a path relative to data_dir using convention defaults."""
     return data_dir / DEFAULT_PATHS[key]
+
+
+def load_gene_annotations(annotations_file: Path) -> dict:
+    """Load gene symbol to Ensembl ID mappings from annotation file.
+    
+    Returns:
+        dict: {gene_symbol: ensembl_id}
+    """
+    if not annotations_file.exists():
+        return {}
+    
+    df = pd.read_csv(annotations_file)
+    annotations = {}
+    
+    # Support flexible column names
+    symbol_col = None
+    ensembl_col = None
+    for col in df.columns:
+        if col.lower() in ("genesymbol", "gene_symbol", "symbol", "gene"):
+            symbol_col = col
+        if col.lower() in ("ensemblgeneid", "ensembl_gene_id", "ensembl_id", "ensembl"):
+            ensembl_col = col
+    
+    if symbol_col and ensembl_col:
+        for _, row in df.iterrows():
+            symbol = str(row[symbol_col]).strip()
+            ensembl = str(row[ensembl_col]).strip()
+            if symbol and ensembl and ensembl.lower() not in ("", "na", "nan"):
+                annotations[symbol] = ensembl
+    
+    return annotations
+
+
+def apply_gene_annotations(graph, annotations: dict):
+    """Apply Ensembl gene IDs to existing genes in the graph."""
+    from rdflib import Literal
+    
+    if not annotations:
+        return 0
+    
+    applied = 0
+    for gene_symbol, ensembl_id in annotations.items():
+        gene_uri = MCBO[f"gene_{iri_safe(gene_symbol)}"]
+        # Check if this gene exists in the graph
+        if (gene_uri, None, None) in graph:
+            # Add Ensembl ID if not already present
+            existing = list(graph.objects(gene_uri, MCBO.hasEnsemblGeneID))
+            if not existing:
+                graph.add((gene_uri, MCBO.hasEnsemblGeneID, Literal(ensembl_id)))
+                applied += 1
+    
+    return applied
 
 
 def find_study_files(study_dir: Path) -> tuple:
@@ -150,27 +203,73 @@ def add_study(study_dir: Path, instances_file: Path):
     print(f"  Saved to: {instances_file}")
 
 
-def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Path, output_file: Path):
-    """Build complete graph from all studies + ontology."""
+def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Path, output_file: Path,
+                     root_csv: Path = None, expression_dir: Path = None, gene_annotations_file: Path = None):
+    """Build complete graph from root CSV (foundation) + studies (supplements) + ontology.
+    
+    Processing order:
+    1. Root sample_metadata.csv (if exists) - the curated foundation
+    2. Expression data from expression/ dir (for root CSV samples)
+    3. Per-study directories in studies/ - supplemental data
+    """
     print(f"\n=== Building full graph ===")
-    print(f"Studies directory: {studies_dir}")
     print(f"Ontology: {ontology_file}")
     
-    # Find all study directories
-    study_dirs = sorted([d for d in studies_dir.iterdir() if d.is_dir()])
-    print(f"Found {len(study_dirs)} study directories")
-    
-    # Process all studies
     main_graph = create_graph()
     created_genes = set()
     
-    for study_dir in study_dirs:
-        print(f"\nProcessing study: {study_dir.name}")
-        study_graph = process_study(study_dir, created_genes)
-        for triple in study_graph:
+    # Step 1: Process root CSV as foundation (if exists)
+    if root_csv and root_csv.exists():
+        print(f"\n[Foundation] Processing root CSV: {root_csv}")
+        temp_output = Path("/tmp") / "mcbo_root_instances.ttl"
+        root_graph = convert_csv_to_rdf(str(root_csv), str(temp_output))
+        
+        # Step 2: Add expression data for root CSV samples (if expression dir exists)
+        if expression_dir and expression_dir.exists():
+            from .csv_to_rdf import load_expression_dir
+            expr_data = load_expression_dir(str(expression_dir))
+            if expr_data:
+                df = pd.read_csv(root_csv)
+                matched_count = 0
+                for _, row in df.iterrows():
+                    sample_id = str(row.get("SampleAccession", "")).strip()
+                    if sample_id and sample_id in expr_data:
+                        sample_uri = MCBO[f"sample_{iri_safe(sample_id)}"]
+                        add_expression_data(root_graph, sample_uri, sample_id, expr_data, created_genes)
+                        matched_count += 1
+                if matched_count > 0:
+                    print(f"  Added expression data for {matched_count} samples")
+        
+        # Merge root graph into main
+        for triple in root_graph:
             main_graph.add(triple)
+        print(f"  Foundation triples: {len(main_graph)}")
+    
+    # Step 3: Process study directories as supplements (if exists)
+    if studies_dir and studies_dir.exists():
+        study_dirs = sorted([d for d in studies_dir.iterdir() if d.is_dir()])
+        if study_dirs:
+            print(f"\n[Supplements] Found {len(study_dirs)} study directories")
+            
+            for study_dir in study_dirs:
+                print(f"\nProcessing study: {study_dir.name}")
+                initial_count = len(main_graph)
+                study_graph = process_study(study_dir, created_genes)
+                for triple in study_graph:
+                    main_graph.add(triple)
+                added = len(main_graph) - initial_count
+                if added > 0:
+                    print(f"  Added {added} triples")
     
     print(f"\n  Total instance triples: {len(main_graph)}")
+    
+    # Apply gene annotations (Ensembl IDs) if available
+    if gene_annotations_file and gene_annotations_file.exists():
+        print(f"\n[Annotations] Loading gene annotations: {gene_annotations_file}")
+        annotations = load_gene_annotations(gene_annotations_file)
+        if annotations:
+            applied = apply_gene_annotations(main_graph, annotations)
+            print(f"  Applied {applied} Ensembl gene IDs (from {len(annotations)} annotations)")
     
     # Save instances
     ensure_parent_dir(instances_file)
@@ -379,13 +478,22 @@ Convention: When using --data-dir, the tool looks for:
             studies_dir = args.studies_dir or resolve_data_dir_path(data_dir, "studies")
             instances_file = args.instances or resolve_data_dir_path(data_dir, "instances")
             output_file = args.output or resolve_data_dir_path(data_dir, "graph")
+            # Root CSV and expression dir for foundation layer
+            root_csv = resolve_data_dir_path(data_dir, "metadata")
+            expression_dir = resolve_data_dir_path(data_dir, "expression")
+            gene_annotations_file = resolve_data_dir_path(data_dir, "gene_annotations")
         else:
             if not args.studies_dir:
                 parser.error("build requires --studies-dir or --data-dir")
             studies_dir = args.studies_dir
             instances_file = args.instances or Path(".data/mcbo-instances.ttl")
             output_file = args.output or Path(".data/graph.ttl")
-        build_full_graph(studies_dir, args.ontology, instances_file, output_file)
+            root_csv = None
+            expression_dir = None
+            gene_annotations_file = None
+        build_full_graph(studies_dir, args.ontology, instances_file, output_file,
+                        root_csv=root_csv, expression_dir=expression_dir,
+                        gene_annotations_file=gene_annotations_file)
     
     elif args.command == "merge":
         if data_dir:

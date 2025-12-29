@@ -1,5 +1,3 @@
-RunAccession,SampleAccession,CellLine,ProcessType,Temperature,pH,DissolvedOxygen,CulturePhase,Productivity,Producer,ProductType,CollectionDay,ViableCellDensity,ViabilityPercentage,CloneID,GlutamineConcentration,TiterValue
-DEMO003_RUN_A,DEMO003_SAMPLE_A,CHO-DG44,Batch,36.5,7.1,45,Exponential,Medium,TRUE,BsAb,4,7000000,94,Clone_X,3.5,
-DEMO003_RUN_B,DEMO003_SAMPLE_B,CHO-DG44,Perfusion,36.5,7.0,55,Stationary,High,TRUE,BsAb,8,11000000,89,Clone_X,3.5,280
-
-
+RunAccession,SampleAccession,StudyID,DatasetAccession,LibraryStrategy,DatasetReadable,DatasetName,DatasetAbbrev,Author,PairedEnd,Source,CellLine,Producer,ProductType,EnsemblGeneID,Glutamine,GlutamineConcentration,CulturePhase,Host,CellLineSource,CellLineExact,Temperature,pH,DissolvedOxygen,SelectionMarker,Growth,ProcessType,Productivity,Stability,FullSampleName,CollectionDay,ViableCellDensity,ViabilityPercentage,CloneID,TiterValue,QualityType
+DEMO003_RUN_A,DEMO003_SAMPLE_A,study_demo_003,,,,,,,,,CHO-DG44,TRUE,BsAb,,TRUE,3.5,Exponential,,,,36.5,7.1,45,,,Batch,Medium,,,4,7000000,94,Clone_X,,
+DEMO003_RUN_B,DEMO003_SAMPLE_B,study_demo_003,,,,,,,,,CHO-DG44,TRUE,BsAb,,TRUE,3.5,Stationary,,,,36.5,7.0,55,,,Perfusion,High,,,8,11000000,89,Clone_X,280,

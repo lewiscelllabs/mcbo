@@ -21,13 +21,13 @@ CQ support - columns used:
   CQ7: ViabilityPercentage, GeneSymbol, ExpressionValue
   CQ8: CellLine, CloneID, TiterValue, QualityType
 
-  Gene identification:
-    GeneSymbol - gene symbol for expression measurements (e.g., TP53, GAPDH)
-    EnsemblGeneID - optional Ensembl stable ID (e.g., ENSG00000141510)
+  Gene/Product identification:
+    ProductType - product name: gene symbol (AMBP), protein class (mAb), or control
+    EnsemblGeneID - optional Ensembl ID when ProductType is a gene symbol
 
   Product classification (from ProductType column):
-    - Gene symbols (e.g., CCL20, FN1) → ProteinProduct + encodedByGene link
-    - Antibody terms (e.g., mAb, IgG) → AntibodyProduct
+    - Gene symbols (e.g., AMBP, CCL20) → ProteinProduct + encodedByGene link
+    - Antibody terms (e.g., mAb, IgG, BsAb) → AntibodyProduct
     - Control terms (e.g., Control, WT) → ignored (not a product)
 
 Note: GeneSymbol is for expression MEASUREMENTS (CQ4/6/7).
@@ -63,7 +63,7 @@ OVEREXPRESSION_COLUMN_CANDIDATES = [
 GENE_SPLIT_RE = re.compile(r"[;,|/]+|\s+")
 
 # Product type classification keywords
-ANTIBODY_KEYWORDS = {"mab", "antibody", "igg", "bispecific", "fc-fusion", "nanobody"}
+ANTIBODY_KEYWORDS = {"mab", "antibody", "igg", "bispecific", "bsab", "fc-fusion", "nanobody"}
 CONTROL_KEYWORDS = {"control", "mock", "untransfected", "parental", "wt", "wildtype", "wild-type"}
 
 
@@ -373,13 +373,17 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
         titer_value = get_case_insensitive(row, "TiterValue")
         product_type_val = get_case_insensitive(row, "ProductType")
         product_uri = None
+        is_control = False  # Track if this is a control sample (no product)
 
         # Classify and create product from ProductType
         if pd.notna(product_type_val):
             pt_str = str(product_type_val).strip()
             product_class, is_gene_symbol = classify_product_type(pt_str)
 
-            if product_class is not None:
+            if product_class is None:
+                # Control sample - skip product creation entirely
+                is_control = True
+            else:
                 product_uri = MCBO[f"product_{iri_safe(run_id)}"]
                 g.add((product_uri, RDF.type, product_class))
                 g.add((product_uri, RDFS.label, Literal(pt_str)))
@@ -392,11 +396,15 @@ def convert_csv_to_rdf(csv_file_path: str, output_file: str):
                         g.add((gene_uri, RDF.type, MCBO.Gene))
                         g.add((gene_uri, RDFS.label, Literal(pt_str)))
                         g.add((gene_uri, MCBO.hasGeneSymbol, Literal(pt_str)))
+                        # Add Ensembl ID if provided
+                        ensembl_id = get_case_insensitive(row, "EnsemblGeneID")
+                        if pd.notna(ensembl_id) and str(ensembl_id).strip() not in {"", "NA", "nan"}:
+                            g.add((gene_uri, MCBO.hasEnsemblGeneID, Literal(str(ensembl_id).strip())))
                         created_genes.add(gene_uri)
                     g.add((product_uri, MCBO.encodedByGene, gene_uri))
 
-        # Add titer value if present
-        if pd.notna(titer_value) and str(titer_value).strip() not in {"", "NA", "nan"}:
+        # Add titer value if present (skip for control samples)
+        if not is_control and pd.notna(titer_value) and str(titer_value).strip() not in {"", "NA", "nan"}:
             if product_uri is None:
                 product_uri = MCBO[f"product_{iri_safe(run_id)}"]
                 g.add((product_uri, RDF.type, MCBO.ProteinProduct))

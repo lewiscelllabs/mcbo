@@ -232,15 +232,10 @@ demo: check-env $(DEMO_GRAPH) $(DEMO_SUMMARY) $(DEMO_STATS)
 
 demo-build: $(DEMO_GRAPH)
 
-$(DEMO_GRAPH): $(ONTOLOGY) $(wildcard $(DEMO_DIR)/studies/*/sample_metadata.csv) $(wildcard $(DEMO_DIR)/sample_metadata.csv)
+$(DEMO_GRAPH): $(ONTOLOGY) $(wildcard $(DEMO_DIR)/studies/*/sample_metadata.csv) $(wildcard $(DEMO_DIR)/sample_metadata.csv) $(wildcard $(DEMO_DIR)/expression/*.csv)
 	@echo "Building demo graph..."
-	@if [ -d "$(DEMO_DIR)/studies" ] && [ -n "$$(ls -A $(DEMO_DIR)/studies 2>/dev/null)" ]; then \
-		mcbo-build-graph build --data-dir $(DEMO_DIR); \
-	elif [ -f "$(DEMO_DIR)/sample_metadata.csv" ]; then \
-		mcbo-build-graph bootstrap --data-dir $(DEMO_DIR); \
-	else \
-		echo "Error: No data found in $(DEMO_DIR)"; exit 1; \
-	fi
+	@# Unified build: root CSV (foundation) + studies (supplements)
+	mcbo-build-graph build --data-dir $(DEMO_DIR)
 
 demo-eval: $(DEMO_SUMMARY)
 
@@ -274,22 +269,16 @@ real: check-env $(REAL_GRAPH) $(REAL_SUMMARY) $(REAL_STATS)
 
 real-build: $(REAL_GRAPH)
 
-# Build real data graph using mcbo-build-graph (handles studies + expression data)
-$(REAL_GRAPH): $(ONTOLOGY) $(wildcard $(REAL_DIR)/studies/*/sample_metadata.csv) $(wildcard $(REAL_CSV))
+# Build real data graph using mcbo-build-graph (handles root CSV + studies + expression)
+$(REAL_GRAPH): $(ONTOLOGY) $(wildcard $(REAL_DIR)/studies/*/sample_metadata.csv) $(wildcard $(REAL_CSV)) $(wildcard $(REAL_DIR)/expression/*.csv)
 	@if [ ! -d "$(REAL_DIR)" ]; then \
 		echo "ℹ️  Real data directory ($(REAL_DIR)) not found"; \
 		echo "   This is normal for public clones without private data."; \
 		exit 0; \
 	fi
 	@echo "Building real data graph..."
-	@if [ -d "$(REAL_DIR)/studies" ] && [ -n "$$(find $(REAL_DIR)/studies -name 'sample_metadata.csv' 2>/dev/null)" ]; then \
-		mcbo-build-graph build --data-dir $(REAL_DIR); \
-	elif [ -f "$(REAL_CSV)" ]; then \
-		mcbo-build-graph bootstrap --data-dir $(REAL_DIR); \
-	else \
-		echo "Warning: No data found in $(REAL_DIR)"; \
-		echo "  Expected: $(REAL_DIR)/studies/*/sample_metadata.csv or $(REAL_CSV)"; \
-	fi
+	@# Unified build: root CSV (foundation) + studies (supplements)
+	mcbo-build-graph build --data-dir $(REAL_DIR)
 
 real-eval: $(REAL_SUMMARY)
 

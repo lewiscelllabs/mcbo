@@ -156,35 +156,113 @@ mcbo-run-eval --graph data.sample/graph.ttl --results data.sample/results
 
 This section explains how to format the CSV (real data) for subsequent parsing by `mcbo-csv-to-rdf` (`--csv_file`) into the `mcbo-instances.ttl` file.
 
-### Required Columns
+### Column Overview (36 total)
 
-| Column | CQs | Description |
-|--------|-----|-------------|
-| `CellLine` | CQ1-8 | Cell line name (CHO-K1, HEK293) |
-| `ProcessType` | CQ5 | Batch, FedBatch, Perfusion |
-| `RunAccession` | all | Unique run ID |
-| `SampleAccession` | all | Unique sample ID |
+The schema has 36 columns organized into categories:
 
-### Optional(?) Columns
+| Category | Columns | Purpose |
+|----------|---------|---------|
+| Identifiers | 4 | Sample/run/study IDs |
+| Dataset Provenance | 8 | Source database and sequencing metadata |
+| Cell Line | 6 | Cell line characteristics |
+| Culture Conditions | 4 | Temperature, pH, nutrients |
+| Process/Productivity | 6 | Process type and production metrics |
+| Product | 3 | What the cell line produces |
+| Sample State | 5 | Time-point and viability data |
 
-| Column | CQs | Description |
-|--------|-----|-------------|
-| `CloneID` | CQ4, CQ8 | Clone identifier |
-| `CollectionDay` | CQ3 | Day of sample collection |
-| `DissolvedOxygen` | CQ1 | Dissolved oxygen (% saturation) |
-| `ExpressionValue` | decimal | CQ4, CQ6, CQ7 | Gene expression value (e.g., TPM, FPKM) |
-| `GeneSymbol` | string | CQ4, CQ6, CQ7 | Gene symbol for expression measurements |
-| `GlutamineConcentration` | CQ3 | mM glutamine |
-| `OverexpressedGene` | string | CQ2 | Gene the cell line overexpresses (engineering) |
-| `pH` | CQ1 | Culture medium pH |
-| `Producer` | CQ2 | Boolean: TRUE if producer line |
-| `Productivity` | CQ1, CQ6 | High/Medium/Low or numeric |
-| `ProductType` | CQ2 | Product name (mAb, BsAb, gene symbol) |
-| `QualityType` | CQ8 | Quality attribute type |
-| `Temperature` | CQ1 | Culture temperature (°C) |
-| `TiterValue` | CQ8 | Product titer (mg/L) |
-| `ViableCellDensity` | CQ3 | Viable cells/mL |
-| `ViabilityPercentage` | CQ7 | Cell viability % |
+### Identifier Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `RunAccession` | all | string | Unique run/process ID (e.g., ERR4319927) |
+| `SampleAccession` | all | string | Unique sample ID (e.g., ERS4805133) |
+| `StudyID` | all | string | Study identifier (e.g., study_dhiman) |
+| `FullSampleName` | — | string | Full descriptive sample name |
+
+### Dataset Provenance Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `DatasetAccession` | — | string | Database accession (e.g., ERP122753, SRP066848) |
+| `DatasetReadable` | — | string | Human-readable dataset ID |
+| `DatasetName` | — | string | Dataset name (e.g., Dhiman, vanWijk) |
+| `DatasetAbbrev` | — | string | Dataset abbreviation (e.g., D, vW) |
+| `Author` | — | string | Lead author name |
+| `LibraryStrategy` | — | string | Sequencing library type (rRNA, PolyA) |
+| `PairedEnd` | — | boolean | Paired-end sequencing (TRUE/FALSE) |
+| `Source` | — | string | Data source (SRA, In-House) |
+
+### Cell Line Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `CellLine` | 1-8 | string | Cell line name (CHO-K1, CHO-S, HEK293) |
+| `Host` | — | boolean | Is this a host/parental line (TRUE/FALSE) |
+| `CellLineSource` | — | enum | Commercial vs Non-Commercial |
+| `CellLineExact` | — | string | Specific source (ATCC, Horizon, Life Technologies) |
+| `SelectionMarker` | — | string | Selection marker (GS+/-, GS-/-, ProcessEvolved) |
+| `Growth` | — | enum | Growth rate (Low/Medium/High) |
+
+### Culture Condition Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `Temperature` | 1 | decimal | Culture temperature (°C) |
+| `pH` | 1 | decimal | Culture medium pH |
+| `DissolvedOxygen` | 1 | decimal | Dissolved oxygen (% saturation) |
+| `Glutamine` | — | boolean | Glutamine present (TRUE/FALSE) |
+| `GlutamineConcentration` | 3 | decimal | Glutamine concentration (mM) |
+
+### Process and Productivity Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `ProcessType` | 5 | enum | Batch, FedBatch, Perfusion |
+| `CulturePhase` | 4, 6 | enum | EarlyExp, MidExp, LateExp, Stationary |
+| `Productivity` | 1, 6 | enum | VeryHigh/High/Medium/Low |
+| `Stability` | — | boolean | Stable expression (TRUE/FALSE) |
+| `TiterValue` | 8 | decimal | Product titer (mg/L) |
+| `QualityType` | 8 | string | Quality attribute (Glycosylation, Aggregation) |
+
+### Product Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `Producer` | 2 | boolean | TRUE if producer line |
+| `ProductType` | 2, 8 | string | Product: gene symbol (AMBP), class (mAb), or Control |
+| `EnsemblGeneID` | — | string | Ensembl ID when ProductType is a gene symbol |
+
+### Sample State Columns
+
+| Column | CQs | Type | Description |
+|--------|-----|------|-------------|
+| `CollectionDay` | 3 | integer | Day of sample collection |
+| `ViableCellDensity` | 3 | decimal | Viable cells/mL |
+| `ViabilityPercentage` | 7 | decimal | Cell viability % |
+| `CloneID` | 4, 8 | string | Clone identifier |
+
+### ProductType Classification
+
+The `ProductType` column determines product class:
+
+| ProductType Value | RDF Class | Example |
+|-------------------|-----------|---------|
+| Gene symbol (all caps, 2-10 chars) | `ProteinProduct` + `encodedByGene` | AMBP, CCL20, FN1 |
+| Antibody terms | `AntibodyProduct` | mAb, IgG, BsAb, bispecific |
+| Control terms | (skipped) | Control, WT, Mock |
+
+When `ProductType` is a gene symbol, provide `EnsemblGeneID` for the Ensembl stable ID.
+
+### Expression Data
+
+Gene expression data comes from **separate matrix files**, not metadata columns:
+
+```csv
+SampleAccession,ACTB,GAPDH,TP53
+DEMO001_SAMPLE_A,1000,800,250
+```
+
+Gene annotations (Ensembl IDs for expression genes) go in `gene_annotations.csv`.
 
 
 
@@ -290,7 +368,7 @@ naturally
 in its own matrix file
 
 **Trade-offs accepted:**
-- Wide tables with many columns (37+)
+- Wide tables with many columns (36)
 - Some column redundancy across rows (e.g., same CellLine repeated)
 - Not ideal for complex many-to-many relationships
 
