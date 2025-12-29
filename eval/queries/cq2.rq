@@ -2,16 +2,27 @@ PREFIX mcbo: <http://example.org/mcbo#>
 
 SELECT ?choLine
        (GROUP_CONCAT(DISTINCT STR(?gene); separator=", ") AS ?genes)
-       (MAX(?prodVal) AS ?maxProductivity)
-       (SAMPLE(?category) AS ?categoryAtMax)
+       ?maxProductivity
+       ?categoryAtMax
 WHERE {
-  ?choLine a mcbo:CHOCellLine .
+  {
+    # Subquery to find the Max value per cell line
+    SELECT ?choLine (MAX(?prodVal) AS ?maxProductivity)
+    WHERE {
+      ?choLine a mcbo:CHOCellLine .
+      ?proc mcbo:usesCellLine ?choLine ;
+            mcbo:hasProductivityMeasurement ?pm .
+      ?pm mcbo:hasProductivityValue ?prodVal .
+    }
+    GROUP BY ?choLine
+  }
+  
+  # Link back to get the genes and the specific category for that Max value
   ?choLine mcbo:overexpressesGene ?gene .
-
   ?proc mcbo:usesCellLine ?choLine ;
         mcbo:hasProductivityMeasurement ?pm .
-  ?pm mcbo:hasProductivityValue ?prodVal .
-  OPTIONAL { ?pm mcbo:hasProductivityCategory ?category . }
+  ?pm mcbo:hasProductivityValue ?maxProductivity .
+  OPTIONAL { ?pm mcbo:hasProductivityCategory ?categoryAtMax . }
 }
-GROUP BY ?choLine
-ORDER BY DESC(MAX(?prodVal)) ?choLine
+GROUP BY ?choLine ?maxProductivity ?categoryAtMax
+ORDER BY DESC(?maxProductivity) ?choLine

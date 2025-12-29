@@ -21,6 +21,24 @@ mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
     obo:RO_0000057 mcbo:cellline_CHO-K1,
         mcbo:system_DEMO001_RUN_B .
 
+mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_C ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_C ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_C ;
+    mcbo:usesCellLine mcbo:cellline_CHO-K1,
+        mcbo:clone_Clone_A ;
+    obo:RO_0000057 mcbo:cellline_CHO-K1,
+        mcbo:system_DEMO001_RUN_C .
+
+mcbo:run_DEMO001_RUN_D a mcbo:FedBatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_D ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_D ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_D ;
+    mcbo:usesCellLine mcbo:cellline_CHO-K1,
+        mcbo:clone_Clone_B ;
+    obo:RO_0000057 mcbo:cellline_CHO-K1,
+        mcbo:system_DEMO001_RUN_D .
+
 mcbo:run_DEMO002_RUN_A a mcbo:BatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_A ;
     mcbo:hasProduct mcbo:product_DEMO002_RUN_A ;
@@ -28,6 +46,56 @@ mcbo:run_DEMO002_RUN_A a mcbo:BatchCultureProcess ;
     mcbo:usesCellLine mcbo:cellline_HEK293 ;
     obo:RO_0000057 mcbo:cellline_HEK293,
         mcbo:system_DEMO002_RUN_A .
+
+mcbo:run_DEMO002_RUN_B a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO002_RUN_B ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_B ;
+    mcbo:usesCellLine mcbo:cellline_HEK293 ;
+    obo:RO_0000057 mcbo:cellline_HEK293,
+        mcbo:system_DEMO002_RUN_B .
+
+mcbo:run_DEMO002_RUN_C a mcbo:PerfusionCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_C ;
+    mcbo:hasProduct mcbo:product_DEMO002_RUN_C ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_C ;
+    mcbo:usesCellLine mcbo:cellline_HEK293 ;
+    obo:RO_0000057 mcbo:cellline_HEK293,
+        mcbo:system_DEMO002_RUN_C .
+
+mcbo:run_DEMO002_RUN_D a mcbo:FedBatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_D ;
+    mcbo:hasProduct mcbo:product_DEMO002_RUN_D ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_D ;
+    mcbo:usesCellLine mcbo:cellline_HEK293 ;
+    obo:RO_0000057 mcbo:cellline_HEK293,
+        mcbo:system_DEMO002_RUN_D .
+
+mcbo:run_DEMO002_RUN_E a mcbo:FedBatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_E ;
+    mcbo:hasProduct mcbo:product_DEMO002_RUN_E ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_E ;
+    mcbo:usesCellLine mcbo:cellline_HEK293 ;
+    obo:RO_0000057 mcbo:cellline_HEK293,
+        mcbo:system_DEMO002_RUN_E .
+
+mcbo:run_DEMO003_RUN_A a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO003_RUN_A ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_A ;
+    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
+        mcbo:clone_Clone_X ;
+    obo:RO_0000057 mcbo:cellline_CHO-DG44,
+        mcbo:system_DEMO003_RUN_A .
+
+mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO003_RUN_B ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_B ;
+    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
+        mcbo:clone_Clone_X ;
+    obo:RO_0000057 mcbo:cellline_CHO-DG44,
+        mcbo:system_DEMO003_RUN_B .
 
 mcbo:run_DEMO_PROTEIN_A a mcbo:BatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO_PROTEIN_SAMPLE_A ;
@@ -44,10 +112,6 @@ mcbo:run_Run_001 a mcbo:PerfusionCultureProcess ;
     obo:RO_0000057 mcbo:cellline_CHO-K1,
         mcbo:system_Run_001 .
 
-mcbo:AntibodyProductGene a mcbo:Gene ;
-    rdfs:label "antibody product gene" ;
-    mcbo:hasGeneSymbol "antibody product gene" .
-
 mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
@@ -58,10 +122,50 @@ mcbo:environmental_condition_DEMO001_RUN_B a mcbo:CultureEnvironmentalCondition 
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
+mcbo:environmental_condition_DEMO001_RUN_C a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO001_RUN_D a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
+
 mcbo:environmental_condition_DEMO002_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO002_RUN_B a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 50.0 ;
+    mcbo:hasPH 7.2 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO002_RUN_C a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 60.0 ;
+    mcbo:hasPH 7.1 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO002_RUN_D a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 45.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO002_RUN_E a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 45.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
+
+mcbo:environmental_condition_DEMO003_RUN_A a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 45.0 ;
+    mcbo:hasPH 7.1 ;
+    mcbo:hasTemperature 36.5 .
+
+mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 55.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 36.5 .
 
 mcbo:environmental_condition_DEMO_PROTEIN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
@@ -72,6 +176,286 @@ mcbo:environmental_condition_Run_001 a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 8.5 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
+
+mcbo:expr_DEMO001_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 1000.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO001_SAMPLE_A_BCL2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 80.0 ;
+    obo:IAO_0000136 mcbo:gene_BCL2 .
+
+mcbo:expr_DEMO001_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 800.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO001_SAMPLE_A_HIF1A a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 120.0 ;
+    obo:IAO_0000136 mcbo:gene_HIF1A .
+
+mcbo:expr_DEMO001_SAMPLE_A_MYC a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 250.0 ;
+    obo:IAO_0000136 mcbo:gene_MYC .
+
+mcbo:expr_DEMO001_SAMPLE_A_TP53 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 100.0 ;
+    obo:IAO_0000136 mcbo:gene_TP53 .
+
+mcbo:expr_DEMO001_SAMPLE_A_VEGFA a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 50.0 ;
+    obo:IAO_0000136 mcbo:gene_VEGFA .
+
+mcbo:expr_DEMO001_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 950.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO001_SAMPLE_B_BCL2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 90.0 ;
+    obo:IAO_0000136 mcbo:gene_BCL2 .
+
+mcbo:expr_DEMO001_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 850.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO001_SAMPLE_B_HIF1A a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 100.0 ;
+    obo:IAO_0000136 mcbo:gene_HIF1A .
+
+mcbo:expr_DEMO001_SAMPLE_B_MYC a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_MYC .
+
+mcbo:expr_DEMO001_SAMPLE_B_TP53 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 120.0 ;
+    obo:IAO_0000136 mcbo:gene_TP53 .
+
+mcbo:expr_DEMO001_SAMPLE_B_VEGFA a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 80.0 ;
+    obo:IAO_0000136 mcbo:gene_VEGFA .
+
+mcbo:expr_DEMO001_SAMPLE_C_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 1100.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO001_SAMPLE_C_BCL2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 60.0 ;
+    obo:IAO_0000136 mcbo:gene_BCL2 .
+
+mcbo:expr_DEMO001_SAMPLE_C_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 900.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO001_SAMPLE_C_HIF1A a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 180.0 ;
+    obo:IAO_0000136 mcbo:gene_HIF1A .
+
+mcbo:expr_DEMO001_SAMPLE_C_MYC a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 300.0 ;
+    obo:IAO_0000136 mcbo:gene_MYC .
+
+mcbo:expr_DEMO001_SAMPLE_C_TP53 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 90.0 ;
+    obo:IAO_0000136 mcbo:gene_TP53 .
+
+mcbo:expr_DEMO001_SAMPLE_C_VEGFA a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 120.0 ;
+    obo:IAO_0000136 mcbo:gene_VEGFA .
+
+mcbo:expr_DEMO001_SAMPLE_D_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 800.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO001_SAMPLE_D_BCL2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 150.0 ;
+    obo:IAO_0000136 mcbo:gene_BCL2 .
+
+mcbo:expr_DEMO001_SAMPLE_D_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 700.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO001_SAMPLE_D_HIF1A a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 80.0 ;
+    obo:IAO_0000136 mcbo:gene_HIF1A .
+
+mcbo:expr_DEMO001_SAMPLE_D_MYC a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 150.0 ;
+    obo:IAO_0000136 mcbo:gene_MYC .
+
+mcbo:expr_DEMO001_SAMPLE_D_TP53 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_TP53 .
+
+mcbo:expr_DEMO001_SAMPLE_D_VEGFA a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 30.0 ;
+    obo:IAO_0000136 mcbo:gene_VEGFA .
+
+mcbo:expr_DEMO002_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 900.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO002_SAMPLE_A_CXCL8 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_CXCL8 .
+
+mcbo:expr_DEMO002_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 750.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO002_SAMPLE_A_HSP90 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 300.0 ;
+    obo:IAO_0000136 mcbo:gene_HSP90 .
+
+mcbo:expr_DEMO002_SAMPLE_A_IL6 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 400.0 ;
+    obo:IAO_0000136 mcbo:gene_IL6 .
+
+mcbo:expr_DEMO002_SAMPLE_A_TNF a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 150.0 ;
+    obo:IAO_0000136 mcbo:gene_TNF .
+
+mcbo:expr_DEMO002_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 880.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO002_SAMPLE_B_CXCL8 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 250.0 ;
+    obo:IAO_0000136 mcbo:gene_CXCL8 .
+
+mcbo:expr_DEMO002_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 720.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO002_SAMPLE_B_HSP90 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 450.0 ;
+    obo:IAO_0000136 mcbo:gene_HSP90 .
+
+mcbo:expr_DEMO002_SAMPLE_B_IL6 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 450.0 ;
+    obo:IAO_0000136 mcbo:gene_IL6 .
+
+mcbo:expr_DEMO002_SAMPLE_B_TNF a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 180.0 ;
+    obo:IAO_0000136 mcbo:gene_TNF .
+
+mcbo:expr_DEMO002_SAMPLE_C_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 950.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO002_SAMPLE_C_CXCL8 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 300.0 ;
+    obo:IAO_0000136 mcbo:gene_CXCL8 .
+
+mcbo:expr_DEMO002_SAMPLE_C_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 800.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO002_SAMPLE_C_HSP90 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 600.0 ;
+    obo:IAO_0000136 mcbo:gene_HSP90 .
+
+mcbo:expr_DEMO002_SAMPLE_C_IL6 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 500.0 ;
+    obo:IAO_0000136 mcbo:gene_IL6 .
+
+mcbo:expr_DEMO002_SAMPLE_C_TNF a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_TNF .
+
+mcbo:expr_DEMO002_SAMPLE_D_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 850.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO002_SAMPLE_D_CXCL8 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 450.0 ;
+    obo:IAO_0000136 mcbo:gene_CXCL8 .
+
+mcbo:expr_DEMO002_SAMPLE_D_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 680.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO002_SAMPLE_D_HSP90 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 250.0 ;
+    obo:IAO_0000136 mcbo:gene_HSP90 .
+
+mcbo:expr_DEMO002_SAMPLE_D_IL6 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 800.0 ;
+    obo:IAO_0000136 mcbo:gene_IL6 .
+
+mcbo:expr_DEMO002_SAMPLE_D_TNF a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 350.0 ;
+    obo:IAO_0000136 mcbo:gene_TNF .
+
+mcbo:expr_DEMO002_SAMPLE_E_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 820.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO002_SAMPLE_E_CXCL8 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 550.0 ;
+    obo:IAO_0000136 mcbo:gene_CXCL8 .
+
+mcbo:expr_DEMO002_SAMPLE_E_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 650.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO002_SAMPLE_E_HSP90 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 280.0 ;
+    obo:IAO_0000136 mcbo:gene_HSP90 .
+
+mcbo:expr_DEMO002_SAMPLE_E_IL6 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 950.0 ;
+    obo:IAO_0000136 mcbo:gene_IL6 .
+
+mcbo:expr_DEMO002_SAMPLE_E_TNF a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 420.0 ;
+    obo:IAO_0000136 mcbo:gene_TNF .
+
+mcbo:expr_DEMO003_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 920.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO003_SAMPLE_A_AKT1 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 200.0 ;
+    obo:IAO_0000136 mcbo:gene_AKT1 .
+
+mcbo:expr_DEMO003_SAMPLE_A_EGFR a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 280.0 ;
+    obo:IAO_0000136 mcbo:gene_EGFR .
+
+mcbo:expr_DEMO003_SAMPLE_A_ERBB2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 350.0 ;
+    obo:IAO_0000136 mcbo:gene_ERBB2 .
+
+mcbo:expr_DEMO003_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 780.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO003_SAMPLE_A_MET a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 120.0 ;
+    obo:IAO_0000136 mcbo:gene_MET .
+
+mcbo:expr_DEMO003_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 980.0 ;
+    obo:IAO_0000136 mcbo:gene_ACTB .
+
+mcbo:expr_DEMO003_SAMPLE_B_AKT1 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 250.0 ;
+    obo:IAO_0000136 mcbo:gene_AKT1 .
+
+mcbo:expr_DEMO003_SAMPLE_B_EGFR a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 320.0 ;
+    obo:IAO_0000136 mcbo:gene_EGFR .
+
+mcbo:expr_DEMO003_SAMPLE_B_ERBB2 a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 400.0 ;
+    obo:IAO_0000136 mcbo:gene_ERBB2 .
+
+mcbo:expr_DEMO003_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 820.0 ;
+    obo:IAO_0000136 mcbo:gene_GAPDH .
+
+mcbo:expr_DEMO003_SAMPLE_B_MET a mcbo:GeneExpressionMeasurement ;
+    mcbo:hasExpressionValue 150.0 ;
+    obo:IAO_0000136 mcbo:gene_MET .
 
 mcbo:gene_AMBP a mcbo:Gene ;
     rdfs:label "AMBP" ;
@@ -94,6 +478,30 @@ mcbo:glutamine_DEMO001_RUN_B a mcbo:GlutamineConcentration,
     mcbo:hasConcentrationUnit "mM" ;
     mcbo:hasConcentrationValue 4.0 .
 
+mcbo:glutamine_DEMO001_RUN_C a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 4.0mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 4.0 .
+
+mcbo:glutamine_DEMO001_RUN_D a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 4.0mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 4.0 .
+
+mcbo:glutamine_DEMO003_RUN_A a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 3.5mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 3.5 .
+
+mcbo:glutamine_DEMO003_RUN_B a mcbo:GlutamineConcentration,
+        mcbo:NutrientConcentration ;
+    rdfs:label "Glutamine 3.5mM" ;
+    mcbo:hasConcentrationUnit "mM" ;
+    mcbo:hasConcentrationValue 3.5 .
+
 mcbo:medium_DEMO001_RUN_A a mcbo:CultureMedium ;
     rdfs:label "Culture Medium" ;
     mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_A .
@@ -102,11 +510,43 @@ mcbo:medium_DEMO001_RUN_B a mcbo:CultureMedium ;
     rdfs:label "Culture Medium" ;
     mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_B .
 
+mcbo:medium_DEMO001_RUN_C a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_C .
+
+mcbo:medium_DEMO001_RUN_D a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_D .
+
+mcbo:medium_DEMO003_RUN_A a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_A .
+
+mcbo:medium_DEMO003_RUN_B a mcbo:CultureMedium ;
+    rdfs:label "Culture Medium" ;
+    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_B .
+
 mcbo:phase_DEMO001_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO001_RUN_B a mcbo:ExponentialPhase .
 
+mcbo:phase_DEMO001_RUN_C a mcbo:StationaryPhase .
+
+mcbo:phase_DEMO001_RUN_D a mcbo:StationaryPhase .
+
 mcbo:phase_DEMO002_RUN_A a mcbo:ExponentialPhase .
+
+mcbo:phase_DEMO002_RUN_B a mcbo:StationaryPhase .
+
+mcbo:phase_DEMO002_RUN_C a mcbo:StationaryPhase .
+
+mcbo:phase_DEMO002_RUN_D a mcbo:ExponentialPhase .
+
+mcbo:phase_DEMO002_RUN_E a mcbo:StationaryPhase .
+
+mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
+
+mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
 mcbo:phase_DEMO_PROTEIN_A a mcbo:ExponentialPhase .
 
@@ -118,10 +558,43 @@ mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
 mcbo:product_DEMO001_RUN_B a mcbo:AntibodyProduct ;
     rdfs:label "mAb" .
 
+mcbo:product_DEMO001_RUN_C a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
+mcbo:product_DEMO001_RUN_D a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
+
 mcbo:product_DEMO002_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_A_Glycosylation ;
     mcbo:hasTiterValue 150.0 .
+
+mcbo:product_DEMO002_RUN_B a mcbo:AntibodyProduct ;
+    rdfs:label "IgG" ;
+    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_B_Glycosylation ;
+    mcbo:hasTiterValue 320.0 .
+
+mcbo:product_DEMO002_RUN_C a mcbo:AntibodyProduct ;
+    rdfs:label "IgG" ;
+    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_C_Aggregation ;
+    mcbo:hasTiterValue 450.0 .
+
+mcbo:product_DEMO002_RUN_D a mcbo:AntibodyProduct ;
+    rdfs:label "IgG" ;
+    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_D_Glycosylation ;
+    mcbo:hasTiterValue 180.0 .
+
+mcbo:product_DEMO002_RUN_E a mcbo:AntibodyProduct ;
+    rdfs:label "IgG" ;
+    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_E_Glycosylation ;
+    mcbo:hasTiterValue 350.0 .
+
+mcbo:product_DEMO003_RUN_A a mcbo:AntibodyProduct ;
+    rdfs:label "BsAb" .
+
+mcbo:product_DEMO003_RUN_B a mcbo:AntibodyProduct ;
+    rdfs:label "BsAb" ;
+    mcbo:hasTiterValue 280.0 .
 
 mcbo:product_DEMO_PROTEIN_A a mcbo:ProteinProduct ;
     rdfs:label "AMBP" ;
@@ -138,9 +611,41 @@ mcbo:productivity_DEMO001_RUN_B a mcbo:MediumProductivity ;
     mcbo:hasProductivityCategory "Medium" ;
     mcbo:hasProductivityValue 3.0 .
 
+mcbo:productivity_DEMO001_RUN_C a mcbo:HighProductivity ;
+    mcbo:hasProductivityCategory "High" ;
+    mcbo:hasProductivityValue 4.0 .
+
+mcbo:productivity_DEMO001_RUN_D a mcbo:LowProductivity ;
+    mcbo:hasProductivityCategory "Low" ;
+    mcbo:hasProductivityValue 1.0 .
+
 mcbo:productivity_DEMO002_RUN_A a mcbo:MediumProductivity ;
     mcbo:hasProductivityCategory "Medium" ;
     mcbo:hasProductivityValue 3.0 .
+
+mcbo:productivity_DEMO002_RUN_B a mcbo:HighProductivity ;
+    mcbo:hasProductivityCategory "High" ;
+    mcbo:hasProductivityValue 4.0 .
+
+mcbo:productivity_DEMO002_RUN_C a mcbo:VeryHighProductivity ;
+    mcbo:hasProductivityCategory "VeryHigh" ;
+    mcbo:hasProductivityValue 5.0 .
+
+mcbo:productivity_DEMO002_RUN_D a mcbo:MediumProductivity ;
+    mcbo:hasProductivityCategory "Medium" ;
+    mcbo:hasProductivityValue 3.0 .
+
+mcbo:productivity_DEMO002_RUN_E a mcbo:HighProductivity ;
+    mcbo:hasProductivityCategory "High" ;
+    mcbo:hasProductivityValue 4.0 .
+
+mcbo:productivity_DEMO003_RUN_A a mcbo:MediumProductivity ;
+    mcbo:hasProductivityCategory "Medium" ;
+    mcbo:hasProductivityValue 3.0 .
+
+mcbo:productivity_DEMO003_RUN_B a mcbo:HighProductivity ;
+    mcbo:hasProductivityCategory "High" ;
+    mcbo:hasProductivityValue 4.0 .
 
 mcbo:productivity_DEMO_PROTEIN_A a mcbo:LowProductivity ;
     mcbo:hasProductivityCategory "Low" ;
@@ -149,20 +654,142 @@ mcbo:productivity_DEMO_PROTEIN_A a mcbo:LowProductivity ;
 mcbo:quality_DEMO002_RUN_A_Glycosylation a mcbo:QualityMeasurement ;
     rdfs:label "Glycosylation" .
 
+mcbo:quality_DEMO002_RUN_B_Glycosylation a mcbo:QualityMeasurement ;
+    rdfs:label "Glycosylation" .
+
+mcbo:quality_DEMO002_RUN_C_Aggregation a mcbo:QualityMeasurement ;
+    rdfs:label "Aggregation" .
+
+mcbo:quality_DEMO002_RUN_D_Glycosylation a mcbo:QualityMeasurement ;
+    rdfs:label "Glycosylation" .
+
+mcbo:quality_DEMO002_RUN_E_Glycosylation a mcbo:QualityMeasurement ;
+    rdfs:label "Glycosylation" .
+
 mcbo:sample_DEMO001_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_A ;
     mcbo:hasCollectionDay 3 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_A_ACTB,
+        mcbo:expr_DEMO001_SAMPLE_A_BCL2,
+        mcbo:expr_DEMO001_SAMPLE_A_GAPDH,
+        mcbo:expr_DEMO001_SAMPLE_A_HIF1A,
+        mcbo:expr_DEMO001_SAMPLE_A_MYC,
+        mcbo:expr_DEMO001_SAMPLE_A_TP53,
+        mcbo:expr_DEMO001_SAMPLE_A_VEGFA ;
     mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_A .
 
 mcbo:sample_DEMO001_SAMPLE_B a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_B ;
     mcbo:hasCollectionDay 3 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_B_ACTB,
+        mcbo:expr_DEMO001_SAMPLE_B_BCL2,
+        mcbo:expr_DEMO001_SAMPLE_B_GAPDH,
+        mcbo:expr_DEMO001_SAMPLE_B_HIF1A,
+        mcbo:expr_DEMO001_SAMPLE_B_MYC,
+        mcbo:expr_DEMO001_SAMPLE_B_TP53,
+        mcbo:expr_DEMO001_SAMPLE_B_VEGFA ;
     mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_B .
+
+mcbo:sample_DEMO001_SAMPLE_C a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_C ;
+    mcbo:hasCollectionDay 6 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_C_ACTB,
+        mcbo:expr_DEMO001_SAMPLE_C_BCL2,
+        mcbo:expr_DEMO001_SAMPLE_C_GAPDH,
+        mcbo:expr_DEMO001_SAMPLE_C_HIF1A,
+        mcbo:expr_DEMO001_SAMPLE_C_MYC,
+        mcbo:expr_DEMO001_SAMPLE_C_TP53,
+        mcbo:expr_DEMO001_SAMPLE_C_VEGFA ;
+    mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_C .
+
+mcbo:sample_DEMO001_SAMPLE_D a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_D ;
+    mcbo:hasCollectionDay 6 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_D_ACTB,
+        mcbo:expr_DEMO001_SAMPLE_D_BCL2,
+        mcbo:expr_DEMO001_SAMPLE_D_GAPDH,
+        mcbo:expr_DEMO001_SAMPLE_D_HIF1A,
+        mcbo:expr_DEMO001_SAMPLE_D_MYC,
+        mcbo:expr_DEMO001_SAMPLE_D_TP53,
+        mcbo:expr_DEMO001_SAMPLE_D_VEGFA ;
+    mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_D .
 
 mcbo:sample_DEMO002_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_A ;
     mcbo:hasCollectionDay 2 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_A_ACTB,
+        mcbo:expr_DEMO002_SAMPLE_A_CXCL8,
+        mcbo:expr_DEMO002_SAMPLE_A_GAPDH,
+        mcbo:expr_DEMO002_SAMPLE_A_HSP90,
+        mcbo:expr_DEMO002_SAMPLE_A_IL6,
+        mcbo:expr_DEMO002_SAMPLE_A_TNF ;
     mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_A .
+
+mcbo:sample_DEMO002_SAMPLE_B a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_B ;
+    mcbo:hasCollectionDay 5 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_B_ACTB,
+        mcbo:expr_DEMO002_SAMPLE_B_CXCL8,
+        mcbo:expr_DEMO002_SAMPLE_B_GAPDH,
+        mcbo:expr_DEMO002_SAMPLE_B_HSP90,
+        mcbo:expr_DEMO002_SAMPLE_B_IL6,
+        mcbo:expr_DEMO002_SAMPLE_B_TNF ;
+    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_B .
+
+mcbo:sample_DEMO002_SAMPLE_C a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_C ;
+    mcbo:hasCollectionDay 7 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_C_ACTB,
+        mcbo:expr_DEMO002_SAMPLE_C_CXCL8,
+        mcbo:expr_DEMO002_SAMPLE_C_GAPDH,
+        mcbo:expr_DEMO002_SAMPLE_C_HSP90,
+        mcbo:expr_DEMO002_SAMPLE_C_IL6,
+        mcbo:expr_DEMO002_SAMPLE_C_TNF ;
+    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_C .
+
+mcbo:sample_DEMO002_SAMPLE_D a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_D ;
+    mcbo:hasCollectionDay 3 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_D_ACTB,
+        mcbo:expr_DEMO002_SAMPLE_D_CXCL8,
+        mcbo:expr_DEMO002_SAMPLE_D_GAPDH,
+        mcbo:expr_DEMO002_SAMPLE_D_HSP90,
+        mcbo:expr_DEMO002_SAMPLE_D_IL6,
+        mcbo:expr_DEMO002_SAMPLE_D_TNF ;
+    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_D .
+
+mcbo:sample_DEMO002_SAMPLE_E a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_E ;
+    mcbo:hasCollectionDay 6 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_E_ACTB,
+        mcbo:expr_DEMO002_SAMPLE_E_CXCL8,
+        mcbo:expr_DEMO002_SAMPLE_E_GAPDH,
+        mcbo:expr_DEMO002_SAMPLE_E_HSP90,
+        mcbo:expr_DEMO002_SAMPLE_E_IL6,
+        mcbo:expr_DEMO002_SAMPLE_E_TNF ;
+    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_E .
+
+mcbo:sample_DEMO003_SAMPLE_A a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_A ;
+    mcbo:hasCollectionDay 4 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_A_ACTB,
+        mcbo:expr_DEMO003_SAMPLE_A_AKT1,
+        mcbo:expr_DEMO003_SAMPLE_A_EGFR,
+        mcbo:expr_DEMO003_SAMPLE_A_ERBB2,
+        mcbo:expr_DEMO003_SAMPLE_A_GAPDH,
+        mcbo:expr_DEMO003_SAMPLE_A_MET ;
+    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_A .
+
+mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_B ;
+    mcbo:hasCollectionDay 8 ;
+    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_B_ACTB,
+        mcbo:expr_DEMO003_SAMPLE_B_AKT1,
+        mcbo:expr_DEMO003_SAMPLE_B_EGFR,
+        mcbo:expr_DEMO003_SAMPLE_B_ERBB2,
+        mcbo:expr_DEMO003_SAMPLE_B_GAPDH,
+        mcbo:expr_DEMO003_SAMPLE_B_MET ;
+    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_B .
 
 mcbo:sample_DEMO_PROTEIN_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO_PROTEIN_SAMPLE_A ;
@@ -184,9 +811,45 @@ mcbo:system_DEMO001_RUN_B a mcbo:CellCultureSystem ;
         mcbo:medium_DEMO001_RUN_B ;
     obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_B .
 
+mcbo:system_DEMO001_RUN_C a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-K1,
+        mcbo:medium_DEMO001_RUN_C ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_C .
+
+mcbo:system_DEMO001_RUN_D a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-K1,
+        mcbo:medium_DEMO001_RUN_D ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_D .
+
 mcbo:system_DEMO002_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
     obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_A .
+
+mcbo:system_DEMO002_RUN_B a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_HEK293 ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_B .
+
+mcbo:system_DEMO002_RUN_C a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_HEK293 ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_C .
+
+mcbo:system_DEMO002_RUN_D a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_HEK293 ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_D .
+
+mcbo:system_DEMO002_RUN_E a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_HEK293 ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_E .
+
+mcbo:system_DEMO003_RUN_A a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
+        mcbo:medium_DEMO003_RUN_A ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_A .
+
+mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
+        mcbo:medium_DEMO003_RUN_B ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_B .
 
 mcbo:system_DEMO_PROTEIN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_Vero ;
@@ -204,9 +867,41 @@ mcbo:viability_DEMO001_SAMPLE_B a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 92.0 ;
     mcbo:hasViableCellDensity 6000000.0 .
 
+mcbo:viability_DEMO001_SAMPLE_C a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 88.0 ;
+    mcbo:hasViableCellDensity 12000000.0 .
+
+mcbo:viability_DEMO001_SAMPLE_D a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 45.0 ;
+    mcbo:hasViableCellDensity 4000000.0 .
+
 mcbo:viability_DEMO002_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 98.0 ;
     mcbo:hasViableCellDensity 5000000.0 .
+
+mcbo:viability_DEMO002_SAMPLE_B a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 85.0 ;
+    mcbo:hasViableCellDensity 9000000.0 .
+
+mcbo:viability_DEMO002_SAMPLE_C a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 92.0 ;
+    mcbo:hasViableCellDensity 15000000.0 .
+
+mcbo:viability_DEMO002_SAMPLE_D a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 96.0 ;
+    mcbo:hasViableCellDensity 6500000.0 .
+
+mcbo:viability_DEMO002_SAMPLE_E a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 88.0 ;
+    mcbo:hasViableCellDensity 10000000.0 .
+
+mcbo:viability_DEMO003_SAMPLE_A a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 94.0 ;
+    mcbo:hasViableCellDensity 7000000.0 .
+
+mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 89.0 ;
+    mcbo:hasViableCellDensity 11000000.0 .
 
 mcbo:viability_DEMO_PROTEIN_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 75.0 ;
@@ -216,19 +911,102 @@ mcbo:viability_Sample_D7 a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 85.0 ;
     mcbo:hasViableCellDensity 8500000.0 .
 
+mcbo:AntibodyProductGene a mcbo:Gene ;
+    rdfs:label "antibody product gene" ;
+    mcbo:hasGeneSymbol "antibody product gene" .
+
+mcbo:gene_AKT1 a mcbo:Gene ;
+    rdfs:label "AKT1" ;
+    mcbo:hasEnsemblGeneID "ENSG00000142208" ;
+    mcbo:hasGeneSymbol "AKT1" .
+
+mcbo:gene_EGFR a mcbo:Gene ;
+    rdfs:label "EGFR" ;
+    mcbo:hasEnsemblGeneID "ENSG00000146648" ;
+    mcbo:hasGeneSymbol "EGFR" .
+
+mcbo:gene_ERBB2 a mcbo:Gene ;
+    rdfs:label "ERBB2" ;
+    mcbo:hasEnsemblGeneID "ENSG00000141736" ;
+    mcbo:hasGeneSymbol "ERBB2" .
+
+mcbo:gene_MET a mcbo:Gene ;
+    rdfs:label "MET" ;
+    mcbo:hasEnsemblGeneID "ENSG00000105976" ;
+    mcbo:hasGeneSymbol "MET" .
+
+mcbo:cellline_Vero a mcbo:CellLine ;
+    rdfs:label "Vero" .
+
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .
 
 mcbo:clone_Clone_B a mcbo:Clone ;
     rdfs:label "Clone_B" .
 
-mcbo:cellline_HEK293 a mcbo:HEK293CellLine ;
-    rdfs:label "HEK293" ;
-    mcbo:overexpressesGene mcbo:gene_IgG ;
-    mcbo:producesProduct "IgG" .
+mcbo:clone_Clone_X a mcbo:Clone ;
+    rdfs:label "Clone_X" .
 
-mcbo:cellline_Vero a mcbo:CellLine ;
-    rdfs:label "Vero" .
+mcbo:gene_BCL2 a mcbo:Gene ;
+    rdfs:label "BCL2" ;
+    mcbo:hasEnsemblGeneID "ENSG00000171791" ;
+    mcbo:hasGeneSymbol "BCL2" .
+
+mcbo:gene_HIF1A a mcbo:Gene ;
+    rdfs:label "HIF1A" ;
+    mcbo:hasEnsemblGeneID "ENSG00000100644" ;
+    mcbo:hasGeneSymbol "HIF1A" .
+
+mcbo:gene_MYC a mcbo:Gene ;
+    rdfs:label "MYC" ;
+    mcbo:hasEnsemblGeneID "ENSG00000136997" ;
+    mcbo:hasGeneSymbol "MYC" .
+
+mcbo:gene_TP53 a mcbo:Gene ;
+    rdfs:label "TP53" ;
+    mcbo:hasEnsemblGeneID "ENSG00000141510" ;
+    mcbo:hasGeneSymbol "TP53" .
+
+mcbo:gene_VEGFA a mcbo:Gene ;
+    rdfs:label "VEGFA" ;
+    mcbo:hasEnsemblGeneID "ENSG00000112715" ;
+    mcbo:hasGeneSymbol "VEGFA" .
+
+mcbo:gene_CXCL8 a mcbo:Gene ;
+    rdfs:label "CXCL8" ;
+    mcbo:hasEnsemblGeneID "ENSG00000169429" ;
+    mcbo:hasGeneSymbol "CXCL8" .
+
+mcbo:gene_HSP90 a mcbo:Gene ;
+    rdfs:label "HSP90" ;
+    mcbo:hasEnsemblGeneID "ENSG00000096384" ;
+    mcbo:hasGeneSymbol "HSP90" .
+
+mcbo:gene_IL6 a mcbo:Gene ;
+    rdfs:label "IL6" ;
+    mcbo:hasEnsemblGeneID "ENSG00000136244" ;
+    mcbo:hasGeneSymbol "IL6" .
+
+mcbo:gene_TNF a mcbo:Gene ;
+    rdfs:label "TNF" ;
+    mcbo:hasEnsemblGeneID "ENSG00000232810" ;
+    mcbo:hasGeneSymbol "TNF" .
+
+mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
+    rdfs:label "CHO-DG44" ;
+    mcbo:hasClone mcbo:clone_Clone_X ;
+    mcbo:overexpressesGene mcbo:AntibodyProductGene ;
+    mcbo:producesProduct "BsAb" .
+
+mcbo:gene_ACTB a mcbo:Gene ;
+    rdfs:label "ACTB" ;
+    mcbo:hasEnsemblGeneID "ENSG00000075624" ;
+    mcbo:hasGeneSymbol "ACTB" .
+
+mcbo:gene_GAPDH a mcbo:Gene ;
+    rdfs:label "GAPDH" ;
+    mcbo:hasEnsemblGeneID "ENSG00000111640" ;
+    mcbo:hasGeneSymbol "GAPDH" .
 
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;
@@ -236,4 +1014,9 @@ mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
         mcbo:clone_Clone_B ;
     mcbo:overexpressesGene mcbo:AntibodyProductGene ;
     mcbo:producesProduct "mAb" .
+
+mcbo:cellline_HEK293 a mcbo:HEK293CellLine ;
+    rdfs:label "HEK293" ;
+    mcbo:overexpressesGene mcbo:gene_IgG ;
+    mcbo:producesProduct "IgG" .
 
