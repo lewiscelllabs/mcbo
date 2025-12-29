@@ -1,5 +1,3 @@
 RunAccession,SampleAccession,StudyID,DatasetAccession,LibraryStrategy,DatasetReadable,DatasetName,DatasetAbbrev,Author,PairedEnd,Source,CellLine,Producer,ProductType,EnsemblGeneID,Glutamine,GlutamineConcentration,CulturePhase,Host,CellLineSource,CellLineExact,Temperature,pH,DissolvedOxygen,SelectionMarker,Growth,ProcessType,Productivity,Stability,FullSampleName,CollectionDay,ViableCellDensity,ViabilityPercentage,CloneID,TiterValue,QualityType
-DEMO001_RUN_A,DEMO001_SAMPLE_A,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Exponential,,,,37,7.0,40,,,FedBatch,High,,,3,8000000,95,Clone_A,,
-DEMO001_RUN_B,DEMO001_SAMPLE_B,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Exponential,,,,37,7.0,40,,,FedBatch,Medium,,,3,6000000,92,Clone_B,,
 DEMO001_RUN_C,DEMO001_SAMPLE_C,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Stationary,,,,37,7.0,40,,,FedBatch,High,,,6,12000000,88,Clone_A,,
 DEMO001_RUN_D,DEMO001_SAMPLE_D,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Stationary,,,,37,7.0,40,,,FedBatch,Low,,,6,4000000,45,Clone_B,,

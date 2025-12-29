@@ -1,1 +1,4 @@
 RunAccession,SampleAccession,StudyID,DatasetAccession,LibraryStrategy,DatasetReadable,DatasetName,DatasetAbbrev,Author,PairedEnd,Source,CellLine,Producer,ProductType,EnsemblGeneID,Glutamine,GlutamineConcentration,CulturePhase,Host,CellLineSource,CellLineExact,Temperature,pH,DissolvedOxygen,SelectionMarker,Growth,ProcessType,Productivity,Stability,FullSampleName,CollectionDay,ViableCellDensity,ViabilityPercentage,CloneID,TiterValue,QualityType
+DEMO001_RUN_A,DEMO001_SAMPLE_A,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Exponential,,,,37,7.0,40,,,FedBatch,High,,,3,8000000,95,Clone_A,,
+DEMO001_RUN_B,DEMO001_SAMPLE_B,study_demo_001,,,,,,,,,CHO-K1,TRUE,mAb,,TRUE,4.0,Exponential,,,,37,7.0,40,,,FedBatch,Medium,,,3,6000000,92,Clone_B,,
+DEMO002_RUN_A,DEMO002_SAMPLE_A,study_demo_002,,,,,,,,,HEK293,TRUE,IgG,,,,Exponential,,,,37,7.2,50,,,Batch,Medium,,,2,5000000,98,,150,Glycosylation
