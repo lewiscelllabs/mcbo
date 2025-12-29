@@ -97,6 +97,14 @@ mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
     obo:RO_0000057 mcbo:cellline_CHO-DG44,
         mcbo:system_DEMO003_RUN_B .
 
+mcbo:run_DEMO_PROTEIN_A a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO_PROTEIN_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO_PROTEIN_A ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO_PROTEIN_A ;
+    mcbo:usesCellLine mcbo:cellline_Vero ;
+    obo:RO_0000057 mcbo:cellline_Vero,
+        mcbo:system_DEMO_PROTEIN_A .
+
 mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
@@ -151,6 +159,11 @@ mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition 
     mcbo:hasDissolvedOxygen 55.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 36.5 .
+
+mcbo:environmental_condition_DEMO_PROTEIN_A a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
 
 mcbo:expr_DEMO001_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
     mcbo:hasExpressionValue 1000.0 ;
@@ -432,6 +445,11 @@ mcbo:expr_DEMO003_SAMPLE_B_MET a mcbo:GeneExpressionMeasurement ;
     mcbo:hasExpressionValue 150.0 ;
     obo:IAO_0000136 mcbo:gene_MET .
 
+mcbo:gene_AMBP a mcbo:Gene ;
+    rdfs:label "AMBP" ;
+    mcbo:hasEnsemblGeneID "ENSG00000106927" ;
+    mcbo:hasGeneSymbol "AMBP" .
+
 mcbo:gene_IgG a mcbo:Gene ;
     rdfs:label "IgG" ;
     mcbo:hasGeneSymbol "IgG" .
@@ -518,6 +536,8 @@ mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
+mcbo:phase_DEMO_PROTEIN_A a mcbo:ExponentialPhase .
+
 mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "mAb" .
 
@@ -562,6 +582,10 @@ mcbo:product_DEMO003_RUN_B a mcbo:AntibodyProduct ;
     rdfs:label "BsAb" ;
     mcbo:hasTiterValue 280.0 .
 
+mcbo:product_DEMO_PROTEIN_A a mcbo:ProteinProduct ;
+    rdfs:label "AMBP" ;
+    mcbo:encodedByGene mcbo:gene_AMBP .
+
 mcbo:productivity_DEMO001_RUN_A a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
     mcbo:hasProductivityValue 4.0 .
@@ -605,6 +629,10 @@ mcbo:productivity_DEMO003_RUN_A a mcbo:MediumProductivity ;
 mcbo:productivity_DEMO003_RUN_B a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
     mcbo:hasProductivityValue 4.0 .
+
+mcbo:productivity_DEMO_PROTEIN_A a mcbo:LowProductivity ;
+    mcbo:hasProductivityCategory "Low" ;
+    mcbo:hasProductivityValue 1.0 .
 
 mcbo:quality_DEMO002_RUN_A_Glycosylation a mcbo:QualityMeasurement ;
     rdfs:label "Glycosylation" .
@@ -746,6 +774,11 @@ mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
         mcbo:expr_DEMO003_SAMPLE_B_MET ;
     mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_B .
 
+mcbo:sample_DEMO_PROTEIN_SAMPLE_A a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO_PROTEIN_SAMPLE_A ;
+    mcbo:hasCollectionDay 4 ;
+    mcbo:inCulturePhase mcbo:phase_DEMO_PROTEIN_A .
+
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
@@ -796,6 +829,10 @@ mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
         mcbo:medium_DEMO003_RUN_B ;
     obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_B .
 
+mcbo:system_DEMO_PROTEIN_A a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_Vero ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO_PROTEIN_A .
+
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
     mcbo:hasViableCellDensity 8000000.0 .
@@ -840,6 +877,10 @@ mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 89.0 ;
     mcbo:hasViableCellDensity 11000000.0 .
 
+mcbo:viability_DEMO_PROTEIN_SAMPLE_A a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 75.0 ;
+    mcbo:hasViableCellDensity 7000000.0 .
+
 mcbo:AntibodyProductGene a mcbo:Gene ;
     rdfs:label "antibody product gene" ;
     mcbo:hasGeneSymbol "antibody product gene" .
@@ -863,6 +904,9 @@ mcbo:gene_MET a mcbo:Gene ;
     rdfs:label "MET" ;
     mcbo:hasEnsemblGeneID "ENSG00000105976" ;
     mcbo:hasGeneSymbol "MET" .
+
+mcbo:cellline_Vero a mcbo:CellLine ;
+    rdfs:label "Vero" .
 
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .

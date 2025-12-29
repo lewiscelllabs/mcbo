@@ -1,12 +1,12 @@
 Statistics for: data.sample/graph.ttl
 ============================================================
 
-Cell Culture Process Instances: 12
+Cell Culture Process Instances: 13
   Breakdown by type:
-    Batch culture process: 3
+    Batch culture process: 4
     Fed-batch culture process: 6
     Perfusion culture process: 3
 
-Bioprocess Sample Instances: 12
+Bioprocess Sample Instances: 13
 
 ============================================================

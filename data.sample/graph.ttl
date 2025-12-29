@@ -399,6 +399,14 @@ mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
     obo:RO_0000057 mcbo:cellline_CHO-DG44,
         mcbo:system_DEMO003_RUN_B .
 
+mcbo:run_DEMO_PROTEIN_A a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO_PROTEIN_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO_PROTEIN_A ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO_PROTEIN_A ;
+    mcbo:usesCellLine mcbo:cellline_Vero ;
+    obo:RO_0000057 mcbo:cellline_Vero,
+        mcbo:system_DEMO_PROTEIN_A .
+
 mcbo:sampleContainsProduct a owl:ObjectProperty ;
     rdfs:label "sample contains product" ;
     rdfs:domain mcbo:BioprocessSample ;
@@ -471,11 +479,6 @@ mcbo:HEK293CellLine a owl:Class ;
     uo:IAO_0000115 "A cell line whose cells are derived from the human embryonic kidney 293 (HEK293) lineage." ;
     rdfs:comment "Human embryonic kidney 293 cell line family." ;
     rdfs:subClassOf mcbo:CellLine .
-
-mcbo:LowProductivity a owl:Class ;
-    rdfs:label "Low productivity" ;
-    uo:IAO_0000115 "A productivity category indicating low production output relative to an applicable reference context." ;
-    rdfs:subClassOf mcbo:ProductivityMeasurement .
 
 mcbo:MammalianCell a owl:Class ;
     rdfs:label "Mammalian cell",
@@ -572,6 +575,11 @@ mcbo:environmental_condition_DEMO003_RUN_B a mcbo:CultureEnvironmentalCondition 
     mcbo:hasDissolvedOxygen 55.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 36.5 .
+
+mcbo:environmental_condition_DEMO_PROTEIN_A a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 40.0 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
 
 mcbo:expr_DEMO001_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
     mcbo:hasExpressionValue 1000.0 ;
@@ -858,6 +866,11 @@ mcbo:expressesGene a owl:ObjectProperty ;
     rdfs:domain mcbo:CellLine ;
     rdfs:range mcbo:Gene .
 
+mcbo:gene_AMBP a mcbo:Gene ;
+    rdfs:label "AMBP" ;
+    mcbo:hasEnsemblGeneID "ENSG00000106927" ;
+    mcbo:hasGeneSymbol "AMBP" .
+
 mcbo:gene_IgG a mcbo:Gene ;
     rdfs:label "IgG" ;
     mcbo:hasGeneSymbol "IgG" .
@@ -950,6 +963,8 @@ mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
 
+mcbo:phase_DEMO_PROTEIN_A a mcbo:ExponentialPhase .
+
 mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "mAb" .
 
@@ -994,6 +1009,10 @@ mcbo:product_DEMO003_RUN_B a mcbo:AntibodyProduct ;
     rdfs:label "BsAb" ;
     mcbo:hasTiterValue 280.0 .
 
+mcbo:product_DEMO_PROTEIN_A a mcbo:ProteinProduct ;
+    rdfs:label "AMBP" ;
+    mcbo:encodedByGene mcbo:gene_AMBP .
+
 mcbo:productivity_DEMO001_RUN_A a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
     mcbo:hasProductivityValue 4.0 .
@@ -1037,6 +1056,10 @@ mcbo:productivity_DEMO003_RUN_A a mcbo:MediumProductivity ;
 mcbo:productivity_DEMO003_RUN_B a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
     mcbo:hasProductivityValue 4.0 .
+
+mcbo:productivity_DEMO_PROTEIN_A a mcbo:LowProductivity ;
+    mcbo:hasProductivityCategory "Low" ;
+    mcbo:hasProductivityValue 1.0 .
 
 mcbo:quality_DEMO002_RUN_A_Glycosylation a mcbo:QualityMeasurement ;
     rdfs:label "Glycosylation" .
@@ -1178,6 +1201,11 @@ mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
         mcbo:expr_DEMO003_SAMPLE_B_MET ;
     mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_B .
 
+mcbo:sample_DEMO_PROTEIN_SAMPLE_A a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO_PROTEIN_SAMPLE_A ;
+    mcbo:hasCollectionDay 4 ;
+    mcbo:inCulturePhase mcbo:phase_DEMO_PROTEIN_A .
+
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
@@ -1228,6 +1256,10 @@ mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
         mcbo:medium_DEMO003_RUN_B ;
     obo:RO_0000086 mcbo:environmental_condition_DEMO003_RUN_B .
 
+mcbo:system_DEMO_PROTEIN_A a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_Vero ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO_PROTEIN_A .
+
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
     mcbo:hasViableCellDensity 8000000.0 .
@@ -1272,6 +1304,10 @@ mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 89.0 ;
     mcbo:hasViableCellDensity 11000000.0 .
 
+mcbo:viability_DEMO_PROTEIN_SAMPLE_A a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 75.0 ;
+    mcbo:hasViableCellDensity 7000000.0 .
+
 uo:BFO_0000003 rdfs:label "occurrent" .
 
 uo:BFO_0000019 rdfs:label "quality" .
@@ -1309,15 +1345,14 @@ mcbo:ContinuousCultureProcess a owl:Class ;
     uo:IAO_0000115 "A cell culture process in which fresh medium is added and culture broth is removed during cultivation to maintain a quasi-steady state." ;
     rdfs:subClassOf mcbo:CellCultureProcess .
 
+mcbo:LowProductivity a owl:Class ;
+    rdfs:label "Low productivity" ;
+    uo:IAO_0000115 "A productivity category indicating low production output relative to an applicable reference context." ;
+    rdfs:subClassOf mcbo:ProductivityMeasurement .
+
 mcbo:Product_mAb a mcbo:ProductMaterial,
         owl:NamedIndividual ;
     rdfs:label "Monoclonal antibody product" .
-
-mcbo:ProteinProduct a owl:Class ;
-    rdfs:label "Protein product" ;
-    uo:IAO_0000115 "A material entity that is a protein produced as the intended output of a cell culture bioprocess." ;
-    rdfs:comment "Recombinant protein product (e.g., cytokines, enzymes, therapeutic proteins). Distinguished from the gene that encodes it." ;
-    rdfs:subClassOf mcbo:ProductMaterial .
 
 mcbo:RNASeqRawReads a owl:Class ;
     rdfs:label "RNA-seq raw reads (FASTQ)" ;
@@ -1387,6 +1422,15 @@ mcbo:PerfusionCultureProcess a owl:Class ;
     rdfs:comment "Continuous culture with cell retention, distinguishing it from chemostat." ;
     rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
+mcbo:ProteinProduct a owl:Class ;
+    rdfs:label "Protein product" ;
+    uo:IAO_0000115 "A material entity that is a protein produced as the intended output of a cell culture bioprocess." ;
+    rdfs:comment "Recombinant protein product (e.g., cytokines, enzymes, therapeutic proteins). Distinguished from the gene that encodes it." ;
+    rdfs:subClassOf mcbo:ProductMaterial .
+
+mcbo:cellline_Vero a mcbo:CellLine ;
+    rdfs:label "Vero" .
+
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .
 
@@ -1399,13 +1443,6 @@ mcbo:clone_Clone_X a mcbo:Clone ;
 uo:BFO_0000015 rdfs:label "process" .
 
 uo:IAO_0000030 rdfs:label "information content entity" .
-
-mcbo:BatchCultureProcess a owl:Class ;
-    rdfs:label "Batch culture process" ;
-    uo:IAO_0000115 "A cell culture process in which cells are cultured in a closed system with no addition or removal of materials during the cultivation period.",
-        "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
-    rdfs:comment "Closed-system culture without nutrient addition or product removal during cultivation." ;
-    rdfs:subClassOf mcbo:CellCultureProcess .
 
 mcbo:CellCultureProcess a owl:Class ;
     rdfs:label "Cell culture process" ;
@@ -1460,6 +1497,13 @@ mcbo:gene_VEGFA a mcbo:Gene ;
 
 uo:OBI_0001271 rdfs:label "RNA sequencing assay" .
 
+mcbo:BatchCultureProcess a owl:Class ;
+    rdfs:label "Batch culture process" ;
+    uo:IAO_0000115 "A cell culture process in which cells are cultured in a closed system with no addition or removal of materials during the cultivation period.",
+        "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
+    rdfs:comment "Closed-system culture without nutrient addition or product removal during cultivation." ;
+    rdfs:subClassOf mcbo:CellCultureProcess .
+
 mcbo:HighProductivity a owl:Class ;
     rdfs:label "High productivity" ;
     uo:IAO_0000115 "A productivity category indicating high production output relative to an applicable reference context." ;
@@ -1506,11 +1550,6 @@ mcbo:gene_TNF a mcbo:Gene ;
 
 uo:IAO_0000109 rdfs:label "measurement datum" .
 
-mcbo:ExponentialPhase a owl:Class ;
-    rdfs:label "Exponential phase" ;
-    uo:IAO_0000115 "A culture phase during which the viable cell population increases approximately exponentially." ;
-    rdfs:subClassOf mcbo:CulturePhase .
-
 mcbo:FedBatchCultureProcess a owl:Class ;
     rdfs:label "Fed-batch culture process" ;
     uo:IAO_0000115 "A batch cell culture process in which one or more nutrient feeds are added during cultivation without continuous removal of culture broth." ;
@@ -1534,17 +1573,22 @@ mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
 
 uo:BFO_0000040 rdfs:label "material entity" .
 
-mcbo:CellLine a owl:Class ;
-    rdfs:label "Cell line" ;
-    uo:IAO_0000115 "A population of cells derived from a common lineage that can be propagated and maintained under defined culture conditions." ;
-    rdfs:comment "Immortalized mammalian cell line used for bioprocessing (e.g., CHO, HEK293)." ;
-    rdfs:subClassOf uo:BFO_0000040 .
+mcbo:ExponentialPhase a owl:Class ;
+    rdfs:label "Exponential phase" ;
+    uo:IAO_0000115 "A culture phase during which the viable cell population increases approximately exponentially." ;
+    rdfs:subClassOf mcbo:CulturePhase .
 
 mcbo:QualityMeasurement a owl:Class ;
     rdfs:label "Quality measurement" ;
     uo:IAO_0000115 "A measurement datum that records a product quality attribute value for a sample or product material." ;
     rdfs:comment "Measurement of product quality attributes." ;
     rdfs:subClassOf uo:IAO_0000109 .
+
+mcbo:CellLine a owl:Class ;
+    rdfs:label "Cell line" ;
+    uo:IAO_0000115 "A population of cells derived from a common lineage that can be propagated and maintained under defined culture conditions." ;
+    rdfs:comment "Immortalized mammalian cell line used for bioprocessing (e.g., CHO, HEK293)." ;
+    rdfs:subClassOf uo:BFO_0000040 .
 
 mcbo:CultureMedium a owl:Class ;
     rdfs:label "Culture medium" ;
@@ -1580,17 +1624,17 @@ mcbo:gene_GAPDH a mcbo:Gene ;
     mcbo:hasEnsemblGeneID "ENSG00000111640" ;
     mcbo:hasGeneSymbol "GAPDH" .
 
-mcbo:CellCultureSystem a owl:Class ;
-    rdfs:label "cell culture system" ;
-    uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
-    rdfs:subClassOf uo:BFO_0000040 .
-
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;
     mcbo:hasClone mcbo:clone_Clone_A,
         mcbo:clone_Clone_B ;
     mcbo:overexpressesGene mcbo:AntibodyProductGene ;
     mcbo:producesProduct "mAb" .
+
+mcbo:CellCultureSystem a owl:Class ;
+    rdfs:label "cell culture system" ;
+    uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
+    rdfs:subClassOf uo:BFO_0000040 .
 
 mcbo:cellline_HEK293 a mcbo:HEK293CellLine ;
     rdfs:label "HEK293" ;
