@@ -38,14 +38,6 @@ mcbo:LowMediumProductivity a owl:Class ;
     uo:IAO_0000115 "A productivity category indicating production output between low and medium relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
-mcbo:MammalianCellCultureProcess a owl:Class ;
-    rdfs:label "Mammalian cell culture process"@en ;
-    uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
-                        owl:onProperty obo:RO_0000057 ;
-                        owl:someValuesFrom mcbo:MammalianCell ] ) ] .
-
 mcbo:Publication a owl:Class ;
     rdfs:label "Publication" ;
     uo:IAO_0000115 "An information content entity that is a published document describing a study." ;
@@ -189,7 +181,7 @@ mcbo:hasPH a owl:DatatypeProperty ;
 mcbo:hasProduct a owl:ObjectProperty ;
     rdfs:label "has product" ;
     rdfs:comment "Explicit link to the intended product of the bioprocess (e.g., mAb)." ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductMaterial ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -200,7 +192,7 @@ mcbo:hasProductivityCategory a owl:DatatypeProperty ;
 
 mcbo:hasProductivityMeasurement a owl:ObjectProperty ;
     rdfs:label "has productivity measurement" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductivityMeasurement .
 
 mcbo:hasProductivityValue a owl:DatatypeProperty ;
@@ -416,12 +408,12 @@ mcbo:usesAnalyticalMethod a owl:ObjectProperty ;
 
 mcbo:usesCellLine a owl:ObjectProperty ;
     rdfs:label "uses cell line" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CellLine .
 
 mcbo:usesMedium a owl:ObjectProperty ;
     rdfs:label "uses medium" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CultureMedium .
 
 obo:IAO_0000136 rdfs:label "is about" ;
@@ -439,9 +431,6 @@ uo:UO_0000169 rdfs:label "parts per million" .
 uo:UO_0000201 rdfs:label "cells per milliliter" .
 
 uo:UO_0000273 rdfs:label "milligram per liter" .
-
-iof:ProductProductionProcess a owl:Class ;
-    rdfs:label "product production process" .
 
 mcbo:GeneCountsMatrixDataset a owl:Class ;
     rdfs:label "Gene counts matrix dataset" ;
@@ -886,7 +875,7 @@ mcbo:glutamine_DEMO003_RUN_B a mcbo:GlutamineConcentration,
 
 mcbo:hasProcessOutput a owl:ObjectProperty ;
     rdfs:label "has process output (sample)" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:BioprocessSample ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -1313,7 +1302,12 @@ uo:OBI_0000293 rdfs:label "has specified input" ;
 
 uo:OBI_0000674 rdfs:label "setting datum" .
 
+obo:RO_0000086 rdfs:label "has quality" .
+
 uo:SO_0000704 rdfs:label "gene" .
+
+iof:ProductProductionProcess a owl:Class ;
+    rdfs:label "product production process" .
 
 mcbo:AntibodyProductGene a mcbo:Gene ;
     rdfs:label "antibody product gene" ;
@@ -1354,6 +1348,11 @@ mcbo:gene_MET a mcbo:Gene ;
     rdfs:label "MET" ;
     mcbo:hasEnsemblGeneID "ENSG00000105976" ;
     mcbo:hasGeneSymbol "MET" .
+
+obo:RO_0000057 rdfs:label "has participant" .
+
+iof:ManufacturingProcess a owl:Class ;
+    rdfs:label "manufacturing process" .
 
 iof:hasOutput a owl:ObjectProperty ;
     rdfs:label "has output" .
@@ -1409,10 +1408,14 @@ uo:OBI_0001271 rdfs:label "RNA sequencing assay" .
 mcbo:CellCultureProcess a owl:Class ;
     rdfs:label "Cell culture process" ;
     uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:seeAlso iof:ManufacturingProcess,
+        iof:ProductProductionProcess ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty mcbo:hasProcessOutput ;
             owl:someValuesFrom mcbo:BioprocessSample ],
+        [ a owl:Restriction ;
+            owl:onProperty obo:RO_0000057 ;
+            owl:someValuesFrom mcbo:CellCultureSystem ],
         uo:BFO_0000015 .
 
 mcbo:Clone a owl:Class ;
@@ -1474,12 +1477,15 @@ mcbo:HighProductivity a owl:Class ;
     uo:IAO_0000115 "A productivity category indicating high production output relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
-mcbo:MammalianCellBioprocess a owl:Class ;
-    rdfs:label "Mammalian cell bioprocess" ;
-    uo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
-    rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
+mcbo:MammalianCellCultureProcess a owl:Class ;
+    rdfs:label "Mammalian cell culture process"@en ;
+    uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
     rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf uo:BFO_0000015 .
+    rdfs:subClassOf uo:BFO_0000015 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
+                        owl:onProperty obo:RO_0000057 ;
+                        owl:someValuesFrom mcbo:MammalianCell ] ) ] .
 
 mcbo:SequencingRun a owl:Class ;
     rdfs:label "Sequencing run" ;
@@ -1586,7 +1592,10 @@ mcbo:AntibodyProduct a owl:Class ;
 mcbo:CellCultureSystem a owl:Class ;
     rdfs:label "cell culture system" ;
     uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
-    rdfs:subClassOf uo:BFO_0000040 .
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty obo:RO_0000086 ;
+            owl:someValuesFrom mcbo:CultureEnvironmentalCondition ],
+        uo:BFO_0000040 .
 
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;

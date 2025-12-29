@@ -21,7 +21,10 @@ mcbo:AlignedReadsDataset a owl:Class ;
 mcbo:CellCultureSystem a owl:Class ;
     rdfs:label "cell culture system" ;
     uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
-    rdfs:subClassOf uo:BFO_0000040 .
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty uo:RO_0000086 ;
+            owl:someValuesFrom mcbo:CultureEnvironmentalCondition ],
+        uo:BFO_0000040 .
 
 mcbo:ChemostatCultureProcess a owl:Class ;
     rdfs:label "Chemostat culture process" ;
@@ -108,6 +111,8 @@ mcbo:LowProductivity a owl:Class ;
 mcbo:MammalianCellCultureProcess a owl:Class ;
     rdfs:label "Mammalian cell culture process"@en ;
     uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
+    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:subClassOf uo:BFO_0000015 ;
     owl:equivalentClass [ a owl:Class ;
             owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
                         owl:onProperty uo:RO_0000057 ;
@@ -265,7 +270,7 @@ mcbo:hasPH a owl:DatatypeProperty ;
 mcbo:hasProduct a owl:ObjectProperty ;
     rdfs:label "has product" ;
     rdfs:comment "Explicit link to the intended product of the bioprocess (e.g., mAb)." ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductMaterial ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -276,7 +281,7 @@ mcbo:hasProductivityCategory a owl:DatatypeProperty ;
 
 mcbo:hasProductivityMeasurement a owl:ObjectProperty ;
     rdfs:label "has productivity measurement" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductivityMeasurement .
 
 mcbo:hasProductivityValue a owl:DatatypeProperty ;
@@ -367,12 +372,12 @@ mcbo:usesAnalyticalMethod a owl:ObjectProperty ;
 
 mcbo:usesCellLine a owl:ObjectProperty ;
     rdfs:label "uses cell line" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CellLine .
 
 mcbo:usesMedium a owl:ObjectProperty ;
     rdfs:label "uses medium" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CultureMedium .
 
 uo:IAO_0000136 rdfs:label "is about" ;
@@ -382,6 +387,9 @@ uo:IAO_0000136 rdfs:label "is about" ;
 uo:OBI_0000299 rdfs:label "has specified output" ;
     rdfs:domain uo:OBI_0001271 ;
     rdfs:range uo:IAO_0000030 .
+
+iof:ManufacturingProcess a owl:Class ;
+    rdfs:label "manufacturing process" .
 
 iof:ProductProductionProcess a owl:Class ;
     rdfs:label "product production process" .
@@ -442,7 +450,7 @@ mcbo:expressesGene a owl:ObjectProperty ;
 
 mcbo:hasProcessOutput a owl:ObjectProperty ;
     rdfs:label "has process output (sample)" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:BioprocessSample ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -451,6 +459,10 @@ uo:BFO_0000003 rdfs:label "occurrent" .
 uo:BFO_0000015 rdfs:label "process" .
 
 uo:BFO_0000019 rdfs:label "quality" .
+
+uo:RO_0000057 rdfs:label "has participant" .
+
+uo:RO_0000086 rdfs:label "has quality" .
 
 uo:OBI_0000674 rdfs:label "setting datum" .
 
@@ -569,13 +581,6 @@ mcbo:GeneExpressionMeasurement a owl:Class ;
     rdfs:comment "Quantitative measurement of gene expression level." ;
     rdfs:subClassOf uo:IAO_0000109 .
 
-mcbo:MammalianCellBioprocess a owl:Class ;
-    rdfs:label "Mammalian cell bioprocess" ;
-    uo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
-    rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf uo:BFO_0000015 .
-
 mcbo:SequencingRun a owl:Class ;
     rdfs:label "Sequencing run" ;
     uo:IAO_0000115 "An information content entity representing the execution record and outputs of a sequencing instrument run." ;
@@ -589,10 +594,14 @@ uo:IAO_0000109 rdfs:label "measurement datum" .
 mcbo:CellCultureProcess a owl:Class ;
     rdfs:label "Cell culture process" ;
     uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:seeAlso iof:ManufacturingProcess,
+        iof:ProductProductionProcess ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:onProperty mcbo:hasProcessOutput ;
             owl:someValuesFrom mcbo:BioprocessSample ],
+        [ a owl:Restriction ;
+            owl:onProperty uo:RO_0000057 ;
+            owl:someValuesFrom mcbo:CellCultureSystem ],
         uo:BFO_0000015 .
 
 mcbo:CellLine a owl:Class ;

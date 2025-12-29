@@ -38,7 +38,7 @@ RDF namespace definitions used throughout MCBO.
 .. py:data:: MCBO
    :type: rdflib.Namespace
 
-   The MCBO ontology namespace: ``http://purl.obolibrary.org/obo/MCBO_``
+   The MCBO ontology namespace: ``http://example.org/mcbo#``
 
 .. py:data:: OBO
    :type: rdflib.Namespace
@@ -186,7 +186,7 @@ Loading and Querying Graphs
    
    # Run a SPARQL query
    query = """
-       PREFIX mcbo: <http://purl.obolibrary.org/obo/MCBO_>
+       PREFIX mcbo: <http://example.org/mcbo#>
        SELECT ?process ?type WHERE {
            ?process a ?type .
            ?type rdfs:subClassOf* mcbo:CellCultureProcess .

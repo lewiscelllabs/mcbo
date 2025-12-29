@@ -4,83 +4,77 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix uo: <http://purl.obolibrary.org/obo/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://example.org/mcbo> a owl:Ontology ;
     rdfs:label "MCBO – Mammalian Cell Bioprocessing Ontology" ;
     rdfs:comment "Comprehensive ontology for mammalian cell bioprocessing: anchors to IOF/BFO and reuses OBO ontologies; designed for RNA-seq analysis, culture condition optimization, and product development." ;
-    owl:imports obo:uo.owl ;
+    owl:imports uo:uo.owl ;
     owl:versionInfo "0.2.0-comprehensive" .
 
 mcbo:AlignedReadsDataset a owl:Class ;
     rdfs:label "Aligned reads dataset (BAM/CRAM)" ;
-    obo:IAO_0000115 "A dataset consisting of sequencing reads aligned to a reference, typically in BAM/CRAM format." ;
+    uo:IAO_0000115 "A dataset consisting of sequencing reads aligned to a reference, typically in BAM/CRAM format." ;
     rdfs:comment "A dataset containing RNA sequencing reads aligned to a reference genome, typically in BAM or CRAM format." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
-mcbo:Assay_RNASeq_001 a obo:OBI_0001271,
-        owl:NamedIndividual ;
-    rdfs:label "assayRun_001" ;
-    obo:OBI_0000293 mcbo:Sample_D7 ;
-    obo:OBI_0000299 mcbo:ExprMx_001,
-        mcbo:Reads_001 .
-
 mcbo:ChemostatCultureProcess a owl:Class ;
     rdfs:label "Chemostat culture process" ;
-    obo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and culture broth is continuously removed, typically without deliberate cell retention, to maintain a constant culture volume." ;
+    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and culture broth is continuously removed, typically without deliberate cell retention, to maintain a constant culture volume." ;
     rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
-mcbo:ExponentialPhase_001 a mcbo:ExponentialPhase,
-        owl:NamedIndividual ;
-    rdfs:label "Exponential phase at 72h" .
+mcbo:ExpressionMatrix a owl:Class ;
+    rdfs:label "Expression matrix" ;
+    uo:IAO_0000115 "A dataset consisting of a matrix of expression values (e.g., normalized counts) for genes across samples." ;
+    rdfs:comment "Gene expression quantification data with counts/TPM values; columns/rows reference genes/transcripts (GO/SO/PRO) with units (UO)." ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty uo:OBI_0000293 ;
+            owl:someValuesFrom mcbo:RNASeqRawReads ],
+        mcbo:GeneCountsMatrixDataset .
 
 mcbo:LowMediumProductivity a owl:Class ;
     rdfs:label "Low to Medium productivity" ;
-    obo:IAO_0000115 "A productivity category indicating production output between low and medium relative to an applicable reference context." ;
+    uo:IAO_0000115 "A productivity category indicating production output between low and medium relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
-
-mcbo:MammalianCellCultureProcess a owl:Class ;
-    rdfs:label "Mammalian cell culture process"@en ;
-    obo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
-    rdfs:subClassOf mcbo:CellCultureProcess ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
-                        owl:onProperty obo:RO_0000057 ;
-                        owl:someValuesFrom mcbo:MammalianCell ] ) ] .
 
 mcbo:Publication a owl:Class ;
     rdfs:label "Publication" ;
-    obo:IAO_0000115 "An information content entity that is a published document describing a study." ;
+    uo:IAO_0000115 "An information content entity that is a published document describing a study." ;
     rdfs:comment "Published research paper containing bioprocessing data." ;
-    rdfs:subClassOf obo:IAO_0000311 .
+    rdfs:subClassOf uo:IAO_0000311 .
 
 mcbo:RNASeqMethod a owl:Class ;
     rdfs:label "RNA-seq method" ;
-    obo:IAO_0000115 "An analytical method that generates sequence reads from RNA molecules to quantify transcript abundance." ;
+    uo:IAO_0000115 "An analytical method that generates sequence reads from RNA molecules to quantify transcript abundance." ;
     rdfs:subClassOf mcbo:AnalyticalMethod .
-
-mcbo:Run_001 a mcbo:PerfusionCultureProcess,
-        owl:NamedIndividual ;
-    rdfs:label "Run_001 (perfusion)" ;
-    mcbo:hasProcessOutput mcbo:Sample_D7 ;
-    mcbo:hasProduct mcbo:Product_mAb ;
-    mcbo:usesCellLine mcbo:CHO_K1 ;
-    obo:RO_0000057 mcbo:CellCultureSystem_001 .
 
 mcbo:TiterAnalysisMethod a owl:Class ;
     rdfs:label "Titer analysis method" ;
-    obo:IAO_0000115 "An analytical method used to determine product titer (amount or concentration of product) in a sample." ;
+    uo:IAO_0000115 "An analytical method used to determine product titer (amount or concentration of product) in a sample." ;
     rdfs:subClassOf mcbo:AnalyticalMethod .
 
 mcbo:UnknownCultureProcess a owl:Class ;
     rdfs:label "Unknown culture process: not identifiable from source data" ;
-    obo:IAO_0000115 "A cell culture process for which the specific operational modality (e.g., batch, fed-batch, perfusion) cannot be determined from available source metadata." ;
+    uo:IAO_0000115 "A cell culture process for which the specific operational modality (e.g., batch, fed-batch, perfusion) cannot be determined from available source metadata." ;
     rdfs:subClassOf mcbo:CellCultureProcess .
+
+mcbo:VeryHighProductivity a owl:Class ;
+    rdfs:label "Very High productivity" ;
+    uo:IAO_0000115 "A productivity category indicating very high production output relative to an applicable reference context." ;
+    rdfs:subClassOf mcbo:ProductivityMeasurement .
 
 mcbo:analyzedBySequencing a owl:ObjectProperty ;
     rdfs:label "analyzed by sequencing" ;
     rdfs:domain mcbo:BioprocessSample ;
     rdfs:range mcbo:SequencingRun .
+
+mcbo:encodedByGene a owl:ObjectProperty ;
+    rdfs:label "encoded by gene" ;
+    uo:IAO_0000115 "A relation between a protein product and the gene whose coding sequence specifies that protein." ;
+    rdfs:comment "Links a recombinant protein product to its encoding transgene. For antibodies, this relationship may be omitted or point to a synthetic construct." ;
+    rdfs:domain mcbo:ProteinProduct ;
+    rdfs:range mcbo:Gene .
 
 mcbo:fromStudy a owl:ObjectProperty ;
     rdfs:label "from study" ;
@@ -89,13 +83,13 @@ mcbo:fromStudy a owl:ObjectProperty ;
 
 mcbo:hasCO2Concentration a owl:DatatypeProperty ;
     rdfs:label "has CO2 concentration (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasCO2ConcentrationUnit a owl:ObjectProperty ;
     rdfs:label "has CO2 concentration unit" ;
     rdfs:comment "UO unit for CO2 concentration (e.g., uo:UO_0000169 for ppm)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
 
 mcbo:hasCellViabilityMeasurement a owl:ObjectProperty ;
     rdfs:label "has cell viability measurement" ;
@@ -129,13 +123,20 @@ mcbo:hasDatasetAccession a owl:DatatypeProperty ;
 
 mcbo:hasDissolvedOxygen a owl:DatatypeProperty ;
     rdfs:label "has dissolved oxygen (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasDissolvedOxygenUnit a owl:ObjectProperty ;
     rdfs:label "has dissolved oxygen unit" ;
     rdfs:comment "UO unit for dissolved oxygen (e.g., uo:UO_0000273 for mg/L)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
+
+mcbo:hasEnsemblGeneID a owl:DatatypeProperty ;
+    rdfs:label "has Ensembl gene ID" ;
+    uo:IAO_0000115 "An identifier that denotes a gene record in the Ensembl database." ;
+    rdfs:comment "Ensembl stable gene identifier (e.g., ENSG00000115009 for human CCL20). Supports both human transgene IDs and CHO native gene IDs." ;
+    rdfs:domain mcbo:Gene ;
+    rdfs:range xsd:string .
 
 mcbo:hasExpressionUnit a owl:DatatypeProperty ;
     rdfs:label "has expression unit" ;
@@ -169,7 +170,7 @@ mcbo:hasGeneSymbol a owl:DatatypeProperty ;
 
 mcbo:hasHumidity a owl:DatatypeProperty ;
     rdfs:label "has humidity (%)" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasNutrientConcentration a owl:ObjectProperty ;
@@ -179,13 +180,13 @@ mcbo:hasNutrientConcentration a owl:ObjectProperty ;
 
 mcbo:hasPH a owl:DatatypeProperty ;
     rdfs:label "has pH" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasProduct a owl:ObjectProperty ;
     rdfs:label "has product" ;
     rdfs:comment "Explicit link to the intended product of the bioprocess (e.g., mAb)." ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductMaterial ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -196,7 +197,7 @@ mcbo:hasProductivityCategory a owl:DatatypeProperty ;
 
 mcbo:hasProductivityMeasurement a owl:ObjectProperty ;
     rdfs:label "has productivity measurement" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:ProductivityMeasurement .
 
 mcbo:hasProductivityValue a owl:DatatypeProperty ;
@@ -224,15 +225,31 @@ mcbo:hasSampleAccession a owl:DatatypeProperty ;
     rdfs:domain mcbo:BioprocessSample ;
     rdfs:range xsd:string .
 
+mcbo:hasSetpoint a owl:ObjectProperty ;
+    rdfs:label "has setpoint" ;
+    rdfs:comment "Links a culture environmental condition to its target setpoint value, indicating the condition is actively controlled." ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
+    rdfs:range mcbo:EnvironmentalSetpoint .
+
+mcbo:hasSetpointUnit a owl:ObjectProperty ;
+    rdfs:label "has setpoint unit" ;
+    rdfs:comment "UO unit for the setpoint value." ;
+    rdfs:domain mcbo:EnvironmentalSetpoint .
+
+mcbo:hasSetpointValue a owl:DatatypeProperty ;
+    rdfs:label "has setpoint value" ;
+    rdfs:domain mcbo:EnvironmentalSetpoint ;
+    rdfs:range xsd:decimal .
+
 mcbo:hasTemperature a owl:DatatypeProperty ;
     rdfs:label "has temperature" ;
-    rdfs:domain mcbo:CultureConditionQuality ;
+    rdfs:domain mcbo:CultureEnvironmentalCondition ;
     rdfs:range xsd:decimal .
 
 mcbo:hasTemperatureUnit a owl:ObjectProperty ;
     rdfs:label "has temperature unit" ;
     rdfs:comment "UO unit for temperature (e.g., uo:UO_0000027 for Celsius, uo:UO_0000195 for Fahrenheit)" ;
-    rdfs:domain mcbo:CultureConditionQuality .
+    rdfs:domain mcbo:CultureEnvironmentalCondition .
 
 mcbo:hasTiterValue a owl:DatatypeProperty ;
     rdfs:label "has titer value" ;
@@ -277,6 +294,7 @@ mcbo:overexpressesGene a owl:ObjectProperty ;
 
 mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_A ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_A ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_A ;
@@ -285,27 +303,12 @@ mcbo:run_DEMO001_RUN_A a mcbo:FedBatchCultureProcess ;
 
 mcbo:run_DEMO001_RUN_B a mcbo:FedBatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_B ;
+    mcbo:hasProduct mcbo:product_DEMO001_RUN_B ;
     mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_B ;
     mcbo:usesCellLine mcbo:cellline_CHO-K1,
         mcbo:clone_Clone_B ;
     obo:RO_0000057 mcbo:cellline_CHO-K1,
         mcbo:system_DEMO001_RUN_B .
-
-mcbo:run_DEMO001_RUN_C a mcbo:FedBatchCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_C ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_C ;
-    mcbo:usesCellLine mcbo:cellline_CHO-K1,
-        mcbo:clone_Clone_A ;
-    obo:RO_0000057 mcbo:cellline_CHO-K1,
-        mcbo:system_DEMO001_RUN_C .
-
-mcbo:run_DEMO001_RUN_D a mcbo:FedBatchCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO001_SAMPLE_D ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO001_RUN_D ;
-    mcbo:usesCellLine mcbo:cellline_CHO-K1,
-        mcbo:clone_Clone_B ;
-    obo:RO_0000057 mcbo:cellline_CHO-K1,
-        mcbo:system_DEMO001_RUN_D .
 
 mcbo:run_DEMO002_RUN_A a mcbo:BatchCultureProcess ;
     mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_A ;
@@ -315,38 +318,20 @@ mcbo:run_DEMO002_RUN_A a mcbo:BatchCultureProcess ;
     obo:RO_0000057 mcbo:cellline_HEK293,
         mcbo:system_DEMO002_RUN_A .
 
-mcbo:run_DEMO002_RUN_B a mcbo:BatchCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_B ;
-    mcbo:hasProduct mcbo:product_DEMO002_RUN_B ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_B ;
-    mcbo:usesCellLine mcbo:cellline_HEK293 ;
-    obo:RO_0000057 mcbo:cellline_HEK293,
-        mcbo:system_DEMO002_RUN_B .
+mcbo:run_DEMO_PROTEIN_A a mcbo:BatchCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_DEMO_PROTEIN_SAMPLE_A ;
+    mcbo:hasProduct mcbo:product_DEMO_PROTEIN_A ;
+    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO_PROTEIN_A ;
+    mcbo:usesCellLine mcbo:cellline_Vero ;
+    obo:RO_0000057 mcbo:cellline_Vero,
+        mcbo:system_DEMO_PROTEIN_A .
 
-mcbo:run_DEMO002_RUN_C a mcbo:PerfusionCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO002_SAMPLE_C ;
-    mcbo:hasProduct mcbo:product_DEMO002_RUN_C ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO002_RUN_C ;
-    mcbo:usesCellLine mcbo:cellline_HEK293 ;
-    obo:RO_0000057 mcbo:cellline_HEK293,
-        mcbo:system_DEMO002_RUN_C .
-
-mcbo:run_DEMO003_RUN_A a mcbo:BatchCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_A ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_A ;
-    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
-        mcbo:clone_Clone_X ;
-    obo:RO_0000057 mcbo:cellline_CHO-DG44,
-        mcbo:system_DEMO003_RUN_A .
-
-mcbo:run_DEMO003_RUN_B a mcbo:PerfusionCultureProcess ;
-    mcbo:hasProcessOutput mcbo:sample_DEMO003_SAMPLE_B ;
-    mcbo:hasProduct mcbo:product_DEMO003_RUN_B ;
-    mcbo:hasProductivityMeasurement mcbo:productivity_DEMO003_RUN_B ;
-    mcbo:usesCellLine mcbo:cellline_CHO-DG44,
-        mcbo:clone_Clone_X ;
-    obo:RO_0000057 mcbo:cellline_CHO-DG44,
-        mcbo:system_DEMO003_RUN_B .
+mcbo:run_Run_001 a mcbo:PerfusionCultureProcess ;
+    mcbo:hasProcessOutput mcbo:sample_Sample_D7 ;
+    mcbo:hasProduct mcbo:product_Run_001 ;
+    mcbo:usesCellLine mcbo:cellline_CHO-K1 ;
+    obo:RO_0000057 mcbo:cellline_CHO-K1,
+        mcbo:system_Run_001 .
 
 mcbo:sampleContainsProduct a owl:ObjectProperty ;
     rdfs:label "sample contains product" ;
@@ -360,394 +345,140 @@ mcbo:usesAnalyticalMethod a owl:ObjectProperty ;
 
 mcbo:usesCellLine a owl:ObjectProperty ;
     rdfs:label "uses cell line" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CellLine .
 
 mcbo:usesMedium a owl:ObjectProperty ;
     rdfs:label "uses medium" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:CultureMedium .
 
-obo:IAO_0000136 rdfs:label "is about" ;
+uo:IAO_0000136 rdfs:label "is about" ;
     rdfs:domain mcbo:GeneExpressionMeasurement ;
     rdfs:range mcbo:Gene .
 
-obo:OBI_0000299 rdfs:label "has specified output" ;
-    rdfs:domain obo:OBI_0001271 ;
-    rdfs:range obo:IAO_0000030 .
+uo:OBI_0000299 rdfs:label "has specified output" ;
+    rdfs:domain uo:OBI_0001271 ;
+    rdfs:range uo:IAO_0000030 .
 
-iof:ProductProductionProcess a owl:Class ;
-    rdfs:label "product production process" .
+uo:UO_0000027 rdfs:label "degree Celsius" .
 
-mcbo:CellCultureSystem_001 a mcbo:CellCultureSystem,
-        owl:NamedIndividual ;
-    rdfs:label "Cell culture system for Run_001" ;
-    obo:BFO_0000051 mcbo:CHO_K1 ;
-    obo:RO_0000086 mcbo:Conditions_001 .
+uo:UO_0000169 rdfs:label "parts per million" .
 
-mcbo:Conditions_001 a mcbo:CultureConditionQuality,
-        owl:NamedIndividual ;
-    rdfs:label "Standard culture conditions" ;
-    mcbo:hasCO2Concentration 50000 ;
-    mcbo:hasCO2ConcentrationUnit obo:UO_0000169 ;
-    mcbo:hasDissolvedOxygen 8.5 ;
-    mcbo:hasDissolvedOxygenUnit obo:UO_0000273 ;
-    mcbo:hasPH 7.0 ;
-    mcbo:hasTemperature 37.0 ;
-    mcbo:hasTemperatureUnit obo:UO_0000027 .
+uo:UO_0000201 rdfs:label "cells per milliliter" .
 
-mcbo:ExprMx_001 a mcbo:ExpressionMatrix,
-        owl:NamedIndividual ;
-    rdfs:label "TPM matrix" .
+uo:UO_0000273 rdfs:label "milligram per liter" .
 
-mcbo:ExpressionMatrix a owl:Class ;
-    rdfs:label "Expression matrix" ;
-    obo:IAO_0000115 "A dataset consisting of a matrix of expression values (e.g., normalized counts) for genes across samples." ;
-    rdfs:comment "Gene expression quantification data with counts/TPM values; columns/rows reference genes/transcripts (GO/SO/PRO) with units (UO)." ;
-    rdfs:subClassOf [ a owl:Restriction ;
-            owl:onProperty obo:OBI_0000293 ;
-            owl:someValuesFrom mcbo:RNASeqRawReads ],
-        mcbo:GeneCountsMatrixDataset .
+mcbo:AntibodyProductGene a mcbo:Gene ;
+    rdfs:label "antibody product gene" ;
+    mcbo:hasGeneSymbol "antibody product gene" .
+
+mcbo:CHOCellLine a owl:Class ;
+    rdfs:label "CHO cell line" ;
+    uo:IAO_0000115 "A cell line whose cells are derived from Chinese hamster ovary (CHO) lineage." ;
+    rdfs:comment "Chinese Hamster Ovary cell line family." ;
+    rdfs:subClassOf mcbo:CellLine .
 
 mcbo:GeneCountsMatrixDataset a owl:Class ;
     rdfs:label "Gene counts matrix dataset" ;
-    obo:IAO_0000115 "A dataset consisting of a matrix of gene-level counts derived from RNA sequencing reads." ;
+    uo:IAO_0000115 "A dataset consisting of a matrix of gene-level counts derived from RNA sequencing reads." ;
     rdfs:comment "A dataset containing quantified gene expression data in matrix format, with genes/transcripts as rows and samples as columns." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
 mcbo:HEK293CellLine a owl:Class ;
     rdfs:label "HEK293 cell line" ;
-    obo:IAO_0000115 "A cell line whose cells are derived from the human embryonic kidney 293 (HEK293) lineage." ;
+    uo:IAO_0000115 "A cell line whose cells are derived from the human embryonic kidney 293 (HEK293) lineage." ;
     rdfs:comment "Human embryonic kidney 293 cell line family." ;
     rdfs:subClassOf mcbo:CellLine .
 
+mcbo:HighProductivity a owl:Class ;
+    rdfs:label "High productivity" ;
+    uo:IAO_0000115 "A productivity category indicating high production output relative to an applicable reference context." ;
+    rdfs:subClassOf mcbo:ProductivityMeasurement .
+
 mcbo:LowProductivity a owl:Class ;
     rdfs:label "Low productivity" ;
-    obo:IAO_0000115 "A productivity category indicating low production output relative to an applicable reference context." ;
+    uo:IAO_0000115 "A productivity category indicating low production output relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
 
 mcbo:MammalianCell a owl:Class ;
-    rdfs:label "Mammalian cell"@en ;
-    obo:IAO_0000115 "A material entity that is a cell of a mammal."@en ;
-    rdfs:subClassOf obo:BFO_0000040 .
+    rdfs:label "Mammalian cell" ;
+    uo:IAO_0000115 "A cell that is part of or derived from a mammalian organism." ;
+    rdfs:comment "Cell entity from mammalian species (e.g., CHO, HEK293). Distinguishes mammalian from other cell types like yeast or bacteria." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:PerfusionCultureProcess a owl:Class ;
+    rdfs:label "Perfusion culture process" ;
+    uo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture vessel." ;
+    rdfs:comment "Continuous culture with cell retention, distinguishing it from chemostat." ;
+    rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
 mcbo:QuantityValue a owl:Class ;
     rdfs:label "quantity value" ;
-    obo:IAO_0000115 "An information content entity that specifies a numeric value together with a unit for some measured quantity." ;
-    rdfs:subClassOf obo:IAO_0000030 .
+    uo:IAO_0000115 "An information content entity that specifies a numeric value together with a unit for some measured quantity." ;
+    rdfs:subClassOf uo:IAO_0000030 .
+
+mcbo:RNASeqRawReads a owl:Class ;
+    rdfs:label "RNA-seq raw reads (FASTQ)" ;
+    uo:IAO_0000115 "A raw reads dataset that consists specifically of RNA sequencing reads." ;
+    rdfs:comment "Raw RNA sequencing reads in FASTQ format." ;
+    rdfs:subClassOf mcbo:RawReadsDataset .
 
 mcbo:RawReadsDataset a owl:Class ;
     rdfs:label "Raw reads dataset (FASTQ)" ;
-    obo:IAO_0000115 "A dataset consisting of raw sequencing reads, typically in FASTQ format." ;
+    uo:IAO_0000115 "A dataset consisting of raw sequencing reads, typically in FASTQ format." ;
     rdfs:comment "A dataset containing unprocessed RNA sequencing reads in FASTQ format." ;
     rdfs:subClassOf mcbo:RNASeqDataset .
 
-mcbo:Reads_001 a mcbo:RNASeqRawReads,
-        owl:NamedIndividual ;
-    rdfs:label "FASTQ (R1/R2)" .
+mcbo:StationaryPhase a owl:Class ;
+    rdfs:label "Stationary phase" ;
+    uo:IAO_0000115 "A culture phase during which net cell population growth is approximately zero over a time interval." ;
+    rdfs:subClassOf mcbo:CulturePhase .
 
 mcbo:Study a owl:Class ;
     rdfs:label "Study" ;
-    obo:IAO_0000115 "An information content entity that denotes a scientific study describing one or more bioprocess experiments and their results." ;
+    uo:IAO_0000115 "An information content entity that denotes a scientific study describing one or more bioprocess experiments and their results." ;
     rdfs:comment "Research study containing bioprocessing experiments." ;
-    rdfs:subClassOf obo:IAO_0000030 .
+    rdfs:subClassOf uo:IAO_0000030 .
 
-mcbo:VeryHighProductivity a owl:Class ;
-    rdfs:label "Very High productivity" ;
-    obo:IAO_0000115 "A productivity category indicating very high production output relative to an applicable reference context." ;
-    rdfs:subClassOf mcbo:ProductivityMeasurement .
-
-mcbo:Viability_72h a mcbo:CellViabilityMeasurement,
-        owl:NamedIndividual ;
-    rdfs:label "Viability measurement at 72h" ;
-    mcbo:hasViabilityPercentage 85.0 ;
-    mcbo:hasViableCellDensity 8500000.0 ;
-    mcbo:hasViableCellDensityUnit obo:UO_0000201 .
-
-mcbo:culture_condition_quality_DEMO001_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_B a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO001_RUN_B a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO001_RUN_C a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 40.0 ;
-    mcbo:hasPH 7.0 ;
-    mcbo:hasTemperature 37.0 .
-
-mcbo:culture_condition_quality_DEMO001_RUN_D a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 40.0 ;
-    mcbo:hasPH 7.0 ;
-    mcbo:hasTemperature 37.0 .
-
-mcbo:culture_condition_quality_DEMO002_RUN_A a mcbo:CultureConditionQuality ;
+mcbo:environmental_condition_DEMO002_RUN_A a mcbo:CultureEnvironmentalCondition ;
     mcbo:hasDissolvedOxygen 50.0 ;
     mcbo:hasPH 7.2 ;
     mcbo:hasTemperature 37.0 .
 
-mcbo:culture_condition_quality_DEMO002_RUN_B a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 50.0 ;
-    mcbo:hasPH 7.2 ;
-    mcbo:hasTemperature 37.0 .
-
-mcbo:culture_condition_quality_DEMO002_RUN_C a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 60.0 ;
-    mcbo:hasPH 7.1 ;
-    mcbo:hasTemperature 37.0 .
-
-mcbo:culture_condition_quality_DEMO003_RUN_A a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 45.0 ;
-    mcbo:hasPH 7.1 ;
-    mcbo:hasTemperature 36.5 .
-
-mcbo:culture_condition_quality_DEMO003_RUN_B a mcbo:CultureConditionQuality ;
-    mcbo:hasDissolvedOxygen 55.0 ;
+mcbo:environmental_condition_DEMO_PROTEIN_A a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 40.0 ;
     mcbo:hasPH 7.0 ;
-    mcbo:hasTemperature 36.5 .
+    mcbo:hasTemperature 37.0 .
 
-mcbo:expr_DEMO001_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 1000.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO001_SAMPLE_A_BCL2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 80.0 ;
-    obo:IAO_0000136 mcbo:gene_BCL2 .
-
-mcbo:expr_DEMO001_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 800.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO001_SAMPLE_A_HIF1A a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 120.0 ;
-    obo:IAO_0000136 mcbo:gene_HIF1A .
-
-mcbo:expr_DEMO001_SAMPLE_A_MYC a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 250.0 ;
-    obo:IAO_0000136 mcbo:gene_MYC .
-
-mcbo:expr_DEMO001_SAMPLE_A_TP53 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 100.0 ;
-    obo:IAO_0000136 mcbo:gene_TP53 .
-
-mcbo:expr_DEMO001_SAMPLE_A_VEGFA a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 50.0 ;
-    obo:IAO_0000136 mcbo:gene_VEGFA .
-
-mcbo:expr_DEMO001_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 950.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO001_SAMPLE_B_BCL2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 90.0 ;
-    obo:IAO_0000136 mcbo:gene_BCL2 .
-
-mcbo:expr_DEMO001_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 850.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO001_SAMPLE_B_HIF1A a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 100.0 ;
-    obo:IAO_0000136 mcbo:gene_HIF1A .
-
-mcbo:expr_DEMO001_SAMPLE_B_MYC a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 200.0 ;
-    obo:IAO_0000136 mcbo:gene_MYC .
-
-mcbo:expr_DEMO001_SAMPLE_B_TP53 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 120.0 ;
-    obo:IAO_0000136 mcbo:gene_TP53 .
-
-mcbo:expr_DEMO001_SAMPLE_B_VEGFA a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 80.0 ;
-    obo:IAO_0000136 mcbo:gene_VEGFA .
-
-mcbo:expr_DEMO001_SAMPLE_C_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 1100.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO001_SAMPLE_C_BCL2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 60.0 ;
-    obo:IAO_0000136 mcbo:gene_BCL2 .
-
-mcbo:expr_DEMO001_SAMPLE_C_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 900.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO001_SAMPLE_C_HIF1A a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 180.0 ;
-    obo:IAO_0000136 mcbo:gene_HIF1A .
-
-mcbo:expr_DEMO001_SAMPLE_C_MYC a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 300.0 ;
-    obo:IAO_0000136 mcbo:gene_MYC .
-
-mcbo:expr_DEMO001_SAMPLE_C_TP53 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 90.0 ;
-    obo:IAO_0000136 mcbo:gene_TP53 .
-
-mcbo:expr_DEMO001_SAMPLE_C_VEGFA a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 120.0 ;
-    obo:IAO_0000136 mcbo:gene_VEGFA .
-
-mcbo:expr_DEMO001_SAMPLE_D_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 800.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO001_SAMPLE_D_BCL2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 150.0 ;
-    obo:IAO_0000136 mcbo:gene_BCL2 .
-
-mcbo:expr_DEMO001_SAMPLE_D_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 700.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO001_SAMPLE_D_HIF1A a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 80.0 ;
-    obo:IAO_0000136 mcbo:gene_HIF1A .
-
-mcbo:expr_DEMO001_SAMPLE_D_MYC a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 150.0 ;
-    obo:IAO_0000136 mcbo:gene_MYC .
-
-mcbo:expr_DEMO001_SAMPLE_D_TP53 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 200.0 ;
-    obo:IAO_0000136 mcbo:gene_TP53 .
-
-mcbo:expr_DEMO001_SAMPLE_D_VEGFA a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 30.0 ;
-    obo:IAO_0000136 mcbo:gene_VEGFA .
-
-mcbo:expr_DEMO002_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 900.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO002_SAMPLE_A_CXCL8 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 200.0 ;
-    obo:IAO_0000136 mcbo:gene_CXCL8 .
-
-mcbo:expr_DEMO002_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 750.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO002_SAMPLE_A_HSP90 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 300.0 ;
-    obo:IAO_0000136 mcbo:gene_HSP90 .
-
-mcbo:expr_DEMO002_SAMPLE_A_IL6 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 400.0 ;
-    obo:IAO_0000136 mcbo:gene_IL6 .
-
-mcbo:expr_DEMO002_SAMPLE_A_TNF a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 150.0 ;
-    obo:IAO_0000136 mcbo:gene_TNF .
-
-mcbo:expr_DEMO002_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 880.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO002_SAMPLE_B_CXCL8 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 250.0 ;
-    obo:IAO_0000136 mcbo:gene_CXCL8 .
-
-mcbo:expr_DEMO002_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 720.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO002_SAMPLE_B_HSP90 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 450.0 ;
-    obo:IAO_0000136 mcbo:gene_HSP90 .
-
-mcbo:expr_DEMO002_SAMPLE_B_IL6 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 450.0 ;
-    obo:IAO_0000136 mcbo:gene_IL6 .
-
-mcbo:expr_DEMO002_SAMPLE_B_TNF a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 180.0 ;
-    obo:IAO_0000136 mcbo:gene_TNF .
-
-mcbo:expr_DEMO002_SAMPLE_C_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 950.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO002_SAMPLE_C_CXCL8 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 300.0 ;
-    obo:IAO_0000136 mcbo:gene_CXCL8 .
-
-mcbo:expr_DEMO002_SAMPLE_C_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 800.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO002_SAMPLE_C_HSP90 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 600.0 ;
-    obo:IAO_0000136 mcbo:gene_HSP90 .
-
-mcbo:expr_DEMO002_SAMPLE_C_IL6 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 500.0 ;
-    obo:IAO_0000136 mcbo:gene_IL6 .
-
-mcbo:expr_DEMO002_SAMPLE_C_TNF a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 200.0 ;
-    obo:IAO_0000136 mcbo:gene_TNF .
-
-mcbo:expr_DEMO003_SAMPLE_A_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 920.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO003_SAMPLE_A_AKT1 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 200.0 ;
-    obo:IAO_0000136 mcbo:gene_AKT1 .
-
-mcbo:expr_DEMO003_SAMPLE_A_EGFR a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 280.0 ;
-    obo:IAO_0000136 mcbo:gene_EGFR .
-
-mcbo:expr_DEMO003_SAMPLE_A_ERBB2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 350.0 ;
-    obo:IAO_0000136 mcbo:gene_ERBB2 .
-
-mcbo:expr_DEMO003_SAMPLE_A_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 780.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO003_SAMPLE_A_MET a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 120.0 ;
-    obo:IAO_0000136 mcbo:gene_MET .
-
-mcbo:expr_DEMO003_SAMPLE_B_ACTB a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 980.0 ;
-    obo:IAO_0000136 mcbo:gene_ACTB .
-
-mcbo:expr_DEMO003_SAMPLE_B_AKT1 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 250.0 ;
-    obo:IAO_0000136 mcbo:gene_AKT1 .
-
-mcbo:expr_DEMO003_SAMPLE_B_EGFR a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 320.0 ;
-    obo:IAO_0000136 mcbo:gene_EGFR .
-
-mcbo:expr_DEMO003_SAMPLE_B_ERBB2 a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 400.0 ;
-    obo:IAO_0000136 mcbo:gene_ERBB2 .
-
-mcbo:expr_DEMO003_SAMPLE_B_GAPDH a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 820.0 ;
-    obo:IAO_0000136 mcbo:gene_GAPDH .
-
-mcbo:expr_DEMO003_SAMPLE_B_MET a mcbo:GeneExpressionMeasurement ;
-    mcbo:hasExpressionValue 150.0 ;
-    obo:IAO_0000136 mcbo:gene_MET .
+mcbo:environmental_condition_Run_001 a mcbo:CultureEnvironmentalCondition ;
+    mcbo:hasDissolvedOxygen 8.5 ;
+    mcbo:hasPH 7.0 ;
+    mcbo:hasTemperature 37.0 .
 
 mcbo:expressesGene a owl:ObjectProperty ;
     rdfs:label "expresses gene" ;
     rdfs:domain mcbo:CellLine ;
     rdfs:range mcbo:Gene .
 
+mcbo:gene_AMBP a mcbo:Gene ;
+    rdfs:label "AMBP" ;
+    mcbo:hasEnsemblGeneID "ENSG00000106927" ;
+    mcbo:hasGeneSymbol "AMBP" .
+
 mcbo:gene_IgG a mcbo:Gene ;
-    rdfs:label "IgG" .
+    rdfs:label "IgG" ;
+    mcbo:hasGeneSymbol "IgG" .
 
 mcbo:glutamine_DEMO001_RUN_A a mcbo:GlutamineConcentration,
         mcbo:NutrientConcentration ;
@@ -761,33 +492,9 @@ mcbo:glutamine_DEMO001_RUN_B a mcbo:GlutamineConcentration,
     mcbo:hasConcentrationUnit "mM" ;
     mcbo:hasConcentrationValue 4.0 .
 
-mcbo:glutamine_DEMO001_RUN_C a mcbo:GlutamineConcentration,
-        mcbo:NutrientConcentration ;
-    rdfs:label "Glutamine 4.0mM" ;
-    mcbo:hasConcentrationUnit "mM" ;
-    mcbo:hasConcentrationValue 4.0 .
-
-mcbo:glutamine_DEMO001_RUN_D a mcbo:GlutamineConcentration,
-        mcbo:NutrientConcentration ;
-    rdfs:label "Glutamine 4.0mM" ;
-    mcbo:hasConcentrationUnit "mM" ;
-    mcbo:hasConcentrationValue 4.0 .
-
-mcbo:glutamine_DEMO003_RUN_A a mcbo:GlutamineConcentration,
-        mcbo:NutrientConcentration ;
-    rdfs:label "Glutamine 3.5mM" ;
-    mcbo:hasConcentrationUnit "mM" ;
-    mcbo:hasConcentrationValue 3.5 .
-
-mcbo:glutamine_DEMO003_RUN_B a mcbo:GlutamineConcentration,
-        mcbo:NutrientConcentration ;
-    rdfs:label "Glutamine 3.5mM" ;
-    mcbo:hasConcentrationUnit "mM" ;
-    mcbo:hasConcentrationValue 3.5 .
-
 mcbo:hasProcessOutput a owl:ObjectProperty ;
     rdfs:label "has process output (sample)" ;
-    rdfs:domain mcbo:MammalianCellBioprocess ;
+    rdfs:domain mcbo:MammalianCellCultureProcess ;
     rdfs:range mcbo:BioprocessSample ;
     rdfs:subPropertyOf iof:hasOutput .
 
@@ -799,58 +506,33 @@ mcbo:medium_DEMO001_RUN_B a mcbo:CultureMedium ;
     rdfs:label "Culture Medium" ;
     mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_B .
 
-mcbo:medium_DEMO001_RUN_C a mcbo:CultureMedium ;
-    rdfs:label "Culture Medium" ;
-    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_C .
-
-mcbo:medium_DEMO001_RUN_D a mcbo:CultureMedium ;
-    rdfs:label "Culture Medium" ;
-    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO001_RUN_D .
-
-mcbo:medium_DEMO003_RUN_A a mcbo:CultureMedium ;
-    rdfs:label "Culture Medium" ;
-    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_A .
-
-mcbo:medium_DEMO003_RUN_B a mcbo:CultureMedium ;
-    rdfs:label "Culture Medium" ;
-    mcbo:hasNutrientConcentration mcbo:glutamine_DEMO003_RUN_B .
-
 mcbo:phase_DEMO001_RUN_A a mcbo:ExponentialPhase .
 
 mcbo:phase_DEMO001_RUN_B a mcbo:ExponentialPhase .
 
-mcbo:phase_DEMO001_RUN_C a mcbo:StationaryPhase .
-
-mcbo:phase_DEMO001_RUN_D a mcbo:StationaryPhase .
-
 mcbo:phase_DEMO002_RUN_A a mcbo:ExponentialPhase .
 
-mcbo:phase_DEMO002_RUN_B a mcbo:StationaryPhase .
+mcbo:phase_DEMO_PROTEIN_A a mcbo:ExponentialPhase .
 
-mcbo:phase_DEMO002_RUN_C a mcbo:StationaryPhase .
+mcbo:phase_Run_001 a mcbo:StationaryPhase .
 
-mcbo:phase_DEMO003_RUN_A a mcbo:ExponentialPhase .
+mcbo:product_DEMO001_RUN_A a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
 
-mcbo:phase_DEMO003_RUN_B a mcbo:StationaryPhase .
+mcbo:product_DEMO001_RUN_B a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
 
-mcbo:product_DEMO002_RUN_A a mcbo:TherapeuticProtein ;
+mcbo:product_DEMO002_RUN_A a mcbo:AntibodyProduct ;
     rdfs:label "IgG" ;
     mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_A_Glycosylation ;
     mcbo:hasTiterValue 150.0 .
 
-mcbo:product_DEMO002_RUN_B a mcbo:TherapeuticProtein ;
-    rdfs:label "IgG" ;
-    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_B_Glycosylation ;
-    mcbo:hasTiterValue 320.0 .
+mcbo:product_DEMO_PROTEIN_A a mcbo:ProteinProduct ;
+    rdfs:label "AMBP" ;
+    mcbo:encodedByGene mcbo:gene_AMBP .
 
-mcbo:product_DEMO002_RUN_C a mcbo:TherapeuticProtein ;
-    rdfs:label "IgG" ;
-    mcbo:hasQualityMeasurement mcbo:quality_DEMO002_RUN_C_Aggregation ;
-    mcbo:hasTiterValue 450.0 .
-
-mcbo:product_DEMO003_RUN_B a mcbo:TherapeuticProtein ;
-    rdfs:label "BsAb" ;
-    mcbo:hasTiterValue 280.0 .
+mcbo:product_Run_001 a mcbo:AntibodyProduct ;
+    rdfs:label "mAb" .
 
 mcbo:productivity_DEMO001_RUN_A a mcbo:HighProductivity ;
     mcbo:hasProductivityCategory "High" ;
@@ -860,187 +542,63 @@ mcbo:productivity_DEMO001_RUN_B a mcbo:MediumProductivity ;
     mcbo:hasProductivityCategory "Medium" ;
     mcbo:hasProductivityValue 3.0 .
 
-mcbo:productivity_DEMO001_RUN_C a mcbo:HighProductivity ;
-    mcbo:hasProductivityCategory "High" ;
-    mcbo:hasProductivityValue 4.0 .
-
-mcbo:productivity_DEMO001_RUN_D a mcbo:LowProductivity ;
-    mcbo:hasProductivityCategory "Low" ;
-    mcbo:hasProductivityValue 1.0 .
-
 mcbo:productivity_DEMO002_RUN_A a mcbo:MediumProductivity ;
     mcbo:hasProductivityCategory "Medium" ;
     mcbo:hasProductivityValue 3.0 .
 
-mcbo:productivity_DEMO002_RUN_B a mcbo:HighProductivity ;
-    mcbo:hasProductivityCategory "High" ;
-    mcbo:hasProductivityValue 4.0 .
-
-mcbo:productivity_DEMO002_RUN_C a mcbo:VeryHighProductivity ;
-    mcbo:hasProductivityCategory "VeryHigh" ;
-    mcbo:hasProductivityValue 5.0 .
-
-mcbo:productivity_DEMO003_RUN_A a mcbo:MediumProductivity ;
-    mcbo:hasProductivityCategory "Medium" ;
-    mcbo:hasProductivityValue 3.0 .
-
-mcbo:productivity_DEMO003_RUN_B a mcbo:HighProductivity ;
-    mcbo:hasProductivityCategory "High" ;
-    mcbo:hasProductivityValue 4.0 .
+mcbo:productivity_DEMO_PROTEIN_A a mcbo:LowProductivity ;
+    mcbo:hasProductivityCategory "Low" ;
+    mcbo:hasProductivityValue 1.0 .
 
 mcbo:quality_DEMO002_RUN_A_Glycosylation a mcbo:QualityMeasurement ;
     rdfs:label "Glycosylation" .
 
-mcbo:quality_DEMO002_RUN_B_Glycosylation a mcbo:QualityMeasurement ;
-    rdfs:label "Glycosylation" .
-
-mcbo:quality_DEMO002_RUN_C_Aggregation a mcbo:QualityMeasurement ;
-    rdfs:label "Aggregation" .
-
 mcbo:sample_DEMO001_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_A ;
     mcbo:hasCollectionDay 3 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_A_ACTB,
-        mcbo:expr_DEMO001_SAMPLE_A_BCL2,
-        mcbo:expr_DEMO001_SAMPLE_A_GAPDH,
-        mcbo:expr_DEMO001_SAMPLE_A_HIF1A,
-        mcbo:expr_DEMO001_SAMPLE_A_MYC,
-        mcbo:expr_DEMO001_SAMPLE_A_TP53,
-        mcbo:expr_DEMO001_SAMPLE_A_VEGFA ;
     mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_A .
 
 mcbo:sample_DEMO001_SAMPLE_B a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_B ;
     mcbo:hasCollectionDay 3 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_B_ACTB,
-        mcbo:expr_DEMO001_SAMPLE_B_BCL2,
-        mcbo:expr_DEMO001_SAMPLE_B_GAPDH,
-        mcbo:expr_DEMO001_SAMPLE_B_HIF1A,
-        mcbo:expr_DEMO001_SAMPLE_B_MYC,
-        mcbo:expr_DEMO001_SAMPLE_B_TP53,
-        mcbo:expr_DEMO001_SAMPLE_B_VEGFA ;
     mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_B .
-
-mcbo:sample_DEMO001_SAMPLE_C a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_C ;
-    mcbo:hasCollectionDay 6 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_C_ACTB,
-        mcbo:expr_DEMO001_SAMPLE_C_BCL2,
-        mcbo:expr_DEMO001_SAMPLE_C_GAPDH,
-        mcbo:expr_DEMO001_SAMPLE_C_HIF1A,
-        mcbo:expr_DEMO001_SAMPLE_C_MYC,
-        mcbo:expr_DEMO001_SAMPLE_C_TP53,
-        mcbo:expr_DEMO001_SAMPLE_C_VEGFA ;
-    mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_C .
-
-mcbo:sample_DEMO001_SAMPLE_D a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO001_SAMPLE_D ;
-    mcbo:hasCollectionDay 6 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO001_SAMPLE_D_ACTB,
-        mcbo:expr_DEMO001_SAMPLE_D_BCL2,
-        mcbo:expr_DEMO001_SAMPLE_D_GAPDH,
-        mcbo:expr_DEMO001_SAMPLE_D_HIF1A,
-        mcbo:expr_DEMO001_SAMPLE_D_MYC,
-        mcbo:expr_DEMO001_SAMPLE_D_TP53,
-        mcbo:expr_DEMO001_SAMPLE_D_VEGFA ;
-    mcbo:inCulturePhase mcbo:phase_DEMO001_RUN_D .
 
 mcbo:sample_DEMO002_SAMPLE_A a mcbo:BioprocessSample ;
     mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_A ;
     mcbo:hasCollectionDay 2 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_A_ACTB,
-        mcbo:expr_DEMO002_SAMPLE_A_CXCL8,
-        mcbo:expr_DEMO002_SAMPLE_A_GAPDH,
-        mcbo:expr_DEMO002_SAMPLE_A_HSP90,
-        mcbo:expr_DEMO002_SAMPLE_A_IL6,
-        mcbo:expr_DEMO002_SAMPLE_A_TNF ;
     mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_A .
 
-mcbo:sample_DEMO002_SAMPLE_B a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_B ;
-    mcbo:hasCollectionDay 5 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_B_ACTB,
-        mcbo:expr_DEMO002_SAMPLE_B_CXCL8,
-        mcbo:expr_DEMO002_SAMPLE_B_GAPDH,
-        mcbo:expr_DEMO002_SAMPLE_B_HSP90,
-        mcbo:expr_DEMO002_SAMPLE_B_IL6,
-        mcbo:expr_DEMO002_SAMPLE_B_TNF ;
-    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_B .
-
-mcbo:sample_DEMO002_SAMPLE_C a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO002_SAMPLE_C ;
-    mcbo:hasCollectionDay 7 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO002_SAMPLE_C_ACTB,
-        mcbo:expr_DEMO002_SAMPLE_C_CXCL8,
-        mcbo:expr_DEMO002_SAMPLE_C_GAPDH,
-        mcbo:expr_DEMO002_SAMPLE_C_HSP90,
-        mcbo:expr_DEMO002_SAMPLE_C_IL6,
-        mcbo:expr_DEMO002_SAMPLE_C_TNF ;
-    mcbo:inCulturePhase mcbo:phase_DEMO002_RUN_C .
-
-mcbo:sample_DEMO003_SAMPLE_A a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_A ;
+mcbo:sample_DEMO_PROTEIN_SAMPLE_A a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO_PROTEIN_SAMPLE_A ;
     mcbo:hasCollectionDay 4 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_A_ACTB,
-        mcbo:expr_DEMO003_SAMPLE_A_AKT1,
-        mcbo:expr_DEMO003_SAMPLE_A_EGFR,
-        mcbo:expr_DEMO003_SAMPLE_A_ERBB2,
-        mcbo:expr_DEMO003_SAMPLE_A_GAPDH,
-        mcbo:expr_DEMO003_SAMPLE_A_MET ;
-    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_A .
+    mcbo:inCulturePhase mcbo:phase_DEMO_PROTEIN_A .
 
-mcbo:sample_DEMO003_SAMPLE_B a mcbo:BioprocessSample ;
-    mcbo:hasCellViabilityMeasurement mcbo:viability_DEMO003_SAMPLE_B ;
-    mcbo:hasCollectionDay 8 ;
-    mcbo:hasGeneExpression mcbo:expr_DEMO003_SAMPLE_B_ACTB,
-        mcbo:expr_DEMO003_SAMPLE_B_AKT1,
-        mcbo:expr_DEMO003_SAMPLE_B_EGFR,
-        mcbo:expr_DEMO003_SAMPLE_B_ERBB2,
-        mcbo:expr_DEMO003_SAMPLE_B_GAPDH,
-        mcbo:expr_DEMO003_SAMPLE_B_MET ;
-    mcbo:inCulturePhase mcbo:phase_DEMO003_RUN_B .
+mcbo:sample_Sample_D7 a mcbo:BioprocessSample ;
+    mcbo:hasCellViabilityMeasurement mcbo:viability_Sample_D7 ;
+    mcbo:hasCollectionDay 7 ;
+    mcbo:inCulturePhase mcbo:phase_Run_001 .
 
 mcbo:system_DEMO001_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_A .
 
 mcbo:system_DEMO001_RUN_B a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_CHO-K1,
         mcbo:medium_DEMO001_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_B .
-
-mcbo:system_DEMO001_RUN_C a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_CHO-K1,
-        mcbo:medium_DEMO001_RUN_C ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_C .
-
-mcbo:system_DEMO001_RUN_D a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_CHO-K1,
-        mcbo:medium_DEMO001_RUN_D ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO001_RUN_D .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO001_RUN_B .
 
 mcbo:system_DEMO002_RUN_A a mcbo:CellCultureSystem ;
     obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_A .
+    obo:RO_0000086 mcbo:environmental_condition_DEMO002_RUN_A .
 
-mcbo:system_DEMO002_RUN_B a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_B .
+mcbo:system_DEMO_PROTEIN_A a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_Vero ;
+    obo:RO_0000086 mcbo:environmental_condition_DEMO_PROTEIN_A .
 
-mcbo:system_DEMO002_RUN_C a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_HEK293 ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO002_RUN_C .
-
-mcbo:system_DEMO003_RUN_A a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
-        mcbo:medium_DEMO003_RUN_A ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_A .
-
-mcbo:system_DEMO003_RUN_B a mcbo:CellCultureSystem ;
-    obo:BFO_0000051 mcbo:cellline_CHO-DG44,
-        mcbo:medium_DEMO003_RUN_B ;
-    obo:RO_0000086 mcbo:culture_condition_quality_DEMO003_RUN_B .
+mcbo:system_Run_001 a mcbo:CellCultureSystem ;
+    obo:BFO_0000051 mcbo:cellline_CHO-K1 ;
+    obo:RO_0000086 mcbo:environmental_condition_Run_001 .
 
 mcbo:viability_DEMO001_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 95.0 ;
@@ -1050,128 +608,58 @@ mcbo:viability_DEMO001_SAMPLE_B a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 92.0 ;
     mcbo:hasViableCellDensity 6000000.0 .
 
-mcbo:viability_DEMO001_SAMPLE_C a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 88.0 ;
-    mcbo:hasViableCellDensity 12000000.0 .
-
-mcbo:viability_DEMO001_SAMPLE_D a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 45.0 ;
-    mcbo:hasViableCellDensity 4000000.0 .
-
 mcbo:viability_DEMO002_SAMPLE_A a mcbo:CellViabilityMeasurement ;
     mcbo:hasViabilityPercentage 98.0 ;
     mcbo:hasViableCellDensity 5000000.0 .
 
-mcbo:viability_DEMO002_SAMPLE_B a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 85.0 ;
-    mcbo:hasViableCellDensity 9000000.0 .
-
-mcbo:viability_DEMO002_SAMPLE_C a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 92.0 ;
-    mcbo:hasViableCellDensity 15000000.0 .
-
-mcbo:viability_DEMO003_SAMPLE_A a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 94.0 ;
+mcbo:viability_DEMO_PROTEIN_SAMPLE_A a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 75.0 ;
     mcbo:hasViableCellDensity 7000000.0 .
 
-mcbo:viability_DEMO003_SAMPLE_B a mcbo:CellViabilityMeasurement ;
-    mcbo:hasViabilityPercentage 89.0 ;
-    mcbo:hasViableCellDensity 11000000.0 .
+mcbo:viability_Sample_D7 a mcbo:CellViabilityMeasurement ;
+    mcbo:hasViabilityPercentage 85.0 ;
+    mcbo:hasViableCellDensity 8500000.0 .
 
-obo:BFO_0000003 rdfs:label "occurrent" .
+uo:BFO_0000003 rdfs:label "occurrent" .
 
-obo:BFO_0000019 rdfs:label "quality" .
+uo:BFO_0000019 rdfs:label "quality" .
 
-obo:IAO_0000100 rdfs:label "dataset" .
+uo:IAO_0000100 rdfs:label "dataset" .
 
-obo:IAO_0000311 rdfs:label "publication" .
+uo:IAO_0000311 rdfs:label "publication" .
 
-obo:OBI_0000293 rdfs:label "has specified input" ;
-    rdfs:domain obo:OBI_0001271 ;
+uo:OBI_0000293 rdfs:label "has specified input" ;
+    rdfs:domain uo:OBI_0001271 ;
     rdfs:range mcbo:BioprocessSample .
 
-obo:SO_0000704 rdfs:label "gene" .
+uo:OBI_0000674 rdfs:label "setting datum" .
 
-obo:UO_0000027 rdfs:label "degree Celsius" .
+obo:RO_0000086 rdfs:label "has quality" .
 
-obo:UO_0000169 rdfs:label "parts per million" .
+uo:SO_0000704 rdfs:label "gene" .
 
-obo:UO_0000201 rdfs:label "cells per milliliter" .
-
-obo:UO_0000273 rdfs:label "milligram per liter" .
-
-mcbo:AntibodyProductGene a mcbo:Gene ;
-    rdfs:label "antibody product gene" .
-
-mcbo:CHO_K1 a mcbo:CHOCellLine,
-        owl:NamedIndividual ;
-    rdfs:label "CHO-K1 cell line" .
+iof:ProductProductionProcess a owl:Class ;
+    rdfs:label "product production process" .
 
 mcbo:ContinuousCultureProcess a owl:Class ;
     rdfs:label "Continuous culture process" ;
-    obo:IAO_0000115 "A cell culture process in which fresh medium is added and culture broth is removed during cultivation to maintain a quasi-steady state." ;
+    uo:IAO_0000115 "A cell culture process in which fresh medium is added and culture broth is removed during cultivation to maintain a quasi-steady state." ;
     rdfs:subClassOf mcbo:CellCultureProcess .
 
-mcbo:Product_mAb a mcbo:ProductMaterial,
-        owl:NamedIndividual ;
-    rdfs:label "Monoclonal antibody product" .
+mcbo:FedBatchCultureProcess a owl:Class ;
+    rdfs:label "Fed-batch culture process" ;
+    uo:IAO_0000115 "A batch cell culture process in which one or more nutrient feeds are added during cultivation without continuous removal of culture broth." ;
+    rdfs:subClassOf mcbo:BatchCultureProcess .
 
-mcbo:RNASeqRawReads a owl:Class ;
-    rdfs:label "RNA-seq raw reads (FASTQ)" ;
-    obo:IAO_0000115 "A raw reads dataset that consists specifically of RNA sequencing reads." ;
-    rdfs:comment "Raw RNA sequencing reads in FASTQ format." ;
-    rdfs:subClassOf mcbo:RawReadsDataset .
-
-mcbo:Sample_D7 a mcbo:BioprocessSample,
-        owl:NamedIndividual ;
-    rdfs:label "Day 7 aliquot" ;
-    mcbo:hasCellViabilityMeasurement mcbo:Viability_72h ;
-    mcbo:hasCollectionDay 7 ;
-    mcbo:inCulturePhase mcbo:StationaryPhase_001 ;
-    mcbo:sampleContainsProduct mcbo:Product_mAb .
-
-mcbo:gene_AKT1 a mcbo:Gene ;
-    rdfs:label "AKT1" .
-
-mcbo:gene_EGFR a mcbo:Gene ;
-    rdfs:label "EGFR" .
-
-mcbo:gene_ERBB2 a mcbo:Gene ;
-    rdfs:label "ERBB2" .
-
-mcbo:gene_MET a mcbo:Gene ;
-    rdfs:label "MET" .
-
-iof:hasOutput a owl:ObjectProperty ;
-    rdfs:label "has output" .
-
-mcbo:AnalyticalMethod a owl:Class ;
-    rdfs:label "Analytical method" ;
-    obo:IAO_0000115 "A planned process in which measurements are performed to obtain information about some entity." ;
-    rdfs:comment "Method used for sample analysis." ;
-    rdfs:subClassOf obo:BFO_0000015 .
-
-mcbo:CHOCellLine a owl:Class ;
-    rdfs:label "CHO cell line" ;
-    obo:IAO_0000115 "A cell line whose cells are derived from Chinese hamster ovary (CHO) lineage." ;
-    rdfs:comment "Chinese Hamster Ovary cell line family." ;
-    rdfs:subClassOf mcbo:CellLine .
-
-mcbo:CulturePhase a owl:Class ;
-    rdfs:label "Culture phase" ;
-    obo:IAO_0000115 "A temporal portion of a cell culture process characterized by a distinctive growth or metabolic regime." ;
-    rdfs:comment "Temporal phase of cell culture process." ;
-    rdfs:subClassOf obo:BFO_0000003 .
+mcbo:GlutamineConcentration a owl:Class ;
+    rdfs:label "Glutamine concentration" ;
+    uo:IAO_0000115 "A nutrient concentration that specifies the concentration of glutamine in a culture medium or sample." ;
+    rdfs:subClassOf mcbo:NutrientConcentration .
 
 mcbo:MediumProductivity a owl:Class ;
     rdfs:label "Medium productivity" ;
-    obo:IAO_0000115 "A productivity category indicating medium production output relative to an applicable reference context." ;
+    uo:IAO_0000115 "A productivity category indicating medium production output relative to an applicable reference context." ;
     rdfs:subClassOf mcbo:ProductivityMeasurement .
-
-mcbo:PerfusionCultureProcess a owl:Class ;
-    rdfs:label "Perfusion culture process" ;
-    obo:IAO_0000115 "A continuous cell culture process in which fresh medium is continuously supplied and spent medium is continuously removed while retaining cells within the culture system." ;
-    rdfs:subClassOf mcbo:ContinuousCultureProcess .
 
 mcbo:clone_Clone_A a mcbo:Clone ;
     rdfs:label "Clone_A" .
@@ -1179,167 +667,169 @@ mcbo:clone_Clone_A a mcbo:Clone ;
 mcbo:clone_Clone_B a mcbo:Clone ;
     rdfs:label "Clone_B" .
 
-mcbo:clone_Clone_X a mcbo:Clone ;
-    rdfs:label "Clone_X" .
+obo:RO_0000057 rdfs:label "has participant" .
 
-mcbo:gene_CXCL8 a mcbo:Gene ;
-    rdfs:label "CXCL8" .
+iof:ManufacturingProcess a owl:Class ;
+    rdfs:label "manufacturing process" .
 
-mcbo:gene_HSP90 a mcbo:Gene ;
-    rdfs:label "HSP90" .
+iof:hasOutput a owl:ObjectProperty ;
+    rdfs:label "has output" .
 
-mcbo:gene_IL6 a mcbo:Gene ;
-    rdfs:label "IL6" .
-
-mcbo:gene_TNF a mcbo:Gene ;
-    rdfs:label "TNF" .
-
-obo:BFO_0000015 rdfs:label "process" .
-
-obo:IAO_0000030 rdfs:label "information content entity" .
+mcbo:AnalyticalMethod a owl:Class ;
+    rdfs:label "Analytical method" ;
+    uo:IAO_0000115 "A planned process in which measurements are performed to obtain information about some entity." ;
+    rdfs:comment "Method used for sample analysis." ;
+    rdfs:subClassOf uo:BFO_0000015 .
 
 mcbo:BatchCultureProcess a owl:Class ;
     rdfs:label "Batch culture process" ;
-    obo:IAO_0000115 "A cell culture process in which culture medium is not continuously added or removed during the main cultivation phase (closed system aside from sampling)." ;
+    uo:IAO_0000115 "A cell culture process in which cells are cultured in a closed system with no addition or removal of materials during the cultivation period." ;
+    rdfs:comment "Closed-system culture without nutrient addition or product removal during cultivation." ;
     rdfs:subClassOf mcbo:CellCultureProcess .
 
 mcbo:Clone a owl:Class ;
     rdfs:label "Clone" ;
-    obo:IAO_0000115 "A cell line population derived from a single progenitor cell and assumed to be genetically uniform relative to that progenitor." ;
+    uo:IAO_0000115 "A cell line population derived from a single progenitor cell and assumed to be genetically uniform relative to that progenitor." ;
     rdfs:comment "Specific engineered clone derived from a parent cell line." ;
     rdfs:subClassOf mcbo:CellLine .
 
-mcbo:FedBatchCultureProcess a owl:Class ;
-    rdfs:label "Fed-batch culture process" ;
-    obo:IAO_0000115 "A batch cell culture process in which one or more nutrient feeds are added during cultivation without continuous removal of culture broth." ;
-    rdfs:subClassOf mcbo:BatchCultureProcess .
+mcbo:CulturePhase a owl:Class ;
+    rdfs:label "Culture phase" ;
+    uo:IAO_0000115 "A temporal portion of a cell culture process characterized by a distinctive growth or metabolic regime." ;
+    rdfs:comment "Temporal phase of cell culture process." ;
+    rdfs:subClassOf uo:BFO_0000003 .
 
-mcbo:HighProductivity a owl:Class ;
-    rdfs:label "High productivity" ;
-    obo:IAO_0000115 "A productivity category indicating high production output relative to an applicable reference context." ;
-    rdfs:subClassOf mcbo:ProductivityMeasurement .
+mcbo:EnvironmentalSetpoint a owl:Class ;
+    rdfs:label "Environmental setpoint" ;
+    uo:IAO_0000115 "A setting datum that specifies the target value for a controlled environmental condition in a cell culture system." ;
+    rdfs:comment "When present and linked to a CultureEnvironmentalCondition, indicates that condition is actively controlled. Absence of a linked setpoint indicates the condition is measured but not controlled." ;
+    rdfs:subClassOf uo:OBI_0000674 .
 
-mcbo:ProductMaterial a owl:Class ;
-    rdfs:label "Product material" ;
-    obo:IAO_0000115 "A material entity that is the intended product of a cell culture process, such as a recombinant therapeutic protein." ;
-    rdfs:comment "Manufactured product (e.g., therapeutic mAb). Could align to ChEBI or PRO specific entries." ;
-    rdfs:subClassOf obo:BFO_0000040 .
-
-mcbo:RNASeqDataset a owl:Class ;
-    rdfs:label "RNA-seq reads dataset" ;
-    obo:IAO_0000115 "A dataset consisting of RNA sequencing data products derived from one or more sequencing runs." ;
-    rdfs:comment "A dataset containing RNA sequencing data and related information." ;
-    rdfs:subClassOf obo:IAO_0000100 .
-
-mcbo:gene_BCL2 a mcbo:Gene ;
-    rdfs:label "BCL2" .
-
-mcbo:gene_HIF1A a mcbo:Gene ;
-    rdfs:label "HIF1A" .
-
-mcbo:gene_MYC a mcbo:Gene ;
-    rdfs:label "MYC" .
-
-mcbo:gene_TP53 a mcbo:Gene ;
-    rdfs:label "TP53" .
-
-mcbo:gene_VEGFA a mcbo:Gene ;
-    rdfs:label "VEGFA" .
-
-obo:OBI_0001271 rdfs:label "RNA sequencing assay" .
-
-mcbo:CellCultureProcess a owl:Class ;
-    rdfs:label "Cell culture process" ;
-    obo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf [ a owl:Restriction ;
-            owl:onProperty mcbo:hasProcessOutput ;
-            owl:someValuesFrom mcbo:BioprocessSample ],
-        obo:BFO_0000015 .
-
-mcbo:ExponentialPhase a owl:Class ;
-    rdfs:label "Exponential phase" ;
-    obo:IAO_0000115 "A culture phase during which the viable cell population increases approximately exponentially." ;
-    rdfs:subClassOf mcbo:CulturePhase .
-
-mcbo:MammalianCellBioprocess a owl:Class ;
-    rdfs:label "Mammalian cell bioprocess" ;
-    obo:IAO_0000115 "A bioprocess in which mammalian cells participate as the primary biological production system." ;
-    rdfs:comment "Top application class for mammalian cell-based manufacturing activities." ;
-    rdfs:seeAlso iof:ManufacturingProcess ;
-    rdfs:subClassOf obo:BFO_0000015 .
+mcbo:ProteinProduct a owl:Class ;
+    rdfs:label "Protein product" ;
+    uo:IAO_0000115 "A material entity that is a protein produced as the intended output of a cell culture bioprocess." ;
+    rdfs:comment "Recombinant protein product (e.g., cytokines, enzymes, therapeutic proteins). Distinguished from the gene that encodes it." ;
+    rdfs:subClassOf mcbo:ProductMaterial .
 
 mcbo:QualityMeasurement a owl:Class ;
     rdfs:label "Quality measurement" ;
-    obo:IAO_0000115 "A measurement datum that records a product quality attribute value for a sample or product material." ;
+    uo:IAO_0000115 "A measurement datum that records a product quality attribute value for a sample or product material." ;
     rdfs:comment "Measurement of product quality attributes." ;
-    rdfs:subClassOf obo:IAO_0000109 .
-
-mcbo:SequencingRun a owl:Class ;
-    rdfs:label "Sequencing run" ;
-    obo:IAO_0000115 "An information content entity representing the execution record and outputs of a sequencing instrument run." ;
-    rdfs:comment "Execution of RNA sequencing on bioprocess samples." ;
-    rdfs:subClassOf obo:OBI_0001271 .
-
-mcbo:StationaryPhase a owl:Class ;
-    rdfs:label "Stationary phase" ;
-    obo:IAO_0000115 "A culture phase during which net cell population growth is approximately zero over a time interval." ;
-    rdfs:subClassOf mcbo:CulturePhase .
-
-obo:IAO_0000109 rdfs:label "measurement datum" .
-
-mcbo:GlutamineConcentration a owl:Class ;
-    rdfs:label "Glutamine concentration" ;
-    obo:IAO_0000115 "A nutrient concentration that specifies the concentration of glutamine in a culture medium or sample." ;
-    rdfs:subClassOf mcbo:NutrientConcentration .
-
-mcbo:cellline_CHO-DG44 a mcbo:CHOCellLine ;
-    rdfs:label "CHO-DG44" ;
-    mcbo:hasClone mcbo:clone_Clone_X ;
-    mcbo:overexpressesGene mcbo:AntibodyProductGene ;
-    mcbo:producesProduct "BsAb" .
-
-obo:BFO_0000040 rdfs:label "material entity" .
-
-mcbo:CellLine a owl:Class ;
-    rdfs:label "Cell line" ;
-    obo:IAO_0000115 "A population of cells derived from a common lineage that can be propagated and maintained under defined culture conditions." ;
-    rdfs:comment "Immortalized mammalian cell line used for bioprocessing (e.g., CHO, HEK293)." ;
-    rdfs:subClassOf obo:BFO_0000040 .
-
-mcbo:CultureMedium a owl:Class ;
-    rdfs:label "Culture medium" ;
-    obo:IAO_0000115 "A material entity consisting of a formulated mixture of nutrients and supplements intended to support cell growth and maintenance in culture." ;
-    rdfs:comment "Nutrient medium used for cell culture." ;
-    rdfs:subClassOf obo:BFO_0000040 .
-
-mcbo:ProductivityMeasurement a owl:Class ;
-    rdfs:label "Productivity measurement" ;
-    obo:IAO_0000115 "A measurement datum that records a productivity-related value or category for a culture (e.g., titer, specific productivity, or a qualitative productivity class)." ;
-    rdfs:comment "Measurement of bioprocess productivity." ;
-    rdfs:subClassOf obo:IAO_0000109 .
+    rdfs:subClassOf uo:IAO_0000109 .
 
 mcbo:cellline_HEK293 a mcbo:HEK293CellLine ;
     rdfs:label "HEK293" ;
     mcbo:overexpressesGene mcbo:gene_IgG ;
     mcbo:producesProduct "IgG" .
 
-mcbo:gene_ACTB a mcbo:Gene ;
-    rdfs:label "ACTB" .
+mcbo:cellline_Vero a mcbo:CellLine ;
+    rdfs:label "Vero" .
 
-mcbo:gene_GAPDH a mcbo:Gene ;
-    rdfs:label "GAPDH" .
+uo:BFO_0000015 rdfs:label "process" .
+
+uo:IAO_0000030 rdfs:label "information content entity" .
+
+uo:OBI_0001271 rdfs:label "RNA sequencing assay" .
+
+mcbo:AntibodyProduct a owl:Class ;
+    rdfs:label "Antibody product" ;
+    uo:IAO_0000115 "A protein product that is an antibody or antibody fragment." ;
+    rdfs:comment "Includes monoclonal antibodies (mAbs), bispecifics, Fc-fusions, etc. May not be linked to a single encoding gene due to heavy/light chain complexity." ;
+    rdfs:subClassOf mcbo:ProteinProduct .
+
+mcbo:CellCultureProcess a owl:Class ;
+    rdfs:label "Cell culture process" ;
+    uo:IAO_0000115 "A process in which living cells are maintained in a controlled environment to support growth and/or production of biological material." ;
+    rdfs:seeAlso iof:ManufacturingProcess,
+        iof:ProductProductionProcess ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty mcbo:hasProcessOutput ;
+            owl:someValuesFrom mcbo:BioprocessSample ],
+        [ a owl:Restriction ;
+            owl:onProperty obo:RO_0000057 ;
+            owl:someValuesFrom mcbo:CellCultureSystem ],
+        uo:BFO_0000015 .
+
+mcbo:CultureMedium a owl:Class ;
+    rdfs:label "Culture medium" ;
+    uo:IAO_0000115 "A material entity consisting of a formulated mixture of nutrients and supplements intended to support cell growth and maintenance in culture." ;
+    rdfs:comment "Nutrient medium used for cell culture." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:ExponentialPhase a owl:Class ;
+    rdfs:label "Exponential phase" ;
+    uo:IAO_0000115 "A culture phase during which the viable cell population increases approximately exponentially." ;
+    rdfs:subClassOf mcbo:CulturePhase .
+
+mcbo:ProductMaterial a owl:Class ;
+    rdfs:label "Product material" ;
+    uo:IAO_0000115 "A material entity that is the intended product of a cell culture process, such as a recombinant therapeutic protein." ;
+    rdfs:comment "Manufactured product (e.g., therapeutic mAb). Could align to ChEBI or PRO specific entries." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:RNASeqDataset a owl:Class ;
+    rdfs:label "RNA-seq reads dataset" ;
+    uo:IAO_0000115 "A dataset consisting of RNA sequencing data products derived from one or more sequencing runs." ;
+    rdfs:comment "A dataset containing RNA sequencing data and related information." ;
+    rdfs:subClassOf uo:IAO_0000100 .
+
+mcbo:GeneExpressionMeasurement a owl:Class ;
+    rdfs:label "Gene expression measurement" ;
+    uo:IAO_0000115 "A measurement datum that records an expression value for a gene in a sample." ;
+    rdfs:comment "Quantitative measurement of gene expression level." ;
+    rdfs:subClassOf uo:IAO_0000109 .
+
+mcbo:MammalianCellCultureProcess a owl:Class ;
+    rdfs:label "Mammalian cell culture process"@en ;
+    uo:IAO_0000115 "A cell culture process in which a mammalian cell participates."@en ;
+    rdfs:seeAlso iof:ManufacturingProcess ;
+    rdfs:subClassOf uo:BFO_0000015 ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:intersectionOf ( mcbo:CellCultureProcess [ a owl:Restriction ;
+                        owl:onProperty obo:RO_0000057 ;
+                        owl:someValuesFrom mcbo:MammalianCell ] ) ] .
+
+mcbo:SequencingRun a owl:Class ;
+    rdfs:label "Sequencing run" ;
+    uo:IAO_0000115 "An information content entity representing the execution record and outputs of a sequencing instrument run." ;
+    rdfs:comment "Execution of RNA sequencing on bioprocess samples." ;
+    rdfs:subClassOf uo:OBI_0001271 .
+
+uo:IAO_0000109 rdfs:label "measurement datum" .
 
 mcbo:CellCultureSystem a owl:Class ;
     rdfs:label "cell culture system" ;
-    obo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
-    rdfs:subClassOf obo:BFO_0000040 .
+    uo:IAO_0000115 "A material entity composed of cells and their supporting environment (e.g., vessel/bioreactor, medium, and associated components) that participates in a cell culture process." ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:onProperty obo:RO_0000086 ;
+            owl:someValuesFrom mcbo:CultureEnvironmentalCondition ],
+        uo:BFO_0000040 .
 
 mcbo:NutrientConcentration a owl:Class ;
     rdfs:label "Nutrient concentration" ;
-    obo:IAO_0000115 "A measurement datum or quantity value that specifies the concentration of a nutrient in a culture medium or sample." ;
+    uo:IAO_0000115 "A measurement datum or quantity value that specifies the concentration of a nutrient in a culture medium or sample." ;
     rdfs:comment "Concentration measurement of specific nutrients in culture medium." ;
-    rdfs:subClassOf obo:IAO_0000109 .
+    rdfs:subClassOf uo:IAO_0000109 .
+
+uo:BFO_0000040 rdfs:label "material entity" .
+
+mcbo:CellLine a owl:Class ;
+    rdfs:label "Cell line" ;
+    uo:IAO_0000115 "A population of cells derived from a common lineage that can be propagated and maintained under defined culture conditions." ;
+    rdfs:comment "Immortalized mammalian cell line used for bioprocessing (e.g., CHO, HEK293)." ;
+    rdfs:subClassOf uo:BFO_0000040 .
+
+mcbo:ProductivityMeasurement a owl:Class ;
+    rdfs:label "Productivity measurement" ;
+    uo:IAO_0000115 "A measurement datum that records a productivity-related value or category for a culture (e.g., titer, specific productivity, or a qualitative productivity class)." ;
+    rdfs:comment "Measurement of bioprocess productivity." ;
+    rdfs:subClassOf uo:IAO_0000109 .
+
+mcbo:CellViabilityMeasurement a owl:Class ;
+    rdfs:label "Cell viability measurement" ;
+    uo:IAO_0000115 "A measurement datum that records the proportion or count of viable cells in a sample." ;
+    rdfs:comment "Measurement of cell viability and density." ;
+    rdfs:subClassOf uo:IAO_0000109 .
 
 mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     rdfs:label "CHO-K1" ;
@@ -1348,32 +838,21 @@ mcbo:cellline_CHO-K1 a mcbo:CHOCellLine ;
     mcbo:overexpressesGene mcbo:AntibodyProductGene ;
     mcbo:producesProduct "mAb" .
 
-mcbo:CellViabilityMeasurement a owl:Class ;
-    rdfs:label "Cell viability measurement" ;
-    obo:IAO_0000115 "A measurement datum that records the proportion or count of viable cells in a sample." ;
-    rdfs:comment "Measurement of cell viability and density." ;
-    rdfs:subClassOf obo:IAO_0000109 .
+mcbo:Gene a owl:Class ;
+    rdfs:label "Gene" ;
+    uo:IAO_0000115 "A genomic entity that encodes a functional product such as a protein or functional RNA." ;
+    rdfs:comment "Gene entity with expression measurements." ;
+    rdfs:subClassOf uo:SO_0000704 .
 
-mcbo:CultureConditionQuality a owl:Class ;
-    rdfs:label "Culture condition quality"@en ;
-    obo:IAO_0000115 "A quality that inheres in a cell culture system and characterizes its culture conditions (e.g., pH, temperature, dissolved oxygen)."@en ;
-    rdfs:subClassOf obo:BFO_0000019 .
+mcbo:CultureEnvironmentalCondition a owl:Class ;
+    rdfs:label "Culture environmental condition" ;
+    uo:IAO_0000115 "A quality that inheres in a cell culture system and represents a measurable environmental parameter such as temperature, pH, dissolved oxygen, or CO2 concentration." ;
+    rdfs:comment "BFO-compliant quality class for culture environmental parameters. These qualities inhere in the CellCultureSystem (material entity), not in the process itself." ;
+    rdfs:subClassOf uo:BFO_0000019 .
 
 mcbo:BioprocessSample a owl:Class ;
     rdfs:label "Bioprocess sample" ;
-    obo:IAO_0000115 "A material sample taken from a bioprocess or its outputs for measurement or analysis." ;
+    uo:IAO_0000115 "A material sample taken from a bioprocess or its outputs for measurement or analysis." ;
     rdfs:comment "Material aliquot/timepoint produced by a bioprocess for analysis (e.g., RNA-seq)." ;
-    rdfs:subClassOf obo:BFO_0000040 .
-
-mcbo:Gene a owl:Class ;
-    rdfs:label "Gene" ;
-    obo:IAO_0000115 "A genomic entity that encodes a functional product such as a protein or functional RNA." ;
-    rdfs:comment "Gene entity with expression measurements." ;
-    rdfs:subClassOf obo:SO_0000704 .
-
-mcbo:GeneExpressionMeasurement a owl:Class ;
-    rdfs:label "Gene expression measurement" ;
-    obo:IAO_0000115 "A measurement datum that records an expression value for a gene in a sample." ;
-    rdfs:comment "Quantitative measurement of gene expression level." ;
-    rdfs:subClassOf obo:IAO_0000109 .
+    rdfs:subClassOf uo:BFO_0000040 .
 

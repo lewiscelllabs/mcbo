@@ -128,7 +128,7 @@ Competency questions in `eval/queries/*.rq` leverage:
 
 ## IOF Alignment
 
-MCBO process classes (e.g., `CellCultureProcess`, `MammalianCellBioprocess`) are direct 
+MCBO process classes (e.g., `CellCultureProcess`, `MammalianCellCultureProcess`) are direct 
 subclasses of `BFO:process` to maintain strict BFO alignment and interoperability with 
 OBO Foundry ontologies.
 
