@@ -79,8 +79,14 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Citation
 
-> Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025). 
-> MCBO: Mammalian Cell Bioprocessing Ontology, A Hub-and-Spoke, IOF-Anchored Application Ontology.
-> *ICBO-EAST 2025*.
----
+> MCBO: Mammalian Cell Bioprocessing Ontology, A Hub-and-Spoke, IOF-Anchored Application Ontology
+> 
+> Kimberly Robasky, James Morrissey, Markus Riedl, Andreas Dräger, Nicole Borth, Michael J Betenbaugh, Nathan E Lewis
+> 
+> bioRxiv 2026.01.05.697007; doi: https://doi.org/10.64898/2026.01.05.697007
+> 
+> This article is a preprint and has not been certified by peer review.
 
+> Supersedes: Robasky, K., Morrissey, J., Riedl, M., Dräger, A., Borth, N., Betenbaugh, M. J., & Lewis, N. E. (2025). MCBO: Mammalian Cell Bioprocessing Ontology, A Hub-and-Spoke, IOF-Anchored Application Ontology. *ICBO-EAST 2025*.
+
+---
