@@ -13,7 +13,7 @@
 #   - Conda environment: make conda-env && conda activate mcbo
 #   - Python package + ROBOT installed: make install
 
-.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology install-agent install-ollama clean-agent
+.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology install-agent install-ollama clean-agent performance-table
 
 # Configuration
 PYTHON := python
@@ -96,6 +96,7 @@ help:
 	@echo "  make verify-demo  Verify demo graph parses"
 	@echo "  make docs         Build Sphinx documentation"
 	@echo "  make docs-clean   Clean documentation build"
+	@echo "  make performance-table  Generate query performance table"
 	@echo ""
 	@echo "Configuration by convention:"
 	@echo "  Graph files:     <data-dir>/graph.ttl"
@@ -434,3 +435,27 @@ docs-clean:
 	@cd docs && $(MAKE) clean
 	@rm -f $(DOCS_STAMP)
 
+# =============================================================================
+# Performance Table Target
+# =============================================================================
+
+PERFORMANCE_TABLE := reports/performance_table.md
+
+performance-table: check-env $(PERFORMANCE_TABLE)
+
+$(PERFORMANCE_TABLE): $(DEMO_GRAPH)
+	@echo "Generating query performance table..."
+	@mkdir -p reports
+	@# Build real graph if .data exists, but don't fail if it doesn't
+	@if [ -d "$(REAL_DIR)" ] && [ ! -f "$(REAL_GRAPH)" ]; then \
+		echo "Building real data graph for performance table..."; \
+		$(MAKE) $(REAL_GRAPH) || true; \
+	fi
+	@python scripts/gen_performance_table.py \
+		--real-dir $(REAL_DIR) \
+		--synthetic-dir $(DEMO_DIR) \
+		--output $(PERFORMANCE_TABLE)
+	@echo ""
+	@echo "✅ Performance table generated: $(PERFORMANCE_TABLE)"
+	@echo ""
+	@cat $(PERFORMANCE_TABLE)
