@@ -39,6 +39,7 @@ from .orchestrator import (
 # Configuration by convention defaults
 DEFAULT_PATHS = {
     "graph": "graph.ttl",
+    "duckdb": "mcbo.duckdb",
     "results": "agent_results",
 }
 
@@ -201,6 +202,9 @@ Environment Variables:
                         help="Path to ontology TTL (if not using merged graph)")
     parser.add_argument("--instances", type=str, default=None,
                         help="Path to instances TTL (if not using merged graph)")
+    parser.add_argument("--duckdb", type=str, default=None,
+                        help="Path to mcbo.duckdb (enables execute_sql tool). "
+                             "Defaults to <data-dir>/mcbo.duckdb when it exists.")
     
     # Query arguments
     parser.add_argument("--cq", type=str, default=None,
@@ -247,9 +251,15 @@ Environment Variables:
     if data_dir:
         graph_path = args.graph or str(resolve_data_dir_path(data_dir, "graph"))
         output_dir = Path(args.output) if args.output else resolve_data_dir_path(data_dir, "results")
+        if args.duckdb:
+            duckdb_path = Path(args.duckdb)
+        else:
+            candidate = resolve_data_dir_path(data_dir, "duckdb")
+            duckdb_path = candidate if candidate.exists() else None
     else:
         graph_path = args.graph
         output_dir = Path(args.output) if args.output else Path("agent_results")
+        duckdb_path = Path(args.duckdb) if args.duckdb else None
     
     # Check provider and API key
     provider_name = args.provider or os.getenv("MCBO_LLM_PROVIDER", "anthropic")
@@ -289,11 +299,14 @@ Environment Variables:
         sys.exit(1)
     
     # Create orchestrator
+    if duckdb_path:
+        print(f"DuckDB enabled: {duckdb_path}")
     orchestrator = AgentOrchestrator(
         graph=g,
         provider=provider,
         max_iterations=args.max_iterations,
         verbose=args.verbose,
+        duckdb_path=duckdb_path,
     )
     
     # Run queries

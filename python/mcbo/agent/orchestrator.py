@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Generator, Optional
 
 from rdflib import Graph
@@ -36,6 +37,20 @@ SYSTEM_PROMPT = """You are an expert bioprocess data analyst assistant. You help
 You have access to the following tools:
 {tools}
 
+TWO DATA BACKENDS ARE AVAILABLE - pick the right tool:
+- execute_sparql: queries the RDF graph (graph.ttl). Use this when the question depends
+  on ontology semantics: subclass/superclass reasoning, class hierarchies (CellLine
+  subclasses, ProcessType subclasses), property paths, or anything that the OWL TBox
+  defines.
+- execute_sql:    queries the local DuckDB ingest (mcbo.duckdb) of the same CSV inputs.
+  Use this when the question is straight row/aggregate analytics over the metadata or
+  expression matrix: filters, GROUP BY, JOIN, COUNT, AVG, fast TOP-N. Tables: samples,
+  expression_long(study_id, sample_id, gene_symbol, value), gene_annotations,
+  samples_with_expression (view). The SQL template keys mirror the SPARQL template keys,
+  so for any CQ you may call either tool with the same template_name.
+Either tool populates the same working dataframe, so downstream stats tools
+(compute_correlation, differential_expression, ...) work identically.
+
 SPARQL TEMPLATES - Use the correct one for each question type:
 | Question type | template_name to use |
 |---------------|---------------------|
@@ -44,11 +59,34 @@ SPARQL TEMPLATES - Use the correct one for each question type:
 | viability, cell health | gene_expression_by_viability |
 | cell line overexpression | cell_lines_overexpression |
 | product quality | cell_lines_product_quality |
+| "engineered to produce antibodies / mAb / IgG / BsAb / nanobody" | cell_lines_engineered_for_antibodies |
+| "engineered to express antibodies" / "antibody producer cell lines" | cell_lines_engineered_for_antibodies |
+| "which cell lines appear in processes using <product class X>" | cell_lines_by_product_class (product_class=X) |
 
 FILTER SYNTAX for filtering by cell line:
 - To filter by cell line, use: filter_clause="CONTAINS(?cellLineLabel, \"HEK293\")"
 - To filter by process type, use: filter_clause="?processType = mcbo:FedBatchCultureProcess"
 - Leave filter_clause empty or omit to get all data
+
+SCHEMA HINT for "engineered to produce <product>" questions:
+- The MCBO graph captures genetic engineering via TWO predicates that you
+  should treat as together-equivalent for product questions:
+    (a) ?cellLine mcbo:overexpressesGene mcbo:AntibodyProductGene
+        - the placeholder gene that csv_to_rdf.py creates for Producer=True
+          rows whose ProductType is mab/igg/bsab/bispecific/nanobody/fc-fusion.
+    (b) ?cellLine mcbo:producesProduct "mAb" / "IgG" / "BsAb" / ...
+        - the direct cell-line-to-product literal edge.
+- For "engineered to produce antibodies": use cell_lines_engineered_for_antibodies.
+  It UNIONs (a) and (b) and returns one row per (cellLine, evidence) pair so
+  you can cite the specific reason each line qualifies.
+- DO NOT report "no data" when this template returns rows. The presence of
+  either edge IS the answer to "engineered to produce <product>".
+- DO NOT search for a literal string like "antibody" or "mAb" on a cell line
+  node directly; it doesn't exist that way.
+- The looser cell_lines_by_product_class template counts cell lines that
+  merely *appear in a process using* an antibody product (production AND
+  characterization runs). Use it only when the user explicitly asks about
+  process participation, not genetic engineering.
 
 Available templates: {templates}
 
@@ -72,6 +110,83 @@ For CORRELATION questions (CQ3, CQ6):
 For VIABILITY questions (CQ7):
 1. execute_sparql with template "gene_expression_by_viability"
 2. differential_expression or compute_fold_change
+
+PLOTTING (optional):
+- Use generate_plot ONLY when the user explicitly asks for a chart, plot, or visualization.
+- The plot tool can call run_sql(...) and run_sparql(...) and also sees the current 'df'.
+- Never call generate_plot for purely textual / tabular questions.
+
+DATA-SHAPE GOTCHAS (curator-only knowledge -- you cannot derive these
+from the schema):
+- `samples` has MULTIPLE rows per `SampleAccession` (one per
+  `RunAccession`; some samples have up to 7 runs). Any JOIN from
+  `expression_long` to per-sample metadata MUST go through a
+  DEDUPLICATED subquery -- e.g. `JOIN (SELECT DISTINCT SampleAccession,
+  CellLine, ... FROM samples WHERE ...) s ON e.sample_id = s.SampleAccession`
+  -- or the multi-run fan-out re-introduces duplicate
+  `(sample_id, gene_symbol)` rows that crash any downstream `pivot`.
+- `samples_with_expression` is a convenience view with that same bug
+  baked in -- don't use it for matrix-shaped operations.
+- `expression_long(sample_id, gene_symbol, value)` itself is clean
+  (one row per pair, zero duplicates) and is the right source for any
+  matrix work.
+
+CROSS-TURN MEMORY VIA save_df:
+The plot sandbox exposes save_df(name, dataframe). Use it EVERY TIME you
+compute a non-trivial intermediate inside a plot:
+- PCA / t-SNE / UMAP coordinates  (save as e.g. pca_cho_top200)
+- Cluster / community / k-means labels per sample
+- Differential-expression result tables
+- Gene rankings (top-N variance / |fold-change| / -log10(p))
+- Normalized / log-transformed expression matrices in long form
+The saved frame survives across turns within this conversation. On the
+next turn, execute_sql sees it as a virtual table of the same name, so
+follow-up questions ("which samples are in the upper-left cluster?",
+"which CHO-K1 runs from study X are outliers in PC2?", "which of the
+top-200 variable genes are also in this pathway?") are 1-line SQL JOINs
+against samples/expression_long instead of a plot re-run.
+NAMING: snake_case, valid SQL identifier. Be descriptive
+(pca_cho_top200, not df1).
+When you call save_df, mention it briefly in your text reply
+("Saved as `pca_cho_top200` -- ask me anything about it.") so the user
+knows the data is persisted and queryable.
+
+WHEN A FOLLOW-UP QUESTION REFERENCES A PRIOR PLOT:
+1. FIRST check what's saved by calling execute_sql with raw_query=
+   "SELECT 1" -- the response includes available_saved_dfs in its envelope.
+2. If a relevant saved df exists, query it directly. DO NOT ask the user
+   to "paste the PCA coordinates" -- if you saved them, they're already
+   there as a virtual table.
+3. Only re-run the original plot computation if nothing relevant is saved.
+
+HANDLING ACTIVE DATA SLICES:
+When a question ends with "[Active data slice: <SQL-like expression>. Apply
+these filters unless I say otherwise.]" treat the slice as default WHERE
+clauses on the samples table — NOT as universal facts. Specifically:
+- The slice columns (CellLine, ProcessType, etc.) come from the samples
+  table. They are NOT present on expression_long (which has only
+  study_id, sample_id, gene_symbol, value). To filter expression_long by a
+  slice, JOIN through samples on sample_id:
+    SELECT e.* FROM expression_long e
+    JOIN samples s ON e.sample_id = s.SampleAccession
+    WHERE <slice predicates>
+  (or use samples_with_expression, which is the pre-joined view.)
+- For SPARQL queries, translate slice predicates to their RDF equivalents
+  before adding them as FILTERs. CellLine='CHO-K1' becomes
+  FILTER(?cellLineLabel = "CHO-K1"); ProcessType='FedBatch' becomes
+  FILTER(?processType = mcbo:FedBatchCultureProcess). Drop slice predicates
+  that don't have an equivalent in the template you're using.
+- When the slice pins a single fixed value (e.g. CellLine='CHO-K1') and
+  the question asks whether that entity has a property (e.g. "engineered
+  to produce antibodies"), look up the property for THAT entity and answer
+  yes/no with evidence. DO NOT answer "no data" just because the
+  intersection of the slice with an unrelated predicate is empty -- that
+  is an artifact of bad query composition, not an absence of data.
+- For "engineered to produce" questions, the engineering predicates live
+  on the cell-line node, NOT on samples/processes. Run the engineering
+  template FIRST (cell_lines_engineered_for_antibodies), then if a slice
+  is active just FILTER the results by the slice's cell-line label after
+  the fact instead of trying to AND the slice into the template body.
 
 CRITICAL RULES:
 - ALWAYS start by fetching data with execute_sparql
@@ -305,7 +420,27 @@ class OpenAIProvider(LLMProvider):
             messages=full_messages,
             tools=openai_tools if openai_tools else None,
         )
-        
+
+        # Track token usage so callers can surface a "context used" indicator.
+        usage = getattr(response, "usage", None)
+        if usage is not None:
+            try:
+                self.last_input_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+                self.last_output_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+                self.last_total_tokens = int(getattr(usage, "total_tokens", 0) or 0)
+                self.total_input_tokens = getattr(self, "total_input_tokens", 0) + self.last_input_tokens
+                self.total_output_tokens = getattr(self, "total_output_tokens", 0) + self.last_output_tokens
+                self.total_tokens = getattr(self, "total_tokens", 0) + self.last_total_tokens
+                # Highest single-turn prompt_tokens is the best "context %" proxy
+                # because tokens_used during a multi-iter turn balloons (each call
+                # resends the prior tool traffic), so we want the max instead of sum.
+                self.peak_prompt_tokens = max(
+                    getattr(self, "peak_prompt_tokens", 0),
+                    self.last_input_tokens,
+                )
+            except Exception:
+                pass
+
         # Parse response
         message = response.choices[0].message
         result = {
@@ -622,20 +757,22 @@ class AgentOrchestrator:
         provider: Optional[LLMProvider] = None,
         max_iterations: int = 10,
         verbose: bool = False,
+        duckdb_path: Optional[Path] = None,
     ):
         """Initialize the orchestrator.
-        
+
         Args:
-            graph: RDF graph containing MCBO data
-            provider: LLM provider (defaults to get_provider())
-            max_iterations: Maximum tool call iterations
-            verbose: Print debug information
+            graph: RDF graph containing MCBO data (enables execute_sparql).
+            provider: LLM provider (defaults to get_provider()).
+            max_iterations: Maximum tool call iterations.
+            verbose: Print debug information.
+            duckdb_path: Optional path to mcbo.duckdb to enable execute_sql.
         """
         self.graph = graph
         self.provider = provider or get_provider()
         self.max_iterations = max_iterations
         self.verbose = verbose
-        self.executor = ToolExecutor(graph)
+        self.executor = ToolExecutor(graph=graph, duckdb_path=duckdb_path)
         
         # Build system prompt
         tools_desc = "\n".join(f"- {t['name']}: {t['description']}" for t in TOOL_DEFINITIONS)
@@ -667,16 +804,25 @@ class AgentOrchestrator:
         
         return self.answer_question(description)
     
-    def answer_question(self, question: str) -> dict:
+    def answer_question(self, question: str, history: Optional[list[dict]] = None) -> dict:
         """Answer a natural language question about the data.
-        
+
         Args:
-            question: Natural language question
-            
+            question: Natural language question.
+            history: Optional list of prior turns ``[{role, content}]``
+                (user/assistant only). Tool messages from prior turns are
+                dropped. Defaults to a single-shot conversation when None.
+
         Returns:
-            dict with 'answer', 'tool_calls', and 'iterations'
+            dict with 'answer', 'tool_calls', and 'iterations'.
         """
-        messages = [{"role": "user", "content": question}]
+        messages: list[dict] = []
+        for m in history or []:
+            role = m.get("role")
+            content = m.get("content")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": question})
         tool_call_history = []
         
         for iteration in range(self.max_iterations):
@@ -749,8 +895,19 @@ class AgentOrchestrator:
                 })
             messages.append({"role": "user", "content": tool_result_content})
         
+        # Build a useful debug summary so the user sees where the budget went
+        # instead of an opaque "Partial answer:" with nothing after it.
+        from collections import Counter
+        tool_counts = Counter(call["tool"] for call in tool_call_history)
+        breakdown = ", ".join(f"{name}: {n}" for name, n in tool_counts.most_common())
+        partial = response.get("content", "") or "(no text content produced on the final iteration)"
         return {
-            "answer": "Maximum iterations reached. Partial answer: " + response.get("content", ""),
+            "answer": (
+                f"**Max iterations reached** after {self.max_iterations} tool-call "
+                f"rounds. Increase by setting `MCBO_MAX_ITERATIONS=N` in your `.env`.\n\n"
+                f"**Tools called this turn:** {breakdown or '(none)'}\n\n"
+                f"**Partial answer from last iteration:** {partial}"
+            ),
             "tool_calls": tool_call_history,
             "iterations": self.max_iterations,
             "warning": "Max iterations reached",

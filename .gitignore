@@ -1,6 +1,10 @@
 data/
 .data
 
+# Generated DuckDB ingest (built by mcbo-build-duckdb)
+*.duckdb
+*.duckdb.wal
+
 .robot/
 .dev/
 

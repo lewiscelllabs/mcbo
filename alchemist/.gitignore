@@ -1,0 +1,15 @@
+# Generated at runtime
+alchemist.duckdb
+alchemist.duckdb.wal
+conversations/*.json
+conversations/plots/
+
+# User-supplied data (do not commit)
+data/*
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.env*

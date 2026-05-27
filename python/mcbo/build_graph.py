@@ -204,7 +204,8 @@ def add_study(study_dir: Path, instances_file: Path):
 
 
 def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Path, output_file: Path,
-                     root_csv: Path = None, expression_dir: Path = None, gene_annotations_file: Path = None):
+                     root_csv: Path = None, expression_dir: Path = None, gene_annotations_file: Path = None,
+                     validate: bool = False):
     """Build complete graph from root CSV (foundation) + studies (supplements) + ontology.
     
     Processing order:
@@ -285,9 +286,31 @@ def build_full_graph(studies_dir: Path, ontology_file: Path, instances_file: Pat
     ensure_parent_dir(output_file)
     main_graph.serialize(destination=str(output_file), format="turtle")
     print(f"  Saved full graph to: {output_file}")
+    
+    # Optional validation
+    if validate:
+        try:
+            from .validate_instances import validate_graph
+            print(f"\nValidating instances...")
+            errors, warnings = validate_graph(output_file, ontology_file)
+            if warnings:
+                print(f"  ⚠️  {len(warnings)} warnings")
+                for w in warnings[:5]:  # Show first 5
+                    print(f"    - {w}")
+            if errors:
+                print(f"  ❌ {len(errors)} errors")
+                for e in errors[:5]:  # Show first 5
+                    print(f"    - {e}")
+                raise SystemExit("Validation failed")
+            else:
+                print(f"  ✅ Validation passed")
+        except ImportError:
+            print(f"  ⚠️  Validation skipped (owlready2 not installed)")
+        except Exception as e:
+            print(f"  ⚠️  Validation error: {e}")
 
 
-def merge_ontology_instances(ontology_file: Path, instances_file: Path, output_file: Path):
+def merge_ontology_instances(ontology_file: Path, instances_file: Path, output_file: Path, validate: bool = False):
     """Simple merge: ontology + instances -> graph.ttl"""
     print(f"\n=== Merging ontology + instances ===")
     
@@ -306,6 +329,28 @@ def merge_ontology_instances(ontology_file: Path, instances_file: Path, output_f
     ensure_parent_dir(output_file)
     g.serialize(destination=str(output_file), format="turtle")
     print(f"  Saved to: {output_file}")
+    
+    # Optional validation
+    if validate:
+        try:
+            from .validate_instances import validate_graph
+            print(f"\nValidating instances...")
+            errors, warnings = validate_graph(output_file, ontology_file)
+            if warnings:
+                print(f"  ⚠️  {len(warnings)} warnings")
+                for w in warnings[:5]:  # Show first 5
+                    print(f"    - {w}")
+            if errors:
+                print(f"  ❌ {len(errors)} errors")
+                for e in errors[:5]:  # Show first 5
+                    print(f"    - {e}")
+                raise SystemExit("Validation failed")
+            else:
+                print(f"  ✅ Validation passed")
+        except ImportError:
+            print(f"  ⚠️  Validation skipped (owlready2 not installed)")
+        except Exception as e:
+            print(f"  ⚠️  Validation error: {e}")
 
 
 def bootstrap_from_csv(csv_file: Path, ontology_file: Path, output_file: Path, 
@@ -440,6 +485,14 @@ Convention: When using --data-dir, the tool looks for:
     merge_parser.add_argument("--ontology", type=Path, default=Path("ontology/mcbo.owl.ttl"))
     merge_parser.add_argument("--instances", type=Path, default=None)
     merge_parser.add_argument("--output", type=Path, default=None)
+    merge_parser.add_argument("--validate", action="store_true",
+                              help="Validate instances against ontology restrictions (requires owlready2)")
+    
+    # Add --validate to other commands too
+    build_parser.add_argument("--validate", action="store_true",
+                              help="Validate instances against ontology restrictions (requires owlready2)")
+    bootstrap_parser.add_argument("--validate", action="store_true",
+                                  help="Validate instances against ontology restrictions (requires owlready2)")
     
     args = parser.parse_args()
     
@@ -493,7 +546,7 @@ Convention: When using --data-dir, the tool looks for:
             gene_annotations_file = None
         build_full_graph(studies_dir, args.ontology, instances_file, output_file,
                         root_csv=root_csv, expression_dir=expression_dir,
-                        gene_annotations_file=gene_annotations_file)
+                        gene_annotations_file=gene_annotations_file, validate=getattr(args, 'validate', False))
     
     elif args.command == "merge":
         if data_dir:
@@ -502,7 +555,7 @@ Convention: When using --data-dir, the tool looks for:
         else:
             instances_file = args.instances or Path(".data/mcbo-instances.ttl")
             output_file = args.output or Path(".data/graph.ttl")
-        merge_ontology_instances(args.ontology, instances_file, output_file)
+        merge_ontology_instances(args.ontology, instances_file, output_file, validate=getattr(args, 'validate', False))
 
 
 if __name__ == "__main__":

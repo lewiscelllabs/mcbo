@@ -7,9 +7,17 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-from rdflib import Graph
+from rdflib import Graph, plugin
 
 from .namespaces import MCBO, OBO, XSD
+
+# Use Oxigraph-backed store when available — orders of magnitude faster for
+# analytical SPARQL queries over large expression datasets.
+try:
+    import oxrdflib  # noqa: F401 — registers "Oxigraph" store plugin on import
+    _STORE = "Oxigraph"
+except ImportError:
+    _STORE = "default"
 
 
 def iri_safe(s: str) -> str:
@@ -35,7 +43,7 @@ def safe_numeric(value):
 
 def create_graph() -> Graph:
     """Create a new RDF graph with MCBO namespace bindings."""
-    g = Graph()
+    g = Graph(store=_STORE)
     g.bind("mcbo", MCBO)
     g.bind("obo", OBO)
     return g
@@ -45,14 +53,14 @@ def load_graph(path: Path, format: str = "turtle") -> Graph:
     """Load an RDF graph from a file."""
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
-    g = Graph()
+    g = Graph(store=_STORE)
     g.parse(str(path), format=format)
     return g
 
 
 def load_graphs(paths: List[Path], format: str = "turtle") -> Graph:
     """Load multiple RDF files into a single graph."""
-    g = Graph()
+    g = Graph(store=_STORE)
     for p in paths:
         if not p.exists():
             raise FileNotFoundError(f"File not found: {p}")

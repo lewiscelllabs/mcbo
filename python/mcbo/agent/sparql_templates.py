@@ -238,6 +238,58 @@ WHERE {{
 ORDER BY DESC(?titerValue) ?cellLine
 """,
 
+    # "Which cell lines have been engineered to produce antibodies?"
+    #
+    # Two complementary signals exist in the MCBO graph for an "engineered
+    # antibody producer" cell line; we UNION them so a single result row
+    # carries every kind of evidence the curator captured:
+    #   (1) mcbo:overexpressesGene mcbo:AntibodyProductGene
+    #       The placeholder-gene path written by csv_to_rdf.py whenever
+    #       Producer=True AND ProductType matches an antibody keyword
+    #       (mab/igg/bsab/bispecific/nanobody/fc-fusion/antibody).
+    #   (2) mcbo:producesProduct <literal "mAb"|"IgG"|"BsAb"|...>
+    #       The direct cell-line->product literal link, which is the
+    #       coarser cell-line summary the same script writes.
+    "cell_lines_engineered_for_antibodies": """
+SELECT DISTINCT ?cellLine ?cellLineLabel ?evidence
+WHERE {{
+    ?cellLine rdfs:label ?cellLineLabel .
+    {{
+        ?cellLine mcbo:overexpressesGene mcbo:AntibodyProductGene .
+        BIND("overexpresses AntibodyProductGene" AS ?evidence)
+    }} UNION {{
+        ?cellLine mcbo:producesProduct ?product .
+        FILTER(REGEX(STR(?product), "mAb|IgG|BsAb|bispecific|nanobody|antibody", "i"))
+        BIND(CONCAT("producesProduct \\"", STR(?product), "\\"") AS ?evidence)
+    }}
+    {filter_clause}
+}}
+ORDER BY ?cellLineLabel
+""",
+
+    # "Which cell lines appear in processes that USE a given product class?"
+    # Coarser, sample-mediated variant of the above. Keep this around for
+    # questions about *which lines are used in antibody bioprocessing runs*
+    # (production AND non-production, e.g. characterization), as opposed to
+    # which lines were genetically engineered to make antibodies.
+    "cell_lines_by_product_class": """
+SELECT DISTINCT ?cellLine ?cellLineLabel ?product_count
+WHERE {{
+    {{
+        SELECT ?cellLine (COUNT(DISTINCT ?product) AS ?product_count)
+        WHERE {{
+            ?product a mcbo:{product_class} .
+            ?process mcbo:hasProduct ?product .
+            ?process mcbo:usesCellLine ?cellLine .
+            {filter_clause}
+        }}
+        GROUP BY ?cellLine
+    }}
+    OPTIONAL {{ ?cellLine rdfs:label ?cellLineLabel }}
+}}
+ORDER BY DESC(?product_count) ?cellLineLabel
+""",
+
     # Utility: Get all genes in the graph
     "all_genes": """
 SELECT ?gene ?geneLabel

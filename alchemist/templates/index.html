@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alchemist Desktop</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #252832;
+      --border: #2d3041;
+      --text: #e2e4e9;
+      --text-dim: #8b8fa3;
+      --brand: #7c3aed;
+      --brand-light: #a78bfa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --cyan: #22d3ee;
+      --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 21px;
+      overflow: hidden;
+    }
+    button { font-family: inherit; }
+    a { color: var(--brand-light); }
+
+    /* ---------- Layout ---------- */
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+    }
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .main {
+      display: grid;
+      grid-template-rows: 1fr auto auto auto;  /* chat | input | resizer | canvas */
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-mark {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--brand), var(--cyan));
+      box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+    }
+    .brand-name { font-weight: 600; letter-spacing: 0.3px; }
+    .brand-sub { font-size: 17px; color: var(--text-dim); margin-top: 2px; }
+
+    .sidebar-actions {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .btn {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { background: var(--border); }
+    .btn.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+      font-weight: 500;
+    }
+    .btn.primary:hover { background: var(--brand-light); border-color: var(--brand-light); }
+    .btn.block { width: 100%; }
+
+    .conv-list {
+      flex: 1 1 0;
+      min-height: 60px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .conv-item {
+      position: relative;
+      padding: 8px 12px;
+      margin: 2px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .conv-item:hover { background: var(--surface2); color: var(--text); }
+    .conv-item.active { background: var(--surface2); color: var(--text); border-left: 2px solid var(--brand); }
+    .conv-item .preview {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .conv-item .del {
+      visibility: hidden;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 0 4px;
+      font-size: 24px;
+    }
+    .conv-item:hover .del { visibility: visible; }
+    .conv-item .del:hover { color: var(--red); }
+
+    /* Draggable handle: lets the user trade conversation-list space for
+       data-section space in real time. Persists to localStorage. */
+    .data-resizer {
+      height: 6px;
+      cursor: row-resize;
+      background: transparent;
+      border-top: 1px solid var(--border);
+      position: relative;
+      flex: 0 0 auto;
+      transition: background 0.12s;
+    }
+    .data-resizer::before {
+      content: "";
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px; height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 0.12s;
+    }
+    .data-resizer:hover,
+    .data-resizer.dragging { background: rgba(124, 58, 237, 0.18); }
+    .data-resizer:hover::before,
+    .data-resizer.dragging::before { background: var(--brand-light); }
+
+    /* The data section is a vertical flex column with a default cap so it
+       never grows to push the conversation list off-screen. The table list
+       and the (collapsible) health body each have their own bounded scroll
+       so opening "Data health" leaves the table list visible. The user can
+       drag .data-resizer to override the cap with an explicit pixel height. */
+    .data-section {
+      padding: 10px 12px;
+      max-height: 48%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      font-size: 14px;
+    }
+    .data-section h4 {
+      margin: 0 0 6px 0;
+      color: var(--text-dim);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+    .data-section .reload {
+      background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px;
+      padding: 0 4px;
+    }
+    .data-section .reload:hover { color: var(--brand-light); }
+    #tableList {
+      overflow-y: auto;
+      flex: 0 1 auto;
+      max-height: 220px;
+      min-height: 0;
+      margin-bottom: 4px;
+    }
+    .table-row {
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: var(--text);
+      line-height: 1.25;
+    }
+    .table-row:hover { background: var(--surface2); }
+    .table-row .table-name {
+      display: block;
+      font-family: var(--mono);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .table-row .table-rows {
+      display: block;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      padding-left: 2px;
+    }
+
+    /* "Data health" disclosure: its own scrollable body so opening it
+       never moves the table list above. */
+    .health-panel {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+      font-size: 13px;
+      min-height: 0;
+      flex: 0 0 auto;
+    }
+    .health-panel[open] {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .health-panel summary {
+      cursor: pointer;
+      color: var(--text-dim);
+      list-style: none;
+      padding: 3px 0;
+      user-select: none;
+      flex: 0 0 auto;
+    }
+    .health-panel summary::-webkit-details-marker { display: none; }
+    .health-panel summary::before {
+      content: "\25B8";
+      display: inline-block;
+      width: 1em;
+      transition: transform 0.15s;
+      color: var(--text-dim);
+    }
+    .health-panel[open] summary::before { transform: rotate(90deg); }
+    .health-panel summary:hover { color: var(--text); }
+    .health-panel .badge {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: var(--surface2);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .health-panel .badge.warn { background: #5b3d1e; color: #ffcc88; }
+    .health-panel .badge.ok   { background: #1f3d2b; color: #9be7b3; }
+    .health-body {
+      padding: 4px 4px 4px 18px;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .health-body .htable { margin-bottom: 7px; }
+    .health-body .htable-name {
+      font-family: var(--mono); font-size: 13px; color: var(--text);
+      margin-bottom: 1px;
+    }
+    .health-body .htable-stat { color: var(--text-dim); font-size: 12px; }
+    .health-body .empty-cols {
+      margin: 2px 0 0 6px;
+      color: #ffcc88;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    /* ---------- Chat area ---------- */
+    .chat {
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+    }
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      max-width: 540px;
+      color: var(--text-dim);
+    }
+    .empty-state h2 {
+      color: var(--text);
+      margin: 0 0 4px 0;
+      font-size: 33px;
+      font-weight: 600;
+    }
+    .empty-state p { margin: 0 0 18px 0; }
+    .empty-state { max-width: 760px; }
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .pill:hover { border-color: var(--brand); color: var(--brand-light); }
+    .demo-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    @media (max-width: 720px) { .demo-cards { grid-template-columns: 1fr; } }
+    .demo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      color: var(--text);
+      transition: border-color 0.15s, transform 0.05s;
+      font: inherit;
+      width: 100%;
+    }
+    .demo-card:hover { border-color: var(--brand); }
+    .demo-card:active { transform: translateY(1px); }
+    .demo-card .kicker {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand-light);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .demo-card .q { font-size: 16px; line-height: 1.35; color: var(--text); }
+    .demo-card .hint {
+      display: block;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      font-style: italic;
+    }
+    .pills-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin: 4px 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .msg-row { display: flex; }
+    .msg-row.user { justify-content: flex-end; }
+    .msg-row.assistant { justify-content: flex-start; }
+    .bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .msg-row.user .bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .msg-row.assistant .bubble {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .bubble pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 18px;
+      margin: 8px 0;
+    }
+    .bubble code {
+      font-family: var(--mono);
+      font-size: 18px;
+      background: var(--bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    .bubble pre code { background: none; border: none; padding: 0; }
+    .bubble ul { margin: 6px 0; padding-left: 22px; }
+    .bubble p { margin: 6px 0; }
+    .bubble p:first-child { margin-top: 0; }
+    .bubble p:last-child { margin-bottom: 0; }
+
+    .thinking {
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 4px 0;
+    }
+    .thinking::after {
+      content: '...';
+      display: inline-block;
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20%   { content: ''; }
+      40%       { content: '.'; }
+      60%       { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    /* ---------- Input bar ---------- */
+    .input-area {
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      background: var(--surface);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface2);
+      font-size: 14px;
+      color: var(--text);
+    }
+    .status-pill .label {
+      color: var(--text-dim);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .status-pill .val { font-family: var(--mono); }
+    #undoBtn {
+      margin-left: auto;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #undoBtn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-light); }
+    #undoBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .slice-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 17px;
+      color: var(--cyan);
+      font-family: var(--mono);
+    }
+    .slice-badge.show { display: inline-flex; }
+    .slice-badge .x {
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 20px; padding: 0 4px;
+    }
+    .slice-badge .x:hover { color: var(--red); }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .input-row .filter-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-size: 24px;
+    }
+    .input-row .filter-btn:hover { border-color: var(--brand); color: var(--brand-light); }
+    .input-row .filter-btn.active { border-color: var(--cyan); color: var(--cyan); }
+    .input-row input[type="text"] {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 21px;
+      outline: none;
+    }
+    .input-row input[type="text"]:focus { border-color: var(--brand); }
+    .input-row .send-btn {
+      background: var(--brand); color: white; border: none; border-radius: 6px;
+      padding: 0 18px; cursor: pointer; font-weight: 600;
+      font-size: 18px;
+    }
+    .input-row .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ---------- Canvas ---------- */
+    .canvas-resizer {
+      height: 6px;
+      cursor: row-resize;
+      background: transparent;
+      border-top: 1px solid var(--border);
+      position: relative;
+      flex: 0 0 auto;
+      transition: background 0.12s;
+    }
+    .canvas-resizer::before {
+      content: "";
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px; height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 0.12s;
+    }
+    .canvas-resizer:hover,
+    .canvas-resizer.dragging { background: rgba(124, 58, 237, 0.18); }
+    .canvas-resizer:hover::before,
+    .canvas-resizer.dragging::before { background: var(--brand-light); }
+    /* When the canvas is collapsed there's nothing to resize -- hide it. */
+    .canvas-section.collapsed + .canvas-resizer,   /* (in case order varies) */
+    .canvas-resizer.hidden-collapsed { display: none; }
+
+    .canvas-section {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      max-height: 45vh;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .canvas-header {
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+    }
+    .canvas-header:hover { color: var(--text); }
+    .canvas-header .chevron { transition: transform 0.15s; display: inline-block; }
+    .canvas-section.collapsed .chevron { transform: rotate(-90deg); }
+    .canvas-section.collapsed .canvas-body { display: none; }
+    .canvas-body {
+      padding: 8px 16px 16px;
+      overflow: auto;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 0;
+    }
+    .canvas-body img { max-width: 100%; height: auto; border-radius: 6px; }
+    .canvas-body .empty { color: var(--text-dim); font-size: 18px; }
+    .canvas-nav {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .canvas-nav button {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 4px; padding: 2px 8px;
+      cursor: pointer; font-size: 18px;
+    }
+    .canvas-nav button:hover { border-color: var(--brand); }
+    .canvas-nav .counter { color: var(--text-dim); font-size: 17px; min-width: 60px; text-align: center; }
+
+    /* ---------- Slice panel ---------- */
+    .slice-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 360px;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.2s ease;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+    }
+    .slice-panel.open { transform: translateX(0); }
+    .slice-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slice-header h3 { margin: 0; font-size: 21px; font-weight: 600; }
+    .slice-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+    }
+    .slice-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .slice-table { margin-bottom: 14px; }
+    .slice-table h4 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      color: var(--brand-light);
+      font-family: var(--mono);
+    }
+    .slice-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 6px;
+      margin-bottom: 4px;
+      align-items: center;
+      font-size: 18px;
+    }
+    .slice-row label {
+      color: var(--text-dim);
+      font-family: var(--mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .slice-row select, .slice-row input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 18px;
+      font-family: var(--mono);
+      width: 100%;
+    }
+    .slice-row .range-inputs { display: flex; gap: 4px; }
+    .slice-row .range-inputs input { flex: 1; }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 20px;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ---------- Scrollbar ---------- */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-mark"></div>
+        <div>
+          <div class="brand-name">Alchemist</div>
+          <div class="brand-sub">data analyst desktop</div>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn primary block" id="newConvBtn">+ New conversation</button>
+      </div>
+      <div class="conv-list" id="convList"></div>
+      <div class="data-resizer" id="dataResizer" title="Drag to resize"></div>
+      <div class="data-section" id="dataSection">
+        <h4>
+          Data
+          <button class="reload" id="reloadBtn" title="Re-scan data directory">&#x21bb;</button>
+        </h4>
+        <div id="tableList"></div>
+        <details id="healthPanel" class="health-panel">
+          <summary id="healthSummary">Data health</summary>
+          <div id="healthBody" class="health-body"></div>
+        </details>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <section class="main">
+      <div class="chat" id="chat"></div>
+
+      <div class="input-area">
+        <div class="status-row">
+          <span class="status-pill" title="Model used by the chat backend">
+            <span class="label">model</span><span class="val" id="modelInfo">&mdash;</span>
+          </span>
+          <span class="status-pill" title="Cumulative tokens used in this conversation vs the model's context window">
+            <span class="label">context</span><span class="val" id="contextInfo">0%</span>
+          </span>
+          <button id="undoBtn" title="Remove the last user turn (and its reply)" disabled>&#x21A9; Undo</button>
+        </div>
+        <div class="slice-badge" id="sliceBadge">
+          <span>Active slice:&nbsp;</span>
+          <span id="sliceText"></span>
+          <button class="x" id="sliceClear" title="Clear slice">&times;</button>
+        </div>
+        <div class="input-row">
+          <button class="filter-btn" id="filterBtn" title="Open slice panel">&#9776;</button>
+          <input type="text" id="questionInput" placeholder="Ask Alchemist about your data..." autocomplete="off" />
+          <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+      </div>
+
+      <div class="canvas-resizer" id="canvasResizer" title="Drag to resize"></div>
+      <div class="canvas-section" id="canvasSection">
+        <div class="canvas-header" id="canvasHeader">
+          <span><span class="chevron">&#9662;</span>&nbsp; Canvas</span>
+          <div class="canvas-nav" id="canvasNav" style="display:none">
+            <button id="canvasPrev">&larr;</button>
+            <span class="counter" id="canvasCounter"></span>
+            <button id="canvasNext">&rarr;</button>
+          </div>
+        </div>
+        <div class="canvas-body" id="canvasBody">
+          <div class="empty">Plots will appear here.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ SLICE PANEL ============ -->
+  <aside class="slice-panel" id="slicePanel">
+    <div class="slice-header">
+      <h3>Data slice</h3>
+      <button class="btn" id="closeSlice">&times;</button>
+    </div>
+    <div class="slice-body" id="sliceBody">
+      <div style="color: var(--text-dim); font-size: 18px;">Loading...</div>
+    </div>
+    <div class="slice-footer">
+      <button class="btn primary" id="applySlice">Apply slice</button>
+      <button class="btn" id="saveSlice">Save</button>
+      <button class="btn" id="loadSlice">Load</button>
+      <button class="btn" id="clearSliceBtn">Clear</button>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  // ===================== State =====================
+  const state = {
+    schema: { tables: [] },
+    sliceOptions: { tables: {} },
+    conversations: [],
+    activeId: null,
+    messages: [],         // [{role, content, images?: [src], plot_indices?: [idx]}]
+    sliceText: "",        // active slice context string
+    sliceSelections: {},  // {table: {categorical: {col: val}, numeric: {col: {min, max}}}}
+    canvasIdx: 0,         // index into plots array
+    sending: false,
+    tokensTotal: 0,       // cumulative tokens used in this conversation
+    lastModel: null,      // last model reported by /api/chat
+    coverage: null,       // /api/data/coverage payload; null until first load
+  };
+
+  // Known context windows; unknown models fall back to a conservative 128K.
+  const MODEL_CONTEXT_WINDOWS = {
+    "gpt-4o": 128000, "gpt-4o-mini": 128000,
+    "gpt-4-turbo": 128000, "gpt-4-turbo-preview": 128000,
+    "gpt-4": 8192, "gpt-3.5-turbo": 16385,
+    "o1": 128000, "o1-mini": 128000, "o3-mini": 200000,
+  };
+
+  // ===================== Helpers =====================
+  const $ = (id) => document.getElementById(id);
+  const showToast = (msg) => {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._tm);
+    t._tm = setTimeout(() => t.classList.remove("show"), 2200);
+  };
+
+  const newConvId = () => {
+    if (window.crypto && crypto.randomUUID) {
+      return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    }
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  };
+
+  // ===================== Tiny markdown =====================
+  const escapeHtml = (s) => String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  function renderMarkdown(src) {
+    if (!src) return "";
+    let s = src.replace(/\r\n/g, "\n");
+    const blocks = [];
+    // Fenced code blocks
+    s = s.replace(/```([a-zA-Z0-9_+\-]*)\n([\s\S]*?)```/g, (m, lang, code) => {
+      const i = blocks.length;
+      blocks.push(`<pre><code>${escapeHtml(code)}</code></pre>`);
+      return `\u0000B${i}\u0000`;
+    });
+    // Escape everything else
+    s = escapeHtml(s);
+    // Inline code
+    s = s.replace(/`([^`\n]+)`/g, (_, c) => `<code>${c}</code>`);
+    // Bold / italic
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+    s = s.replace(/_([^_\n]+)_/g, "<em>$1</em>");
+    // Links [text](url)
+    s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    // Lists (- item)
+    const lines = s.split("\n");
+    const out = [];
+    let inList = false;
+    let para = [];
+    const flushPara = () => {
+      if (para.length) { out.push(`<p>${para.join("<br/>")}</p>`); para = []; }
+    };
+    for (const line of lines) {
+      const m = line.match(/^\s*[-*]\s+(.*)$/);
+      if (m) {
+        flushPara();
+        if (!inList) { out.push("<ul>"); inList = true; }
+        out.push(`<li>${m[1]}</li>`);
+      } else if (line.trim() === "") {
+        if (inList) { out.push("</ul>"); inList = false; }
+        flushPara();
+      } else {
+        if (inList) { out.push("</ul>"); inList = false; }
+        para.push(line);
+      }
+    }
+    flushPara();
+    if (inList) out.push("</ul>");
+    let html = out.join("");
+    // Restore code blocks
+    html = html.replace(/\u0000B(\d+)\u0000/g, (_, i) => blocks[+i]);
+    return html;
+  }
+
+  // ===================== API =====================
+  async function api(path, opts = {}) {
+    const res = await fetch(path, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`${res.status} ${res.statusText}: ${text}`);
+    }
+    return res.json();
+  }
+
+  // ===================== Schema / sidebar data =====================
+  async function loadSchema() {
+    try {
+      state.schema = await api("/api/data/schema");
+    } catch (e) {
+      state.schema = { tables: [] };
+    }
+    renderTables();
+    renderEmptyState();
+    loadHealth();
+  }
+
+  async function loadHealth() {
+    let coverage;
+    try {
+      coverage = await api("/api/data/coverage");
+    } catch (e) {
+      coverage = { tables: {}, summary: { total_tables: 0, total_columns: 0, empty_columns: [] } };
+    }
+    state.coverage = coverage;
+    renderHealth();
+  }
+
+  function renderHealth() {
+    const summary = $("healthSummary");
+    const body = $("healthBody");
+    const cov = state.coverage || { tables: {}, summary: { empty_columns: [] } };
+    const empties = cov.summary?.empty_columns || [];
+    const nT = cov.summary?.total_tables ?? Object.keys(cov.tables || {}).length;
+    const nC = cov.summary?.total_columns ?? 0;
+    const badgeClass = empties.length ? "warn" : "ok";
+    const badgeText = empties.length
+      ? `${empties.length} empty col${empties.length === 1 ? "" : "s"}`
+      : "all populated";
+    summary.innerHTML = `Data health <span class="badge ${badgeClass}">${escapeHtml(badgeText)}</span>`;
+
+    // Group empties by table for the body
+    const byTable = {};
+    for (const [t, c] of empties) {
+      (byTable[t] = byTable[t] || []).push(c);
+    }
+
+    const tableNames = Object.keys(cov.tables || {});
+    if (!tableNames.length) {
+      body.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">No tables yet.</div>';
+      return;
+    }
+
+    body.innerHTML = tableNames.map((t) => {
+      const tbl = cov.tables[t];
+      const total = tbl.total_rows;
+      const cols = tbl.columns || {};
+      const colNames = Object.keys(cols);
+      const empty = byTable[t] || [];
+      const populatedCount = colNames.length - empty.length;
+      let inner = `<div class="htable-stat">${total.toLocaleString()} rows &middot; `
+        + `${populatedCount}/${colNames.length} cols populated</div>`;
+      if (empty.length) {
+        inner += `<div class="empty-cols" title="These columns exist but every row is NULL">`
+          + escapeHtml(empty.join(", "))
+          + `</div>`;
+      }
+      return `<div class="htable">
+        <div class="htable-name">${escapeHtml(t)}</div>
+        ${inner}
+      </div>`;
+    }).join("")
+      + (empties.length
+          ? `<div style="margin-top: 4px; color: var(--text-dim); font-size: 12px;">
+              Tip: the agent will (correctly) say "no data" if you ask about a column listed in orange.
+             </div>`
+          : "");
+  }
+
+  async function loadSliceOptions() {
+    try {
+      state.sliceOptions = await api("/api/data/slice_options");
+    } catch (e) {
+      state.sliceOptions = { tables: {} };
+    }
+    renderSlicePanel();
+  }
+
+  function renderTables() {
+    const c = $("tableList");
+    const ts = state.schema.tables || [];
+    if (!ts.length) {
+      c.innerHTML = '<div style="color: var(--text-dim); font-size: 17px;">No tables loaded.</div>';
+      return;
+    }
+    c.innerHTML = ts.map((t) =>
+      `<div class="table-row" title="${escapeHtml((t.columns || []).map(c => c.name + ' ' + c.type).join(', '))}">
+         <span class="table-name">${escapeHtml(t.name)}</span>
+         <span class="table-rows">${(t.rows ?? "?")} rows</span>
+       </div>`
+    ).join("");
+  }
+
+  // ===================== Conversation list =====================
+  async function loadConversations() {
+    try {
+      state.conversations = await api("/api/conversations");
+    } catch (e) {
+      state.conversations = [];
+    }
+    renderConvList();
+  }
+
+  function renderConvList() {
+    const c = $("convList");
+    if (!state.conversations.length) {
+      c.innerHTML = '<div style="color: var(--text-dim); font-size: 18px; padding: 8px 12px;">No conversations yet.</div>';
+      return;
+    }
+    c.innerHTML = state.conversations.map((cv) => `
+      <div class="conv-item ${cv.id === state.activeId ? "active" : ""}" data-id="${cv.id}">
+        <span class="preview">${escapeHtml(cv.preview)}</span>
+        <button class="del" data-del="${cv.id}" title="Delete">&times;</button>
+      </div>
+    `).join("");
+    c.querySelectorAll("[data-id]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        if (e.target.dataset.del) return;
+        openConversation(el.dataset.id);
+      });
+    });
+    c.querySelectorAll("[data-del]").forEach((b) => {
+      b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const id = b.dataset.del;
+        if (!confirm("Delete this conversation?")) return;
+        try {
+          await fetch(`/api/conversations/${encodeURIComponent(id)}`, { method: "DELETE" });
+          if (state.activeId === id) startNewConversation();
+          await loadConversations();
+        } catch (err) { showToast("Delete failed: " + err.message); }
+      });
+    });
+  }
+
+  // ===================== Chat =====================
+  function updateStatusBar() {
+    $("modelInfo").textContent = state.lastModel || "—";
+    const max = MODEL_CONTEXT_WINDOWS[state.lastModel] || 128000;
+    const pct = Math.min(100, Math.round((state.tokensTotal / max) * 100));
+    $("contextInfo").textContent = `${pct}%`;
+    const hasUserTurn = state.messages.some((m) => m.role === "user");
+    $("undoBtn").disabled = !hasUserTurn || state.sending;
+  }
+
+  function undoLastTurn() {
+    // Remove trailing assistant message(s), then the last user message.
+    while (state.messages.length && state.messages[state.messages.length - 1].role === "assistant") {
+      state.messages.pop();
+    }
+    if (state.messages.length && state.messages[state.messages.length - 1].role === "user") {
+      state.messages.pop();
+    }
+    renderChat();
+    renderCanvas();
+    updateStatusBar();
+    persistConversation();
+  }
+
+  function startNewConversation() {
+    state.activeId = newConvId();
+    state.messages = [];
+    state.canvasIdx = 0;
+    state.tokensTotal = 0;
+    renderChat();
+    renderCanvas();
+    renderConvList();
+    updateStatusBar();
+    $("questionInput").focus();
+  }
+
+  async function openConversation(id) {
+    try {
+      const data = await api(`/api/conversations/${encodeURIComponent(id)}`);
+      state.activeId = id;
+      state.messages = (data.messages || []).map((m) => {
+        const msg = { ...m };
+        // Reconstruct image URLs for persisted plots
+        if (m.plot_indices && m.plot_indices.length) {
+          msg.images = m.plot_indices.map(
+            (idx) => `/api/conversations/${encodeURIComponent(id)}/plots/${idx}`
+          );
+        }
+        return msg;
+      });
+      state.canvasIdx = Math.max(0, allPlots().length - 1);
+      // We don't persist per-turn token counts, so reset cumulative usage for loaded convs.
+      state.tokensTotal = 0;
+      renderChat();
+      renderCanvas();
+      renderConvList();
+      updateStatusBar();
+    } catch (e) { showToast("Failed to load: " + e.message); }
+  }
+
+  function renderChat() {
+    const c = $("chat");
+    if (!state.messages.length) {
+      renderEmptyState();
+      return;
+    }
+    c.innerHTML = state.messages.map((m) => {
+      const cls = m.role === "user" ? "user" : "assistant";
+      const inner = m.role === "user"
+        ? escapeHtml(m.content || "").replace(/\n/g, "<br/>")
+        : renderMarkdown(m.content || "");
+      return `<div class="msg-row ${cls}"><div class="bubble">${inner}</div></div>`;
+    }).join("");
+    c.scrollTop = c.scrollHeight;
+  }
+
+  function renderEmptyState() {
+    const c = $("chat");
+    const tables = state.schema.tables || [];
+    const firstTable = tables[0];
+
+    // Demo-script questions (one per category). Clicking sends immediately.
+    const demoCards = [
+      {
+        kicker: "Knowledge graph",
+        q: "Which cell lines or strains have been engineered to produce antibodies?",
+      },
+      {
+        kicker: "SQL aggregate",
+        q: "Across the whole dataset, what's the average culture temperature for each process type, how many samples of each are there, and which process type runs hottest on average?",
+      },
+      {
+        kicker: "Plot (PCA)",
+        q: "Show me a PCA plot of all CHO cell line samples, colored by which CHO cell line each sample is from. Focus on the genes that vary the most across these samples (use about 200 of them) so the picture is clean and the differences between cell lines stand out.",
+      },
+      {
+        kicker: "Active slice",
+        q: "Among these runs, what temperatures and glutamine concentrations are being used, and how does the Productivity label break down across them?",
+        hint: "Open the slice panel first (\u2630 icon left of the input) and apply a slice, e.g. CellLine = CHO-K1, ProcessType = FedBatch.",
+      },
+    ];
+
+    // Schema-aware quick pills (keep them, but as a smaller secondary row).
+    const pills = [];
+    if (firstTable) {
+      pills.push(`Show me the first 5 rows of ${firstTable.name}`);
+      pills.push(`Summarize the ${firstTable.name} table`);
+    }
+    pills.push("What tables are available?");
+
+    c.innerHTML = `
+      <div class="empty-state">
+        <h2>Hello, I'm Alchemist.</h2>
+        <p>Try one of the demo questions \u2014 or ask anything about your data.</p>
+        <div class="demo-cards">
+          ${demoCards.map((d, i) => `
+            <button class="demo-card" data-idx="${i}">
+              <span class="kicker">${escapeHtml(d.kicker)}</span>
+              <span class="q">${escapeHtml(d.q)}</span>
+              ${d.hint ? `<span class="hint">${escapeHtml(d.hint)}</span>` : ""}
+            </button>`).join("")}
+        </div>
+        <div class="pills-label">Quick checks</div>
+        <div class="pills">
+          ${pills.map((p) => `<button class="pill" data-prompt="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join("")}
+        </div>
+      </div>`;
+
+    c.querySelectorAll(".demo-card").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = demoCards[parseInt(b.dataset.idx, 10)];
+        // Non-slice demo cards should run unscoped: clear any leftover slice
+        // (e.g. set by the slice demo earlier) so the agent doesn't AND the
+        // demo question with a stale CHO-K1/FedBatch filter. The slice card
+        // itself (kicker "Active slice") explicitly asks the user to set
+        // the slice first, so we leave it alone.
+        if (d.kicker !== "Active slice" && state.sliceText) {
+          state.sliceSelections = {};
+          state.sliceText = "";
+          renderSliceBadge();
+          const fb = $("filterBtn"); if (fb) fb.classList.remove("active");
+          showToast("Cleared active slice");
+        }
+        $("questionInput").value = d.q;
+        sendMessage();
+      })
+    );
+    c.querySelectorAll(".pill").forEach((b) =>
+      b.addEventListener("click", () => {
+        $("questionInput").value = b.dataset.prompt;
+        sendMessage();
+      })
+    );
+  }
+
+  function appendMessage(msg) {
+    state.messages.push(msg);
+    renderChat();
+  }
+
+  function appendThinking() {
+    const c = $("chat");
+    const div = document.createElement("div");
+    div.className = "msg-row assistant";
+    div.id = "thinkingRow";
+    div.innerHTML = `<div class="bubble"><div class="thinking">Thinking</div></div>`;
+    c.appendChild(div);
+    c.scrollTop = c.scrollHeight;
+  }
+  function clearThinking() { const t = $("thinkingRow"); if (t) t.remove(); }
+
+  async function persistConversation() {
+    if (!state.activeId) return;
+    // Convert base64 image arrays into the payload shape expected by the server.
+    const payload = state.messages.map((m) => {
+      const out = { role: m.role, content: m.content || "" };
+      if (m.images && m.images.length) {
+        // Only persist actual base64 payloads (data: or pure b64), not URL refs
+        const fresh = m.images.filter((s) => !s.startsWith("/api/"));
+        if (fresh.length) out.images = fresh.map((s) =>
+          s.startsWith("data:") ? s.split(",", 2)[1] : s
+        );
+        if (m.plot_indices) out.plot_indices = m.plot_indices;
+      }
+      return out;
+    });
+    try {
+      await fetch(`/api/conversations/${encodeURIComponent(state.activeId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: payload }),
+      });
+      await loadConversations();
+    } catch (e) { /* best-effort */ }
+  }
+
+  async function sendMessage() {
+    if (state.sending) return;
+    const input = $("questionInput");
+    const q = input.value.trim();
+    if (!q) return;
+    if (!state.activeId) state.activeId = newConvId();
+
+    state.sending = true;
+    $("sendBtn").disabled = true;
+    appendMessage({ role: "user", content: q });
+    input.value = "";
+    appendThinking();
+
+    // Build history of user/assistant messages only (drop the just-pushed one)
+    const history = state.messages
+      .slice(0, -1)
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role, content: m.content || "" }));
+
+    try {
+      const res = await api("/api/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          question: q,
+          history,
+          conversation_id: state.activeId,
+          slice_context: state.sliceText,
+        }),
+      });
+      clearThinking();
+      const assistantMsg = { role: "assistant", content: res.answer || "" };
+      if (res.images && res.images.length) {
+        assistantMsg.images = res.images.map((b64) => `data:image/png;base64,${b64}`);
+      }
+      appendMessage(assistantMsg);
+      if (assistantMsg.images) {
+        state.canvasIdx = allPlots().length - 1;
+        renderCanvas();
+      }
+      if (res.model) state.lastModel = res.model;
+      // tokens_used from the backend is the *peak prompt size* this turn;
+      // we display it as "context %" = peak / model context window. Replace
+      // (don't accumulate) so the pill tracks the current turn's occupancy.
+      if (typeof res.tokens_used === "number") state.tokensTotal = res.tokens_used;
+      updateStatusBar();
+      await persistConversation();
+    } catch (e) {
+      clearThinking();
+      appendMessage({ role: "assistant", content: "**Error:** " + e.message });
+    } finally {
+      state.sending = false;
+      $("sendBtn").disabled = false;
+      updateStatusBar();
+      input.focus();
+    }
+  }
+
+  // ===================== Canvas =====================
+  function allPlots() {
+    const out = [];
+    state.messages.forEach((m) => (m.images || []).forEach((src) => out.push(src)));
+    return out;
+  }
+  function renderCanvas() {
+    const body = $("canvasBody");
+    const nav = $("canvasNav");
+    const plots = allPlots();
+    if (!plots.length) {
+      body.innerHTML = '<div class="empty">Plots will appear here.</div>';
+      nav.style.display = "none";
+      return;
+    }
+    if (state.canvasIdx < 0) state.canvasIdx = 0;
+    if (state.canvasIdx >= plots.length) state.canvasIdx = plots.length - 1;
+    body.innerHTML = `<img src="${plots[state.canvasIdx]}" alt="plot" />`;
+    if (plots.length > 1) {
+      nav.style.display = "flex";
+      $("canvasCounter").textContent = `${state.canvasIdx + 1} / ${plots.length} plots`;
+    } else {
+      nav.style.display = "none";
+    }
+    $("canvasSection").classList.remove("collapsed");
+  }
+
+  // ===================== Slice panel =====================
+  function renderSlicePanel() {
+    const body = $("sliceBody");
+    const tables = state.sliceOptions.tables || {};
+    const tableNames = Object.keys(tables);
+    if (!tableNames.length) {
+      body.innerHTML = '<div style="color: var(--text-dim); font-size: 18px;">No tables to slice.</div>';
+      return;
+    }
+    body.innerHTML = tableNames.map((tname) => {
+      const t = tables[tname];
+      const cats = t.categorical || {};
+      const nums = t.numeric || {};
+      const rows = [];
+      Object.keys(cats).forEach((col) => {
+        const sel = state.sliceSelections?.[tname]?.categorical?.[col] || "";
+        const opts = ['<option value="">(any)</option>'].concat(
+          cats[col].map((v) => {
+            const s = String(v);
+            return `<option value="${escapeHtml(s)}" ${s === sel ? "selected" : ""}>${escapeHtml(s)}</option>`;
+          })
+        ).join("");
+        rows.push(`
+          <div class="slice-row">
+            <label title="${escapeHtml(col)}">${escapeHtml(col)}</label>
+            <select data-table="${escapeHtml(tname)}" data-col="${escapeHtml(col)}" data-kind="cat">${opts}</select>
+          </div>`);
+      });
+      Object.keys(nums).forEach((col) => {
+        const r = nums[col];
+        const cur = state.sliceSelections?.[tname]?.numeric?.[col] || {};
+        rows.push(`
+          <div class="slice-row">
+            <label title="${escapeHtml(col)} [${r.min}, ${r.max}]">${escapeHtml(col)}</label>
+            <div class="range-inputs">
+              <input type="number" step="any" placeholder="${r.min}" value="${cur.min ?? ""}"
+                     data-table="${escapeHtml(tname)}" data-col="${escapeHtml(col)}" data-kind="num-min" />
+              <input type="number" step="any" placeholder="${r.max}" value="${cur.max ?? ""}"
+                     data-table="${escapeHtml(tname)}" data-col="${escapeHtml(col)}" data-kind="num-max" />
+            </div>
+          </div>`);
+      });
+      if (!rows.length) return "";
+      return `<div class="slice-table"><h4>${escapeHtml(tname)}</h4>${rows.join("")}</div>`;
+    }).join("");
+  }
+
+  function collectSliceFromUI() {
+    const sel = {};
+    document.querySelectorAll("#sliceBody [data-table]").forEach((el) => {
+      const t = el.dataset.table, col = el.dataset.col, kind = el.dataset.kind;
+      sel[t] ||= { categorical: {}, numeric: {} };
+      if (kind === "cat" && el.value) sel[t].categorical[col] = el.value;
+      else if (kind === "num-min" && el.value !== "") {
+        sel[t].numeric[col] ||= {}; sel[t].numeric[col].min = parseFloat(el.value);
+      } else if (kind === "num-max" && el.value !== "") {
+        sel[t].numeric[col] ||= {}; sel[t].numeric[col].max = parseFloat(el.value);
+      }
+    });
+    return sel;
+  }
+
+  function selectionsToText(sel) {
+    const parts = [];
+    Object.keys(sel).forEach((t) => {
+      const tsel = sel[t];
+      Object.entries(tsel.categorical || {}).forEach(([c, v]) => {
+        parts.push(`${t}.${c} = '${String(v).replace(/'/g, "''")}'`);
+      });
+      Object.entries(tsel.numeric || {}).forEach(([c, r]) => {
+        if (r.min != null) parts.push(`${t}.${c} >= ${r.min}`);
+        if (r.max != null) parts.push(`${t}.${c} <= ${r.max}`);
+      });
+    });
+    return parts.join(" AND ");
+  }
+
+  function applySlice() {
+    state.sliceSelections = collectSliceFromUI();
+    state.sliceText = selectionsToText(state.sliceSelections);
+    renderSliceBadge();
+    $("slicePanel").classList.remove("open");
+    $("filterBtn").classList.toggle("active", !!state.sliceText);
+  }
+
+  function renderSliceBadge() {
+    const badge = $("sliceBadge");
+    if (state.sliceText) {
+      $("sliceText").textContent = state.sliceText;
+      badge.classList.add("show");
+    } else {
+      badge.classList.remove("show");
+    }
+  }
+
+  // ===================== Wire up =====================
+  function wireEvents() {
+    $("newConvBtn").addEventListener("click", startNewConversation);
+    $("reloadBtn").addEventListener("click", async () => {
+      showToast("Reloading data...");
+      try {
+        await fetch("/api/data/reload", { method: "POST" });
+        await loadSchema();
+        await loadSliceOptions();
+        showToast("Data reloaded");
+      } catch (e) { showToast("Reload failed: " + e.message); }
+    });
+
+    $("sendBtn").addEventListener("click", sendMessage);
+    $("questionInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+    $("undoBtn").addEventListener("click", undoLastTurn);
+
+    $("canvasHeader").addEventListener("click", (e) => {
+      if (e.target.closest("#canvasNav")) return;
+      $("canvasSection").classList.toggle("collapsed");
+    });
+    $("canvasPrev").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (state.canvasIdx > 0) { state.canvasIdx--; renderCanvas(); }
+    });
+    $("canvasNext").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (state.canvasIdx < allPlots().length - 1) { state.canvasIdx++; renderCanvas(); }
+    });
+
+    $("filterBtn").addEventListener("click", () => $("slicePanel").classList.toggle("open"));
+    $("closeSlice").addEventListener("click", () => $("slicePanel").classList.remove("open"));
+    $("applySlice").addEventListener("click", applySlice);
+    $("clearSliceBtn").addEventListener("click", () => {
+      state.sliceSelections = {};
+      state.sliceText = "";
+      renderSlicePanel(); renderSliceBadge();
+      $("filterBtn").classList.remove("active");
+    });
+    $("sliceClear").addEventListener("click", () => {
+      // Match the "Clear" button at the bottom of the slice panel: also
+      // re-render the panel form so the dropdowns reset to "(any)".
+      // Otherwise re-opening the panel would show stale selections that
+      // re-arm the slice if "Apply" is clicked.
+      state.sliceSelections = {};
+      state.sliceText = "";
+      renderSlicePanel();
+      renderSliceBadge();
+      $("filterBtn").classList.remove("active");
+    });
+    $("saveSlice").addEventListener("click", () => {
+      const name = prompt("Save slice as:");
+      if (!name) return;
+      const saved = JSON.parse(localStorage.getItem("alchemist_slices") || "{}");
+      saved[name] = collectSliceFromUI();
+      localStorage.setItem("alchemist_slices", JSON.stringify(saved));
+      showToast(`Saved slice "${name}"`);
+    });
+    $("loadSlice").addEventListener("click", () => {
+      const saved = JSON.parse(localStorage.getItem("alchemist_slices") || "{}");
+      const names = Object.keys(saved);
+      if (!names.length) { showToast("No saved slices"); return; }
+      const name = prompt(`Load slice (${names.join(", ")}):`);
+      if (!name || !saved[name]) return;
+      state.sliceSelections = saved[name];
+      renderSlicePanel();
+      showToast(`Loaded slice "${name}"`);
+    });
+
+    wireDataResizer();
+    wireCanvasResizer();
+  }
+
+  // Drag handle that lets the user resize the canvas (plot) section by
+  // trading chat-area space. Persists to localStorage; double-click resets.
+  // Hidden when the canvas is collapsed (nothing to resize).
+  function wireCanvasResizer() {
+    const handle  = $("canvasResizer");
+    const section = $("canvasSection");
+    if (!handle || !section) return;
+
+    const STORAGE_KEY = "alchemist:canvasHeight";
+
+    // Hide the handle when the canvas section is collapsed.
+    const syncCollapsedState = () => {
+      handle.classList.toggle(
+        "hidden-collapsed",
+        section.classList.contains("collapsed")
+      );
+    };
+    syncCollapsedState();
+    // Re-check after every header click (which toggles .collapsed).
+    $("canvasHeader").addEventListener("click", () => {
+      // The toggle happens in another handler; defer to next tick.
+      setTimeout(syncCollapsedState, 0);
+    });
+
+    // Restore previous height if any (clamped to viewport).
+    const saved = parseInt(localStorage.getItem(STORAGE_KEY) || "", 10);
+    if (saved && saved > 80) {
+      const cap = Math.max(81, window.innerHeight - 160);
+      const restored = Math.min(saved, cap);
+      section.style.height = restored + "px";
+      section.style.maxHeight = "none";
+      if (restored !== saved) {
+        localStorage.setItem(STORAGE_KEY, String(restored));
+      }
+    }
+
+    let dragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    handle.addEventListener("mousedown", (e) => {
+      if (section.classList.contains("collapsed")) return;  // nothing to drag
+      dragging = true;
+      startY = e.clientY;
+      startHeight = section.getBoundingClientRect().height;
+      handle.classList.add("dragging");
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "row-resize";
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      // Drag UP -> canvas grows; drag DOWN -> canvas shrinks.
+      // Reserve at least 200px above for the chat + input area so the
+      // canvas can't squeeze them entirely off-screen.
+      const delta = startY - e.clientY;
+      const minH = 60;
+      const reserved = 200;
+      const maxH = Math.max(minH + 1, window.innerHeight - reserved);
+      const newH = Math.min(maxH, Math.max(minH, startHeight + delta));
+      section.style.height = newH + "px";
+      section.style.maxHeight = "none";
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove("dragging");
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      const h = parseInt(section.style.height, 10);
+      if (h > 60) localStorage.setItem(STORAGE_KEY, String(h));
+    });
+
+    // Double-click resets to the default (auto-sized, capped at 45vh).
+    handle.addEventListener("dblclick", () => {
+      section.style.height = "";
+      section.style.maxHeight = "";
+      localStorage.removeItem(STORAGE_KEY);
+      showToast("Canvas panel reset");
+    });
+  }
+
+  // Drag handle that lets the user trade conversation-list space for
+  // data-section space. Persists chosen height to localStorage.
+  function wireDataResizer() {
+    const handle  = $("dataResizer");
+    const section = $("dataSection");
+    if (!handle || !section) return;
+
+    const STORAGE_KEY = "alchemist:dataSectionHeight";
+    const RESERVED_PX = 260;
+
+    // Restore previous height if any, but clamp to the current viewport so
+    // an old saved value can't push the brand/new-conv button off-screen.
+    const saved = parseInt(localStorage.getItem(STORAGE_KEY) || "", 10);
+    if (saved && saved > 80) {
+      const cap = Math.max(81, window.innerHeight - RESERVED_PX);
+      const restored = Math.min(saved, cap);
+      section.style.height = restored + "px";
+      section.style.maxHeight = "none";
+      if (restored !== saved) {
+        localStorage.setItem(STORAGE_KEY, String(restored));
+      }
+    }
+
+    let dragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    handle.addEventListener("mousedown", (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startHeight = section.getBoundingClientRect().height;
+      handle.classList.add("dragging");
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "row-resize";
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      // Drag UP -> data section grows; drag DOWN -> data section shrinks.
+      // Always leave room above for: brand header (~60px) + new-conv button
+      // (~50px) + conv-list (~140px floor) + resizer (6px) ≈ 256px, so the
+      // sidebar's top controls and a scrollable conv-list stay visible.
+      const delta = startY - e.clientY;
+      const minH = 80;
+      const reserved = 260;
+      const maxH = Math.max(minH + 1, window.innerHeight - reserved);
+      const newH = Math.min(maxH, Math.max(minH, startHeight + delta));
+      section.style.height = newH + "px";
+      section.style.maxHeight = "none";
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      handle.classList.remove("dragging");
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+      const h = parseInt(section.style.height, 10);
+      if (h > 80) localStorage.setItem(STORAGE_KEY, String(h));
+    });
+
+    // Double-click resets to the default (auto-sized, capped at 48%).
+    handle.addEventListener("dblclick", () => {
+      section.style.height = "";
+      section.style.maxHeight = "";
+      localStorage.removeItem(STORAGE_KEY);
+      showToast("Data panel reset");
+    });
+  }
+
+  // ===================== Boot =====================
+  (async function init() {
+    wireEvents();
+    await loadSchema();
+    await loadSliceOptions();
+    await loadConversations();
+    startNewConversation();
+  })();
+  </script>
+</body>
+</html>
