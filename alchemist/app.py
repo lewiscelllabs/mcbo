@@ -15,10 +15,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
+
+import file_tools  # local module; shared with mcbo_engine via lazy load.
 
 
 HERE = Path(__file__).resolve().parent
@@ -65,6 +67,9 @@ DB_PATH = Path(os.getenv("ALCHEMIST_DB_PATH", HERE / "alchemist.duckdb"))
 CONV_DIR = Path(os.getenv("ALCHEMIST_CONV_DIR", HERE / "conversations"))
 PORT = int(os.getenv("ALCHEMIST_PORT", "8000"))
 USE_MCBO = os.getenv("ALCHEMIST_USE_MCBO", "").strip().lower() in ("1", "true", "yes", "on")
+# Per-file upload size cap. Browsers/proxies often refuse much larger uploads
+# anyway; the default keeps a stray multi-GB drop from filling the disk.
+MAX_UPLOAD_BYTES = int(os.getenv("ALCHEMIST_MAX_UPLOAD_BYTES", str(100 * 1024 * 1024)))
 
 templates = Jinja2Templates(directory=str(HERE / "templates"))
 store = ConversationStore(CONV_DIR)
@@ -234,6 +239,121 @@ async def slice_options():
 @app.post("/api/data/reload")
 async def reload_data():
     return _reload_everything()
+
+
+def _sanitize_upload_filename(raw: str) -> tuple[str | None, str]:
+    """Normalize a client-supplied filename into a relative path under DATA_DIR.
+
+    Returns ``(safe_relative_path, "")`` on success or ``(None, error)`` on
+    rejection. Accepts forward-slash subpaths (so ``raw/foo.xlsx`` lands in
+    ``DATA_DIR/raw/foo.xlsx``) so directory uploads via
+    ``<input webkitdirectory>`` work. Rejects absolute paths, Windows
+    drive-letter paths, ``..`` escapes, and NUL bytes.
+    """
+    if not raw or not raw.strip():
+        return None, "missing filename"
+    name = raw.strip().replace("\\", "/")
+    if "\x00" in name:
+        return None, f"filename contains NUL byte: {raw!r}"
+    if name.startswith("/"):
+        return None, f"absolute paths are not allowed: {raw!r}"
+    if len(name) >= 2 and name[1] == ":":  # e.g. "C:..."
+        return None, f"absolute (drive-letter) paths are not allowed: {raw!r}"
+    if name in (".", ".."):
+        return None, "filename resolves to data directory itself"
+    # file_tools.resolve_under_data_dir handles the .. / sandbox guard.
+    target, err = file_tools.resolve_under_data_dir(name)
+    if err or target is None:
+        return None, err or "could not resolve target path"
+    return name, ""
+
+
+@app.post("/api/data/upload")
+async def upload_data(files: list[UploadFile] = File(...)):
+    """Upload one or more files into the Alchemist data directory.
+
+    Each file is written under ``ALCHEMIST_DATA_DIR``. Filenames may
+    contain forward-slash subpaths (``raw/foo.xlsx``) and will create
+    intermediate directories as needed; absolute paths and ``..``
+    escapes are rejected. After all writes, the data loader is
+    triggered so any tabular files become DuckDB tables immediately.
+
+    Returns ``{uploaded: [...], rejected: [...], reload, data_dir}``.
+    Always returns 200 -- per-file errors are surfaced in ``rejected``
+    so the UI can show a partial-success toast.
+    """
+    if not files:
+        raise HTTPException(400, "no files in upload")
+
+    base = file_tools.data_dir()
+    base.mkdir(parents=True, exist_ok=True)
+
+    uploaded: list[dict] = []
+    rejected: list[dict] = []
+
+    for f in files:
+        client_name = f.filename or ""
+        safe_name, err = _sanitize_upload_filename(client_name)
+        if err or safe_name is None:
+            rejected.append({"filename": client_name, "error": err})
+            continue
+        target = (base / safe_name).resolve()
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            rejected.append({"filename": client_name, "error": f"mkdir failed: {e}"})
+            continue
+
+        overwritten = target.exists()
+        bytes_written = 0
+        try:
+            # Stream in chunks so a single huge upload can't blow the
+            # event loop's memory; cap at MAX_UPLOAD_BYTES.
+            with target.open("wb") as out:
+                while True:
+                    chunk = await f.read(1024 * 1024)  # 1 MB
+                    if not chunk:
+                        break
+                    bytes_written += len(chunk)
+                    if bytes_written > MAX_UPLOAD_BYTES:
+                        out.close()
+                        target.unlink(missing_ok=True)
+                        raise ValueError(
+                            f"file exceeds upload cap of "
+                            f"{MAX_UPLOAD_BYTES} bytes"
+                        )
+                    out.write(chunk)
+        except Exception as e:
+            rejected.append({"filename": client_name, "error": str(e)})
+            continue
+        finally:
+            try:
+                await f.close()
+            except Exception:
+                pass
+
+        uploaded.append({
+            "filename": client_name,
+            "saved_as": safe_name,
+            "size_bytes": bytes_written,
+            "overwritten": overwritten,
+        })
+
+    # Re-scan + re-import so any tabular files become DuckDB tables and
+    # the schema/slice options refresh on the next UI poll.
+    reload_info: dict | None = None
+    if uploaded:
+        try:
+            reload_info = _reload_everything()
+        except Exception as e:
+            reload_info = {"error": f"reload failed: {type(e).__name__}: {e}"}
+
+    return {
+        "data_dir": str(base),
+        "uploaded": uploaded,
+        "rejected": rejected,
+        "reload": reload_info,
+    }
 
 
 @app.get("/api/data/coverage")

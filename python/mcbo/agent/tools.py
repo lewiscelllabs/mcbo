@@ -346,6 +346,86 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "name": "list_files",
+        "description": (
+            "Enumerate raw files (READMEs, notes, protocols, PDFs, "
+            "spreadsheets, logs, configs, source) in the Alchemist data "
+            "directory (ALCHEMIST_DATA_DIR; default <alchemist>/data). "
+            "Sandboxed: cannot escape the data dir. Use this when a "
+            "question references documents / non-tabular files instead of "
+            "the ontology graph or the DuckDB tables. Pair with read_file "
+            "to fetch contents. Tabular files (.csv/.tsv/.parquet/.json) "
+            "are ALSO imported as DuckDB tables -- prefer execute_sql for "
+            "those."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "subpath": {
+                    "type": "string",
+                    "description": "Optional subdirectory under the data dir. Empty = whole data dir.",
+                },
+                "pattern": {
+                    "type": "string",
+                    "description": "Optional glob pattern (default '*'). E.g. '*.md', '**/*.txt'.",
+                },
+                "max_results": {
+                    "type": "integer",
+                    "description": "Cap on files returned (hard max 200).",
+                },
+            },
+        },
+    },
+    {
+        "name": "read_file",
+        "description": (
+            "Read one file from the Alchemist data directory. Path is "
+            "relative to that directory (no '..' escapes, no absolute "
+            "paths). Type-aware:\n"
+            "  - Text files (.md/.txt/.log/source/etc.) returned verbatim "
+            "(up to ~256KB; 'truncated': true means more was skipped).\n"
+            "  - PDFs are text-extracted via pypdf; response includes "
+            "'pages' and content is delimited by '--- page N/M ---' markers. "
+            "Image-only PDFs return empty text -- say so instead of guessing.\n"
+            "  - Spreadsheets (.xlsx/.xls) are opened in-memory with "
+            "pandas/openpyxl (NOT imported into DuckDB). With no 'sheet' "
+            "arg you get a summary of every sheet: name, columns, "
+            "total_rows, and a small preview_rows sample. To see more rows "
+            "from one sheet, call read_file again with sheet=<exact sheet "
+            "name> and optionally max_rows (max 200). Sheet names are "
+            "case-sensitive and may contain spaces.\n"
+            "  - Other binary files (images, parquet, etc.) are refused."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "File path relative to ALCHEMIST_DATA_DIR.",
+                },
+                "max_bytes": {
+                    "type": "integer",
+                    "description": "Text/PDF only: byte/char cap (default and max 262144).",
+                },
+                "sheet": {
+                    "type": "string",
+                    "description": (
+                        "xlsx only: name of a specific sheet to read. "
+                        "Omit to get a summary of every sheet."
+                    ),
+                },
+                "max_rows": {
+                    "type": "integer",
+                    "description": (
+                        "xlsx only: row preview cap (default 5 per sheet "
+                        "in summary mode, 50 when 'sheet' is set; hard max 200)."
+                    ),
+                },
+            },
+            "required": ["path"],
+        },
+    },
 ]
 
 
@@ -942,6 +1022,105 @@ class ToolExecutor:
             "gene_count": len(gene_list),
             "genes": gene_list,
         }
+
+    # ------------------------------------------------------------------
+    # File tools (list_files / read_file)
+    #
+    # The implementations live in alchemist/file_tools.py so the same
+    # code path is used by both the Alchemist engine and this MCBO
+    # orchestrator. The module is loaded lazily on first use (via
+    # importlib.util) to keep the mcbo package importable standalone --
+    # if alchemist/ isn't present, the tools surface a clear error.
+    # ------------------------------------------------------------------
+
+    _file_tools_mod = None
+    _file_tools_load_error: Optional[str] = None
+
+    @classmethod
+    def _load_file_tools(cls):
+        """Locate and load alchemist/file_tools.py once per process.
+
+        Search order:
+          1. $ALCHEMIST_FILE_TOOLS_PATH (explicit override).
+          2. Sibling of the mcbo source tree (<repo>/alchemist/file_tools.py),
+             discovered relative to this module's location.
+
+        Returns the loaded module or None if not found. The failure
+        reason is cached on the class so callers can surface a useful
+        error to the LLM.
+        """
+        if cls._file_tools_mod is not None:
+            return cls._file_tools_mod
+        if cls._file_tools_load_error is not None:
+            return None
+
+        import importlib.util
+        import os as _os
+        import sys as _sys
+
+        candidates: list[Path] = []
+        override = _os.environ.get("ALCHEMIST_FILE_TOOLS_PATH")
+        if override:
+            candidates.append(Path(override))
+        # python/mcbo/agent/tools.py -> repo/python/mcbo/agent;
+        # walk up 3 levels to repo root, then alchemist/file_tools.py.
+        here = Path(__file__).resolve().parent
+        candidates.append(here.parent.parent.parent / "alchemist" / "file_tools.py")
+
+        for cand in candidates:
+            try:
+                if not cand.is_file():
+                    continue
+                spec = importlib.util.spec_from_file_location(
+                    "_mcbo_alchemist_file_tools", cand
+                )
+                if spec is None or spec.loader is None:
+                    continue
+                mod = importlib.util.module_from_spec(spec)
+                _sys.modules[spec.name] = mod
+                spec.loader.exec_module(mod)
+                cls._file_tools_mod = mod
+                print(
+                    f"[mcbo.tool] loaded file tools from {cand}",
+                    flush=True,
+                )
+                return mod
+            except Exception as e:
+                cls._file_tools_load_error = f"{type(e).__name__}: {e}"
+                print(
+                    f"[mcbo.tool] failed to load file tools from {cand}: "
+                    f"{cls._file_tools_load_error}",
+                    flush=True,
+                )
+                return None
+
+        cls._file_tools_load_error = (
+            "alchemist/file_tools.py not found. Set ALCHEMIST_FILE_TOOLS_PATH "
+            "to its absolute path, or run mcbo from the same repo that ships "
+            "the alchemist/ directory."
+        )
+        print(f"[mcbo.tool] {cls._file_tools_load_error}", flush=True)
+        return None
+
+    def _tool_list_files(self, args: dict) -> dict:
+        """Delegate to alchemist.file_tools.list_files (lazily loaded)."""
+        mod = self._load_file_tools()
+        if mod is None:
+            return {"error": self._file_tools_load_error or "file tools unavailable"}
+        try:
+            return mod.list_files(args)
+        except Exception as e:
+            return {"error": f"list_files failed: {type(e).__name__}: {e}"}
+
+    def _tool_read_file(self, args: dict) -> dict:
+        """Delegate to alchemist.file_tools.read_file (lazily loaded)."""
+        mod = self._load_file_tools()
+        if mod is None:
+            return {"error": self._file_tools_load_error or "file tools unavailable"}
+        try:
+            return mod.read_file(args)
+        except Exception as e:
+            return {"error": f"read_file failed: {type(e).__name__}: {e}"}
 
 
 def execute_tool(

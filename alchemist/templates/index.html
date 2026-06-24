@@ -518,7 +518,8 @@
       gap: 8px;
       align-items: stretch;
     }
-    .input-row .filter-btn {
+    .input-row .filter-btn,
+    .input-row .upload-btn {
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
@@ -527,8 +528,11 @@
       cursor: pointer;
       font-size: 30px;
     }
-    .input-row .filter-btn:hover { border-color: var(--brand); color: var(--brand-light); }
+    .input-row .filter-btn:hover,
+    .input-row .upload-btn:hover { border-color: var(--brand); color: var(--brand-light); }
     .input-row .filter-btn.active { border-color: var(--cyan); color: var(--cyan); }
+    .input-row .upload-btn.busy { opacity: 0.6; cursor: progress; }
+    .input-row .upload-btn input[type="file"] { display: none; }
     .input-row input[type="text"] {
       flex: 1;
       background: var(--bg);
@@ -766,6 +770,10 @@
         </div>
         <div class="input-row">
           <button class="filter-btn" id="filterBtn" title="Open slice panel">&#9776;</button>
+          <label class="upload-btn" id="uploadBtn" title="Upload files into the data directory (list_files / read_file will see them)">
+            &#8682;
+            <input type="file" id="uploadInput" multiple />
+          </label>
           <input type="text" id="questionInput" placeholder="Ask Alchemist about your data..." autocomplete="off" />
           <button class="send-btn" id="sendBtn">Send</button>
         </div>
@@ -1157,6 +1165,11 @@
         q: "Among these runs, what temperatures and glutamine concentrations are being used, and how does the Productivity label break down across them?",
         hint: "Open the slice panel first (\u2630 icon left of the input) and apply a slice, e.g. CellLine = CHO-K1, ProcessType = FedBatch.",
       },
+      {
+        kicker: "Raw files",
+        q: "Enumerate every raw file in the data directory (recurse into subfolders). For each one, report its relative path, size, and kind (tabular / xlsx / pdf / raw). Note whether the listing was truncated. Do not query the database or read any file contents \u2014 I just want the inventory.",
+        hint: "Exercises the list_files tool. Drop a README / notes / xlsx into ALCHEMIST_DATA_DIR (or alchemist/data/test_fixtures/) to see results.",
+      },
     ];
 
     // Schema-aware quick pills (keep them, but as a smaller secondary row).
@@ -1467,6 +1480,53 @@
         await loadSliceOptions();
         showToast("Data reloaded");
       } catch (e) { showToast("Reload failed: " + e.message); }
+    });
+
+    // File upload: stream the chosen files to /api/data/upload, then refresh
+    // schema + slice options so any new tabular files appear immediately.
+    // The label#uploadBtn wraps the hidden input, so clicking the icon opens
+    // the file picker without us needing a separate click handler.
+    $("uploadInput").addEventListener("change", async (e) => {
+      const input = e.target;
+      const files = Array.from(input.files || []);
+      if (!files.length) return;
+      const btn = $("uploadBtn");
+      btn.classList.add("busy");
+      const noun = files.length === 1 ? "file" : "files";
+      showToast(`Uploading ${files.length} ${noun}...`);
+      const fd = new FormData();
+      for (const f of files) {
+        // For folder uploads (webkitdirectory), preserve the relative path so
+        // subdirs are recreated server-side. Plain file picks use just .name.
+        const rel = f.webkitRelativePath && f.webkitRelativePath.length
+          ? f.webkitRelativePath : f.name;
+        fd.append("files", f, rel);
+      }
+      try {
+        const r = await fetch("/api/data/upload", { method: "POST", body: fd });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const body = await r.json();
+        const okN = (body.uploaded || []).length;
+        const badN = (body.rejected || []).length;
+        // Refresh schema + slice options in case a tabular file was added.
+        try { await loadSchema(); } catch (_) {}
+        try { await loadSliceOptions(); } catch (_) {}
+        if (badN === 0) {
+          showToast(`Uploaded ${okN} ${okN === 1 ? "file" : "files"} to ${body.data_dir}`);
+        } else if (okN === 0) {
+          const first = body.rejected[0];
+          showToast(`Upload rejected: ${first.filename} — ${first.error}`);
+        } else {
+          const first = body.rejected[0];
+          showToast(`${okN} uploaded, ${badN} rejected (e.g. ${first.filename}: ${first.error})`);
+        }
+      } catch (err) {
+        showToast("Upload failed: " + err.message);
+      } finally {
+        btn.classList.remove("busy");
+        // Reset so re-selecting the same file still fires `change`.
+        input.value = "";
+      }
     });
 
     $("sendBtn").addEventListener("click", sendMessage);

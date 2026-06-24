@@ -1,5 +1,6 @@
 fastapi>=0.110
 uvicorn[standard]>=0.27
+python-multipart>=0.0.9
 duckdb>=0.10
 openai>=1.30
 matplotlib>=3.7

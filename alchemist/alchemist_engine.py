@@ -28,6 +28,23 @@ try:  # pragma: no cover - import-time
 except ImportError:  # pragma: no cover
     OpenAI = None  # type: ignore[assignment]
 
+# File-reading tools (list_files / read_file) live in a sibling module so
+# they can also be reused by mcbo's AgentOrchestrator without duplication.
+from file_tools import (
+    LIST_LIMIT as _RAW_FILE_LIST_LIMIT,
+    MAX_BYTES as _RAW_FILE_MAX_BYTES,
+    PDF_EXTS as _PDF_EXTS,
+    TABULAR_EXTS as _TABULAR_EXTS,
+    XLSX_DEFAULT_PREVIEW as _XLSX_DEFAULT_PREVIEW,
+    XLSX_EXTS as _XLSX_EXTS,
+    XLSX_MAX_ROWS as _XLSX_MAX_ROWS,
+    XLSX_SHEET_DEFAULT_ROWS as _XLSX_SHEET_DEFAULT_ROWS,
+    data_dir as _data_dir,
+    iter_inventory as _iter_data_inventory,
+    list_files as _file_tool_list_files,
+    read_file as _file_tool_read_file,
+)
+
 
 # ---------------------------------------------------------------------------
 # Schema introspection (60s cache)
@@ -95,29 +112,7 @@ def _build_raw_files_text(max_files: int = 40) -> str:
     only reachable via the list_files / read_file tools).
     """
     base = _data_dir()
-    if not base.exists():
-        return ""
-    entries: list[tuple[str, int, str]] = []
-    for p in sorted(base.rglob("*")):
-        if not p.is_file():
-            continue
-        try:
-            size = p.stat().st_size
-        except OSError:
-            continue
-        rel = p.relative_to(base).as_posix()
-        ext = p.suffix.lower()
-        if ext in _XLSX_EXTS:
-            kind = "xlsx (use read_file; pass sheet=<name> to drill in)"
-        elif ext in _TABULAR_EXTS:
-            kind = "tabular (use query_data)"
-        elif ext in _PDF_EXTS:
-            kind = "pdf (use read_file; text is extracted)"
-        else:
-            kind = "raw text (use read_file)"
-        entries.append((rel, size, kind))
-        if len(entries) >= max_files + 1:
-            break
+    entries = _iter_data_inventory(max_files=max_files)
     if not entries:
         return ""
     lines = [f"RAW FILES under {base} (use list_files / read_file):"]
@@ -185,48 +180,6 @@ def is_safe_select(sql: str) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 _MAX_ROWS = 100
-
-# Raw file access (list_files / read_file). DATA_DIR is resolved lazily from
-# ALCHEMIST_DATA_DIR so the engine doesn't need it as a constructor arg.
-_RAW_FILE_MAX_BYTES = 256 * 1024  # 256 KB per read; OpenAI tool-result cap is ~8KB anyway
-_RAW_FILE_LIST_LIMIT = 200
-# Files with these extensions are auto-imported into DuckDB by data_loader,
-# so the model should prefer query_data for them.
-_TABULAR_EXTS = {".csv", ".tsv", ".parquet", ".json", ".ndjson"}
-
-# Extensions handled by content-aware paths inside _tool_read_file (binary
-# files that get extracted to a structured/text representation in-memory,
-# without touching DuckDB).
-_PDF_EXTS = {".pdf"}
-_XLSX_EXTS = {".xlsx", ".xls"}
-
-# Default and maximum row counts for the xlsx preview branch of read_file.
-# Multi-sheet summary mode uses _XLSX_DEFAULT_PREVIEW per sheet; single-sheet
-# mode (when `sheet` arg is passed) defaults to _XLSX_SHEET_DEFAULT_ROWS.
-# The hard cap protects the 8KB tool-result truncation in ask().
-_XLSX_DEFAULT_PREVIEW = 5
-_XLSX_SHEET_DEFAULT_ROWS = 50
-_XLSX_MAX_ROWS = 200
-
-
-def _data_dir() -> Path:
-    """Resolve the raw-file directory (must match app.DATA_DIR's default)."""
-    default = Path(__file__).resolve().parent / "data"
-    return Path(os.getenv("ALCHEMIST_DATA_DIR", str(default))).resolve()
-
-
-def _resolve_under_data_dir(rel_path: str) -> tuple[Path | None, str]:
-    """Resolve ``rel_path`` against DATA_DIR; refuse absolute paths and `..` escapes."""
-    base = _data_dir()
-    s = (rel_path or "").strip()
-    if not s or s in ("/", "."):
-        return None, "path must be a non-empty file path relative to the data directory"
-    candidate = (base / s).resolve()
-    try:
-        candidate.relative_to(base)
-    except ValueError:
-        return None, f"path escapes the data directory ({base})"
-    return candidate, ""
 
 
 def _tool_query_data(db_path: str, args: dict) -> dict:
@@ -337,310 +290,6 @@ def _tool_generate_plot(db_path: str, args: dict) -> dict:
     return {
         "image_base64": base64.b64encode(data).decode("ascii"),
         "title": title,
-    }
-
-
-def _tool_list_files(_db_path: str, args: dict) -> dict:
-    """Enumerate files under DATA_DIR. Optional subpath + glob pattern."""
-    subpath = (args.get("subpath") or "").strip().lstrip("/")
-    pattern = (args.get("pattern") or "*").strip() or "*"
-    try:
-        max_results = int(args.get("max_results") or _RAW_FILE_LIST_LIMIT)
-    except (TypeError, ValueError):
-        max_results = _RAW_FILE_LIST_LIMIT
-    max_results = max(1, min(max_results, _RAW_FILE_LIST_LIMIT))
-
-    base = _data_dir()
-    if not base.exists():
-        return {
-            "data_dir": str(base),
-            "files": [],
-            "note": f"data directory does not exist yet: {base}",
-        }
-
-    if subpath:
-        root, err = _resolve_under_data_dir(subpath)
-        if err:
-            return {"error": err}
-        if root is None or not root.exists() or not root.is_dir():
-            return {"error": f"not a directory: {subpath}"}
-    else:
-        root = base
-
-    files: list[dict] = []
-    for p in sorted(root.rglob(pattern)):
-        if not p.is_file():
-            continue
-        try:
-            st = p.stat()
-        except OSError:
-            continue
-        rel = p.relative_to(base).as_posix()
-        ext = p.suffix.lower()
-        if ext in (".xlsx", ".xls"):
-            kind = "xlsx"
-        elif ext in _TABULAR_EXTS:
-            kind = "tabular"
-        elif ext in _PDF_EXTS:
-            kind = "pdf"
-        else:
-            kind = "raw"
-        files.append({
-            "path": rel,
-            "size_bytes": int(st.st_size),
-            "ext": ext,
-            "kind": kind,
-        })
-        if len(files) >= max_results:
-            break
-    return {
-        "data_dir": str(base),
-        "subpath": subpath or ".",
-        "pattern": pattern,
-        "files": files,
-        "truncated": len(files) >= max_results,
-    }
-
-
-def _json_safe_cell(v: Any) -> Any:
-    """Coerce a pandas/numpy cell into a JSON-serializable scalar."""
-    if v is None:
-        return None
-    try:
-        import math
-        if isinstance(v, float) and math.isnan(v):
-            return None
-    except Exception:  # pragma: no cover
-        pass
-    if hasattr(v, "item"):
-        try:
-            return v.item()
-        except Exception:
-            pass
-    if isinstance(v, (str, int, float, bool)):
-        return v
-    return str(v)
-
-
-def _df_preview_rows(df) -> list[list[Any]]:
-    """Convert the head of a DataFrame to JSON-safe row lists."""
-    safe = df.astype(object).where(df.notna(), None)
-    return [[_json_safe_cell(v) for v in row] for row in safe.values.tolist()]
-
-
-def _read_xlsx(path: Path, sheet: str | None, max_rows: int | None) -> dict:
-    """Open an xlsx/xls workbook and return sheet metadata + a row preview.
-
-    Two modes:
-      - sheet=None (summary): every sheet, with columns + ``_XLSX_DEFAULT_PREVIEW``
-        preview rows each. Use to discover the workbook layout.
-      - sheet=<name>: that one sheet only, with up to ``max_rows`` preview rows
-        (default ``_XLSX_SHEET_DEFAULT_ROWS``, hard-capped at ``_XLSX_MAX_ROWS``).
-    """
-    try:
-        import pandas as pd  # local import keeps engine import fast when unused
-    except ImportError as e:
-        raise RuntimeError(
-            "xlsx support requires pandas + openpyxl. "
-            "Install with: pip install pandas openpyxl"
-        ) from e
-    engine = "openpyxl" if path.suffix.lower() == ".xlsx" else None  # xlrd for .xls
-
-    if sheet is not None:
-        cap = max(1, min(max_rows or _XLSX_SHEET_DEFAULT_ROWS, _XLSX_MAX_ROWS))
-        try:
-            df = pd.read_excel(path, sheet_name=sheet, engine=engine)
-        except ValueError:
-            # Surface available sheet names so the model can retry.
-            try:
-                all_sheets = pd.read_excel(path, sheet_name=None, engine=engine)
-                names = list(all_sheets.keys())
-            except Exception:
-                names = []
-            return {
-                "error": f"sheet '{sheet}' not found in {path.name}",
-                "available_sheets": names,
-            }
-        df = df.copy()
-        df.columns = [str(c).strip() for c in df.columns]
-        total = int(len(df))
-        preview = df.head(cap)
-        return {
-            "sheet": sheet,
-            "columns": [str(c) for c in df.columns],
-            "total_rows": total,
-            "preview_rows": _df_preview_rows(preview),
-            "truncated": total > cap,
-        }
-
-    cap = max(1, min(max_rows or _XLSX_DEFAULT_PREVIEW, _XLSX_MAX_ROWS))
-    all_sheets = pd.read_excel(path, sheet_name=None, engine=engine)
-    sheets_out: list[dict] = []
-    for name, df in all_sheets.items():
-        df = df.copy()
-        df.columns = [str(c).strip() for c in df.columns]
-        total = int(len(df))
-        sheets_out.append({
-            "name": str(name),
-            "columns": [str(c) for c in df.columns],
-            "total_rows": total,
-            "preview_rows": _df_preview_rows(df.head(cap)),
-            "truncated": total > cap,
-        })
-    return {
-        "sheet_count": len(sheets_out),
-        "sheets": sheets_out,
-        "hint": (
-            "Call read_file again with sheet=<name> and max_rows to fetch "
-            "more rows from a specific sheet."
-        ),
-    }
-
-
-def _read_pdf_text(path: Path, max_chars: int) -> tuple[str, int, bool]:
-    """Extract text from a PDF; return (text, page_count, truncated)."""
-    try:
-        from pypdf import PdfReader  # local import: optional dep
-    except ImportError as e:
-        raise RuntimeError(
-            "PDF support requires the 'pypdf' package. "
-            "Install with: pip install pypdf"
-        ) from e
-    reader = PdfReader(str(path))
-    pages = len(reader.pages)
-    chunks: list[str] = []
-    total = 0
-    truncated = False
-    for i, page in enumerate(reader.pages):
-        try:
-            t = page.extract_text() or ""
-        except Exception as e:  # pragma: no cover - malformed PDFs
-            t = f"[page {i+1}: extraction failed: {e}]"
-        header = f"\n--- page {i+1}/{pages} ---\n"
-        if total + len(header) + len(t) > max_chars:
-            remaining = max_chars - total - len(header)
-            if remaining > 0:
-                chunks.append(header)
-                chunks.append(t[:remaining])
-            truncated = True
-            break
-        chunks.append(header)
-        chunks.append(t)
-        total += len(header) + len(t)
-    return ("".join(chunks).strip(), pages, truncated)
-
-
-def _tool_read_file(_db_path: str, args: dict) -> dict:
-    """Read a file under DATA_DIR. Type-aware:
-      - .pdf  -> text extracted via pypdf (page-delimited).
-      - .xlsx / .xls -> sheets + columns + a row preview via pandas/openpyxl.
-        Optional args ``sheet`` and ``max_rows`` let the model drill into
-        a single sheet for more rows.
-      - everything else -> raw bytes decoded as utf-8 / latin-1; binaries refused.
-    """
-    rel = (args.get("path") or "").strip()
-    if not rel:
-        return {"error": "Missing required argument: path"}
-    try:
-        max_bytes = int(args.get("max_bytes") or _RAW_FILE_MAX_BYTES)
-    except (TypeError, ValueError):
-        max_bytes = _RAW_FILE_MAX_BYTES
-    max_bytes = max(1, min(max_bytes, _RAW_FILE_MAX_BYTES))
-
-    target, err = _resolve_under_data_dir(rel)
-    if err:
-        return {"error": err}
-    if target is None or not target.exists():
-        return {"error": f"file not found: {rel}"}
-    if not target.is_file():
-        return {"error": f"not a regular file: {rel}"}
-
-    ext = target.suffix.lower()
-
-    # xlsx/xls: open the workbook in-memory (no DuckDB load), surface sheet
-    # names + columns + a row preview the model can quote / aggregate over.
-    if ext in _XLSX_EXTS:
-        sheet = args.get("sheet")
-        if isinstance(sheet, str):
-            sheet = sheet.strip() or None
-        else:
-            sheet = None
-        max_rows_arg = args.get("max_rows")
-        try:
-            max_rows = int(max_rows_arg) if max_rows_arg is not None else None
-        except (TypeError, ValueError):
-            max_rows = None
-        try:
-            result = _read_xlsx(target, sheet, max_rows)
-        except RuntimeError as e:
-            return {"error": str(e), "path": rel}
-        except Exception as e:
-            return {"error": f"xlsx read failed: {type(e).__name__}: {e}",
-                    "path": rel}
-        result["path"] = rel
-        result["size_bytes"] = int(target.stat().st_size)
-        result["encoding"] = "xlsx-extracted"
-        return result
-
-    # PDFs: extract text via pypdf; budget chars at max_bytes (1 char ~ 1 byte).
-    if ext in _PDF_EXTS:
-        try:
-            text, pages, truncated = _read_pdf_text(target, max_bytes)
-        except RuntimeError as e:
-            return {"error": str(e), "path": rel}
-        except Exception as e:
-            return {"error": f"PDF extraction failed: {type(e).__name__}: {e}",
-                    "path": rel}
-        return {
-            "path": rel,
-            "size_bytes": int(target.stat().st_size),
-            "bytes_read": len(text),
-            "truncated": truncated,
-            "encoding": "pdf-extracted",
-            "pages": pages,
-            "content": text,
-        }
-
-    try:
-        size = int(target.stat().st_size)
-        with target.open("rb") as fh:
-            raw = fh.read(max_bytes)
-    except OSError as e:
-        return {"error": f"read failed: {e}"}
-
-    # Reject obvious binaries (NUL byte heuristic) before paying the decode cost.
-    if b"\x00" in raw[:4096]:
-        return {
-            "error": (
-                f"file appears to be binary ({size} bytes); read_file "
-                "only supports text files, pdf (extracted), and xlsx/xls "
-                "(extracted)"
-            ),
-            "path": rel,
-            "size_bytes": size,
-        }
-
-    encoding = "utf-8"
-    try:
-        text = raw.decode("utf-8")
-    except UnicodeDecodeError:
-        try:
-            text = raw.decode("latin-1")
-            encoding = "latin-1"
-        except Exception:
-            return {
-                "error": f"file is not decodable as utf-8 or latin-1 ({size} bytes)",
-                "path": rel,
-                "size_bytes": size,
-            }
-
-    return {
-        "path": rel,
-        "size_bytes": size,
-        "bytes_read": len(raw),
-        "truncated": size > len(raw),
-        "encoding": encoding,
-        "content": text,
     }
 
 
@@ -998,9 +647,9 @@ def ask(
                     else:
                         result = raw
                 elif name == "list_files":
-                    result = _tool_list_files(db_path, args)
+                    result = _file_tool_list_files(args)
                 elif name == "read_file":
-                    result = _tool_read_file(db_path, args)
+                    result = _file_tool_read_file(args)
                 else:
                     result = {"error": f"Unknown tool: {name}"}
             except Exception as e:
