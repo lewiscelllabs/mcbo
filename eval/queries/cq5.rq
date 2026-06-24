@@ -1,17 +1,71 @@
-# CQ5: Process type comparison (current implemented query)
+# CQ5: GO Biological Processes differentially expressed under Fed-batch vs Perfusion
 #
-# This is NOT yet "pathways differentially expressed under Fed-batch vs Perfusion".
-# It’s a lightweight proxy that reports how many process instances exist per process type.
+# This query demonstrates MCBO's integration with the Gene Ontology (GO).
+# It compares GO Biological Process term expression between Fed-batch and Perfusion
+# culture processes using:
+#   - Canonical GO URIs from OBO (e.g., obo:GO_0006915)
+#   - Standard RO relation RO:0002331 (involved_in) linking genes to GO terms
+#
+# Positive difference = higher expression in Fed-batch
+# Negative difference = higher expression in Perfusion
 
 PREFIX mcbo: <http://example.org/mcbo#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?processType (COUNT(?process) AS ?count)
+SELECT ?goTermLabel ?goTermID
+       (ROUND(?avgFedBatch) AS ?fedBatchAvg)
+       (ROUND(?avgPerfusion) AS ?perfusionAvg)
+       (ROUND(?avgFedBatch - ?avgPerfusion) AS ?difference)
+       ?genesInTerm
 WHERE {
-  # Get the direct type of each process that is a subclass of CellCultureProcess
-  ?process a ?processType .
-  ?processType rdfs:subClassOf* mcbo:CellCultureProcess .
-  # Note: This query intentionally keeps ?processType to group by specific process types
+  # Sub-query for Fed-batch expression by GO term
+  {
+    SELECT ?goTerm (AVG(?exprValue) AS ?avgFedBatch) (COUNT(DISTINCT ?gene) AS ?genesInTerm)
+    WHERE {
+      # Gene is involved in GO Biological Process (RO:0002331)
+      ?gene obo:RO_0002331 ?goTerm .
+      ?goTerm a obo:GO_0008150 .  # GO biological_process
+      
+      # Find Fed-batch processes and their samples
+      ?run a mcbo:FedBatchCultureProcess ;
+           mcbo:hasProcessOutput ?sample .
+      
+      # Get gene expression for this sample
+      ?sample mcbo:hasGeneExpression ?expr .
+      ?expr obo:IAO_0000136 ?gene ;
+            mcbo:hasExpressionValue ?exprValue .
+    }
+    GROUP BY ?goTerm
+    HAVING (COUNT(?exprValue) > 0)
+  }
+  
+  # Sub-query for Perfusion expression by GO term
+  {
+    SELECT ?goTerm (AVG(?exprValue) AS ?avgPerfusion)
+    WHERE {
+      # Gene is involved in GO Biological Process
+      ?gene obo:RO_0002331 ?goTerm .
+      ?goTerm a obo:GO_0008150 .
+      
+      # Find Perfusion processes and their samples
+      ?run a mcbo:PerfusionCultureProcess ;
+           mcbo:hasProcessOutput ?sample .
+      
+      # Get gene expression for this sample
+      ?sample mcbo:hasGeneExpression ?expr .
+      ?expr obo:IAO_0000136 ?gene ;
+            mcbo:hasExpressionValue ?exprValue .
+    }
+    GROUP BY ?goTerm
+    HAVING (COUNT(?exprValue) > 0)
+  }
+  
+  # Get GO term labels
+  ?goTerm rdfs:label ?goTermLabel .
+  
+  # Extract GO ID from URI (e.g., obo:GO_0006915 -> GO:0006915)
+  BIND(REPLACE(STR(?goTerm), "http://purl.obolibrary.org/obo/GO_", "GO:") AS ?goTermID)
 }
-GROUP BY ?processType
-ORDER BY DESC(?count) ?processType
+ORDER BY DESC(?difference)

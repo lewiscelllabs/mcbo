@@ -1,0 +1,4 @@
+
+✅ Real data processing complete
+   Graph: .data/graph.ttl
+   Results: .data/results/

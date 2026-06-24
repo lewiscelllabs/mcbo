@@ -250,7 +250,12 @@ TOOL_DEFINITIONS = [
     {
         "name": "get_pathway_enrichment",
         "description": "Perform pathway enrichment analysis on a list of genes. "
-                       "Uses KEGG or Reactome to find pathways overrepresented in the gene list.",
+                       "Uses KEGG or Reactome to find pathways overrepresented in the gene list. "
+                       "Results are automatically saved as a virtual table named 'pathway_enrichment' "
+                       "(columns: pathway_id, p_value, p_adjusted, overlap_count, pathway_size, query_size) "
+                       "so a subsequent generate_plot call can draw a histogram with "
+                       "run_sql(\"SELECT pathway_id, p_adjusted FROM pathway_enrichment ORDER BY p_adjusted LIMIT 20\"). "
+                       "The tool response includes 'plot_hint' with exact code guidance.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -305,6 +310,8 @@ TOOL_DEFINITIONS = [
                        "the current dataframe as 'df', "
                        "the dict 'saved_dfs' (read-only snapshot), "
                        "and pd, np, plt, sns, sklearn. "
+                       "After get_pathway_enrichment runs, a virtual table named "
+                       "'pathway_enrichment' is available via run_sql. "
                        "The code MUST end with plt.savefig(buf, format='png', dpi=100, "
                        "bbox_inches='tight'). Max figure size 7x6 inches. "
                        "IMPORTANT: run_sql and run_sparql refuse queries returning more than "
@@ -751,8 +758,27 @@ class ToolExecutor:
         database = args.get("database", "kegg")
         organism = args.get("organism", "hsa")
         pvalue = args.get("pvalue_threshold", 0.05)
-        
-        return get_pathway_enrichment(gene_list, database, organism, pvalue)
+
+        result = get_pathway_enrichment(gene_list, database, organism, pvalue)
+
+        # Auto-save enriched pathways as a named virtual table so generate_plot
+        # can query them via run_sql without embedding data as Python literals.
+        # overlap_genes is excluded because it's a list-of-lists (non-scalar).
+        pathways = result.get("enriched_pathways", [])
+        if pathways:
+            rows = [{k: v for k, v in p.items() if k != "overlap_genes"} for p in pathways]
+            df = pd.DataFrame(rows)
+            self.save_named_df("pathway_enrichment", df)
+            result["available_saved_dfs"] = self.list_named_dfs()
+            result["plot_hint"] = (
+                "Results saved as virtual table 'pathway_enrichment' "
+                "(columns: pathway_id, p_value, p_adjusted, overlap_count, pathway_size, query_size). "
+                "To plot: call generate_plot with code that calls "
+                "run_sql(\"SELECT pathway_id, p_adjusted FROM pathway_enrichment "
+                "ORDER BY p_adjusted LIMIT 20\") and draws a horizontal bar chart."
+            )
+
+        return result
     
     def _tool_summarize_by_group(self, args: dict) -> dict:
         """Summarize data by group."""

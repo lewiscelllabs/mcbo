@@ -1,0 +1,4 @@
+
+✅ Demo data processing complete
+   Graph: data.sample/graph.ttl
+   Results: data.sample/results/

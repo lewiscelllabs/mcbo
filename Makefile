@@ -13,7 +13,7 @@
 #   - Conda environment: make conda-env && conda activate mcbo
 #   - Python package + ROBOT installed: make install
 
-.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology install-agent install-ollama clean-agent performance-table
+.PHONY: all demo real qc clean help install robot verify-demo verify-real conda-env check-env docs docs-clean clean-demo clean-real clean-reports clean-install ci demo-build demo-eval demo-stats real-build real-eval real-stats real-qc qc-ontology install-agent install-ollama clean-agent performance-table validate-demo validate-real install-validation
 
 # Configuration
 PYTHON := python
@@ -94,9 +94,15 @@ help:
 	@echo "  make demo-eval    Run CQ evaluation on demo data"
 	@echo "  make demo-stats   Show demo data statistics"
 	@echo "  make verify-demo  Verify demo graph parses"
+	@echo "  make validate-demo  Validate instances against ontology (requires owlready2)"
 	@echo "  make docs         Build Sphinx documentation"
 	@echo "  make docs-clean   Clean documentation build"
 	@echo "  make performance-table  Generate query performance table"
+	@echo ""
+	@echo "Validation (OWL reasoner):"
+	@echo "  make install-validation  Install owlready2 for instance validation"
+	@echo "  make validate-demo       Validate demo instances against ontology"
+	@echo "  make validate-real       Validate real instances against ontology"
 	@echo ""
 	@echo "Configuration by convention:"
 	@echo "  Graph files:     <data-dir>/graph.ttl"
@@ -336,12 +342,46 @@ real-qc: $(REAL_GRAPH) $(ROBOT_JAR)
 # QC Targets
 # =============================================================================
 
-qc: $(QC_ORPHAN) $(QC_DUPLABELS) $(QC_MISSINGDEFS)
+qc: qc-ontology validate-demo
 	@echo ""
 	@echo "✅ QC checks complete"
 	@echo "   Reports: $(REPORTS_DIR)/"
 
 qc-ontology: $(QC_ORPHAN) $(QC_DUPLABELS) $(QC_MISSINGDEFS)
+	@echo "  Ontology SPARQL QC complete"
+
+# Validation stamp for tracking owlready2 install
+VALIDATION_STAMP := .validation-install.stamp
+
+install-validation: check-env $(VALIDATION_STAMP)
+
+$(VALIDATION_STAMP): $(INSTALL_STAMP)
+	@echo "Installing validation dependencies (owlready2)..."
+	pip install -e python/[validation]
+	@touch $(VALIDATION_STAMP)
+	@echo "✅ Validation dependencies installed"
+
+# Instance validation using OWL reasoner
+validate-demo: $(DEMO_GRAPH)
+	@echo "Validating demo instances against ontology restrictions..."
+	@if python -c "import owlready2" 2>/dev/null; then \
+		mcbo-validate --graph $(DEMO_GRAPH) || echo "  ⚠️  Validation warnings (see above)"; \
+	else \
+		echo "  ⚠️  Validation skipped (owlready2 not installed)"; \
+		echo "     Install with: make install-validation"; \
+	fi
+
+validate-real:
+	@if [ -f "$(REAL_GRAPH)" ]; then \
+		echo "Validating real instances against ontology restrictions..."; \
+		if python -c "import owlready2" 2>/dev/null; then \
+			mcbo-validate --graph $(REAL_GRAPH) || echo "  ⚠️  Validation warnings (see above)"; \
+		else \
+			echo "  ⚠️  Validation skipped (owlready2 not installed)"; \
+		fi; \
+	else \
+		echo "ℹ️  Real data graph not found ($(REAL_GRAPH))"; \
+	fi
 
 $(QC_ORPHAN): $(ONTOLOGY) $(ROBOT_JAR) $(SPARQL_DIR)/orphan_classes.rq
 	@echo "Running ROBOT QC on ontology..."
@@ -409,7 +449,7 @@ clean-agent:
 # CI/CD Target
 # =============================================================================
 
-ci: install qc demo verify-demo
+ci: install qc demo verify-demo validate-demo
 	@echo ""
 	@echo "✅ CI checks passed"
 

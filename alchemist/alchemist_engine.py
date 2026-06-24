@@ -41,43 +41,91 @@ _SCHEMA_TTL = 60.0
 def _build_schema_text(db_path: str) -> str:
     p = Path(db_path)
     if not p.exists():
-        return "(no database found at " + db_path + ")"
-    con = duckdb.connect(db_path, read_only=True)
-    try:
-        names = [r[0] for r in con.execute(
-            "SELECT table_name FROM information_schema.tables "
-            "WHERE table_schema='main' ORDER BY table_name"
-        ).fetchall()]
-        if not names:
-            return "(database has no tables; drop files into the data dir and reload)"
-        lines: list[str] = []
-        for t in names:
-            try:
-                nrows = con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
-            except Exception:
-                nrows = "?"
-            cols = con.execute(
-                "SELECT column_name, data_type FROM information_schema.columns "
-                "WHERE table_schema='main' AND table_name=? "
-                "ORDER BY ordinal_position",
-                [t],
-            ).fetchall()
-            col_str = ", ".join(f"{c} {ty}" for c, ty in cols[:25])
-            if len(cols) > 25:
-                col_str += f" ... (+{len(cols) - 25} more cols)"
-            lines.append(f'- "{t}" ({nrows} rows): {col_str}')
-            try:
-                sample = con.execute(f'SELECT * FROM "{t}" LIMIT 2').fetchall()
-                if sample:
-                    sample_str = "; ".join(str(r) for r in sample)
-                    if len(sample_str) > 240:
-                        sample_str = sample_str[:240] + "..."
-                    lines.append(f"    sample: {sample_str}")
-            except Exception:
-                pass
-        return "\n".join(lines)
-    finally:
-        con.close()
+        db_section = "(no database found at " + db_path + ")"
+    else:
+        con = duckdb.connect(db_path, read_only=True)
+        try:
+            names = [r[0] for r in con.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema='main' ORDER BY table_name"
+            ).fetchall()]
+            if not names:
+                db_section = "(database has no tables; drop files into the data dir and reload)"
+            else:
+                lines: list[str] = []
+                for t in names:
+                    try:
+                        nrows = con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
+                    except Exception:
+                        nrows = "?"
+                    cols = con.execute(
+                        "SELECT column_name, data_type FROM information_schema.columns "
+                        "WHERE table_schema='main' AND table_name=? "
+                        "ORDER BY ordinal_position",
+                        [t],
+                    ).fetchall()
+                    col_str = ", ".join(f"{c} {ty}" for c, ty in cols[:25])
+                    if len(cols) > 25:
+                        col_str += f" ... (+{len(cols) - 25} more cols)"
+                    lines.append(f'- "{t}" ({nrows} rows): {col_str}')
+                    try:
+                        sample = con.execute(f'SELECT * FROM "{t}" LIMIT 2').fetchall()
+                        if sample:
+                            sample_str = "; ".join(str(r) for r in sample)
+                            if len(sample_str) > 240:
+                                sample_str = sample_str[:240] + "..."
+                            lines.append(f"    sample: {sample_str}")
+                    except Exception:
+                        pass
+                db_section = "\n".join(lines)
+        finally:
+            con.close()
+
+    raw_section = _build_raw_files_text()
+    if raw_section:
+        return db_section + "\n\n" + raw_section
+    return db_section
+
+
+def _build_raw_files_text(max_files: int = 40) -> str:
+    """Inventory of raw files in ALCHEMIST_DATA_DIR for the model's context.
+
+    Includes BOTH tabular files (which the model can also reach via
+    query_data, and should prefer for) and non-tabular files (which are
+    only reachable via the list_files / read_file tools).
+    """
+    base = _data_dir()
+    if not base.exists():
+        return ""
+    entries: list[tuple[str, int, str]] = []
+    for p in sorted(base.rglob("*")):
+        if not p.is_file():
+            continue
+        try:
+            size = p.stat().st_size
+        except OSError:
+            continue
+        rel = p.relative_to(base).as_posix()
+        ext = p.suffix.lower()
+        if ext in _XLSX_EXTS:
+            kind = "xlsx (use read_file; pass sheet=<name> to drill in)"
+        elif ext in _TABULAR_EXTS:
+            kind = "tabular (use query_data)"
+        elif ext in _PDF_EXTS:
+            kind = "pdf (use read_file; text is extracted)"
+        else:
+            kind = "raw text (use read_file)"
+        entries.append((rel, size, kind))
+        if len(entries) >= max_files + 1:
+            break
+    if not entries:
+        return ""
+    lines = [f"RAW FILES under {base} (use list_files / read_file):"]
+    for rel, size, kind in entries[:max_files]:
+        lines.append(f"  - {rel}  [{kind}, {size} bytes]")
+    if len(entries) > max_files:
+        lines.append(f"  ... (+{len(entries) - max_files} more; call list_files to enumerate)")
+    return "\n".join(lines)
 
 
 def get_schema_text(db_path: str) -> str:
@@ -137,6 +185,48 @@ def is_safe_select(sql: str) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 _MAX_ROWS = 100
+
+# Raw file access (list_files / read_file). DATA_DIR is resolved lazily from
+# ALCHEMIST_DATA_DIR so the engine doesn't need it as a constructor arg.
+_RAW_FILE_MAX_BYTES = 256 * 1024  # 256 KB per read; OpenAI tool-result cap is ~8KB anyway
+_RAW_FILE_LIST_LIMIT = 200
+# Files with these extensions are auto-imported into DuckDB by data_loader,
+# so the model should prefer query_data for them.
+_TABULAR_EXTS = {".csv", ".tsv", ".parquet", ".json", ".ndjson"}
+
+# Extensions handled by content-aware paths inside _tool_read_file (binary
+# files that get extracted to a structured/text representation in-memory,
+# without touching DuckDB).
+_PDF_EXTS = {".pdf"}
+_XLSX_EXTS = {".xlsx", ".xls"}
+
+# Default and maximum row counts for the xlsx preview branch of read_file.
+# Multi-sheet summary mode uses _XLSX_DEFAULT_PREVIEW per sheet; single-sheet
+# mode (when `sheet` arg is passed) defaults to _XLSX_SHEET_DEFAULT_ROWS.
+# The hard cap protects the 8KB tool-result truncation in ask().
+_XLSX_DEFAULT_PREVIEW = 5
+_XLSX_SHEET_DEFAULT_ROWS = 50
+_XLSX_MAX_ROWS = 200
+
+
+def _data_dir() -> Path:
+    """Resolve the raw-file directory (must match app.DATA_DIR's default)."""
+    default = Path(__file__).resolve().parent / "data"
+    return Path(os.getenv("ALCHEMIST_DATA_DIR", str(default))).resolve()
+
+
+def _resolve_under_data_dir(rel_path: str) -> tuple[Path | None, str]:
+    """Resolve ``rel_path`` against DATA_DIR; refuse absolute paths and `..` escapes."""
+    base = _data_dir()
+    s = (rel_path or "").strip()
+    if not s or s in ("/", "."):
+        return None, "path must be a non-empty file path relative to the data directory"
+    candidate = (base / s).resolve()
+    try:
+        candidate.relative_to(base)
+    except ValueError:
+        return None, f"path escapes the data directory ({base})"
+    return candidate, ""
 
 
 def _tool_query_data(db_path: str, args: dict) -> dict:
@@ -250,6 +340,310 @@ def _tool_generate_plot(db_path: str, args: dict) -> dict:
     }
 
 
+def _tool_list_files(_db_path: str, args: dict) -> dict:
+    """Enumerate files under DATA_DIR. Optional subpath + glob pattern."""
+    subpath = (args.get("subpath") or "").strip().lstrip("/")
+    pattern = (args.get("pattern") or "*").strip() or "*"
+    try:
+        max_results = int(args.get("max_results") or _RAW_FILE_LIST_LIMIT)
+    except (TypeError, ValueError):
+        max_results = _RAW_FILE_LIST_LIMIT
+    max_results = max(1, min(max_results, _RAW_FILE_LIST_LIMIT))
+
+    base = _data_dir()
+    if not base.exists():
+        return {
+            "data_dir": str(base),
+            "files": [],
+            "note": f"data directory does not exist yet: {base}",
+        }
+
+    if subpath:
+        root, err = _resolve_under_data_dir(subpath)
+        if err:
+            return {"error": err}
+        if root is None or not root.exists() or not root.is_dir():
+            return {"error": f"not a directory: {subpath}"}
+    else:
+        root = base
+
+    files: list[dict] = []
+    for p in sorted(root.rglob(pattern)):
+        if not p.is_file():
+            continue
+        try:
+            st = p.stat()
+        except OSError:
+            continue
+        rel = p.relative_to(base).as_posix()
+        ext = p.suffix.lower()
+        if ext in (".xlsx", ".xls"):
+            kind = "xlsx"
+        elif ext in _TABULAR_EXTS:
+            kind = "tabular"
+        elif ext in _PDF_EXTS:
+            kind = "pdf"
+        else:
+            kind = "raw"
+        files.append({
+            "path": rel,
+            "size_bytes": int(st.st_size),
+            "ext": ext,
+            "kind": kind,
+        })
+        if len(files) >= max_results:
+            break
+    return {
+        "data_dir": str(base),
+        "subpath": subpath or ".",
+        "pattern": pattern,
+        "files": files,
+        "truncated": len(files) >= max_results,
+    }
+
+
+def _json_safe_cell(v: Any) -> Any:
+    """Coerce a pandas/numpy cell into a JSON-serializable scalar."""
+    if v is None:
+        return None
+    try:
+        import math
+        if isinstance(v, float) and math.isnan(v):
+            return None
+    except Exception:  # pragma: no cover
+        pass
+    if hasattr(v, "item"):
+        try:
+            return v.item()
+        except Exception:
+            pass
+    if isinstance(v, (str, int, float, bool)):
+        return v
+    return str(v)
+
+
+def _df_preview_rows(df) -> list[list[Any]]:
+    """Convert the head of a DataFrame to JSON-safe row lists."""
+    safe = df.astype(object).where(df.notna(), None)
+    return [[_json_safe_cell(v) for v in row] for row in safe.values.tolist()]
+
+
+def _read_xlsx(path: Path, sheet: str | None, max_rows: int | None) -> dict:
+    """Open an xlsx/xls workbook and return sheet metadata + a row preview.
+
+    Two modes:
+      - sheet=None (summary): every sheet, with columns + ``_XLSX_DEFAULT_PREVIEW``
+        preview rows each. Use to discover the workbook layout.
+      - sheet=<name>: that one sheet only, with up to ``max_rows`` preview rows
+        (default ``_XLSX_SHEET_DEFAULT_ROWS``, hard-capped at ``_XLSX_MAX_ROWS``).
+    """
+    try:
+        import pandas as pd  # local import keeps engine import fast when unused
+    except ImportError as e:
+        raise RuntimeError(
+            "xlsx support requires pandas + openpyxl. "
+            "Install with: pip install pandas openpyxl"
+        ) from e
+    engine = "openpyxl" if path.suffix.lower() == ".xlsx" else None  # xlrd for .xls
+
+    if sheet is not None:
+        cap = max(1, min(max_rows or _XLSX_SHEET_DEFAULT_ROWS, _XLSX_MAX_ROWS))
+        try:
+            df = pd.read_excel(path, sheet_name=sheet, engine=engine)
+        except ValueError:
+            # Surface available sheet names so the model can retry.
+            try:
+                all_sheets = pd.read_excel(path, sheet_name=None, engine=engine)
+                names = list(all_sheets.keys())
+            except Exception:
+                names = []
+            return {
+                "error": f"sheet '{sheet}' not found in {path.name}",
+                "available_sheets": names,
+            }
+        df = df.copy()
+        df.columns = [str(c).strip() for c in df.columns]
+        total = int(len(df))
+        preview = df.head(cap)
+        return {
+            "sheet": sheet,
+            "columns": [str(c) for c in df.columns],
+            "total_rows": total,
+            "preview_rows": _df_preview_rows(preview),
+            "truncated": total > cap,
+        }
+
+    cap = max(1, min(max_rows or _XLSX_DEFAULT_PREVIEW, _XLSX_MAX_ROWS))
+    all_sheets = pd.read_excel(path, sheet_name=None, engine=engine)
+    sheets_out: list[dict] = []
+    for name, df in all_sheets.items():
+        df = df.copy()
+        df.columns = [str(c).strip() for c in df.columns]
+        total = int(len(df))
+        sheets_out.append({
+            "name": str(name),
+            "columns": [str(c) for c in df.columns],
+            "total_rows": total,
+            "preview_rows": _df_preview_rows(df.head(cap)),
+            "truncated": total > cap,
+        })
+    return {
+        "sheet_count": len(sheets_out),
+        "sheets": sheets_out,
+        "hint": (
+            "Call read_file again with sheet=<name> and max_rows to fetch "
+            "more rows from a specific sheet."
+        ),
+    }
+
+
+def _read_pdf_text(path: Path, max_chars: int) -> tuple[str, int, bool]:
+    """Extract text from a PDF; return (text, page_count, truncated)."""
+    try:
+        from pypdf import PdfReader  # local import: optional dep
+    except ImportError as e:
+        raise RuntimeError(
+            "PDF support requires the 'pypdf' package. "
+            "Install with: pip install pypdf"
+        ) from e
+    reader = PdfReader(str(path))
+    pages = len(reader.pages)
+    chunks: list[str] = []
+    total = 0
+    truncated = False
+    for i, page in enumerate(reader.pages):
+        try:
+            t = page.extract_text() or ""
+        except Exception as e:  # pragma: no cover - malformed PDFs
+            t = f"[page {i+1}: extraction failed: {e}]"
+        header = f"\n--- page {i+1}/{pages} ---\n"
+        if total + len(header) + len(t) > max_chars:
+            remaining = max_chars - total - len(header)
+            if remaining > 0:
+                chunks.append(header)
+                chunks.append(t[:remaining])
+            truncated = True
+            break
+        chunks.append(header)
+        chunks.append(t)
+        total += len(header) + len(t)
+    return ("".join(chunks).strip(), pages, truncated)
+
+
+def _tool_read_file(_db_path: str, args: dict) -> dict:
+    """Read a file under DATA_DIR. Type-aware:
+      - .pdf  -> text extracted via pypdf (page-delimited).
+      - .xlsx / .xls -> sheets + columns + a row preview via pandas/openpyxl.
+        Optional args ``sheet`` and ``max_rows`` let the model drill into
+        a single sheet for more rows.
+      - everything else -> raw bytes decoded as utf-8 / latin-1; binaries refused.
+    """
+    rel = (args.get("path") or "").strip()
+    if not rel:
+        return {"error": "Missing required argument: path"}
+    try:
+        max_bytes = int(args.get("max_bytes") or _RAW_FILE_MAX_BYTES)
+    except (TypeError, ValueError):
+        max_bytes = _RAW_FILE_MAX_BYTES
+    max_bytes = max(1, min(max_bytes, _RAW_FILE_MAX_BYTES))
+
+    target, err = _resolve_under_data_dir(rel)
+    if err:
+        return {"error": err}
+    if target is None or not target.exists():
+        return {"error": f"file not found: {rel}"}
+    if not target.is_file():
+        return {"error": f"not a regular file: {rel}"}
+
+    ext = target.suffix.lower()
+
+    # xlsx/xls: open the workbook in-memory (no DuckDB load), surface sheet
+    # names + columns + a row preview the model can quote / aggregate over.
+    if ext in _XLSX_EXTS:
+        sheet = args.get("sheet")
+        if isinstance(sheet, str):
+            sheet = sheet.strip() or None
+        else:
+            sheet = None
+        max_rows_arg = args.get("max_rows")
+        try:
+            max_rows = int(max_rows_arg) if max_rows_arg is not None else None
+        except (TypeError, ValueError):
+            max_rows = None
+        try:
+            result = _read_xlsx(target, sheet, max_rows)
+        except RuntimeError as e:
+            return {"error": str(e), "path": rel}
+        except Exception as e:
+            return {"error": f"xlsx read failed: {type(e).__name__}: {e}",
+                    "path": rel}
+        result["path"] = rel
+        result["size_bytes"] = int(target.stat().st_size)
+        result["encoding"] = "xlsx-extracted"
+        return result
+
+    # PDFs: extract text via pypdf; budget chars at max_bytes (1 char ~ 1 byte).
+    if ext in _PDF_EXTS:
+        try:
+            text, pages, truncated = _read_pdf_text(target, max_bytes)
+        except RuntimeError as e:
+            return {"error": str(e), "path": rel}
+        except Exception as e:
+            return {"error": f"PDF extraction failed: {type(e).__name__}: {e}",
+                    "path": rel}
+        return {
+            "path": rel,
+            "size_bytes": int(target.stat().st_size),
+            "bytes_read": len(text),
+            "truncated": truncated,
+            "encoding": "pdf-extracted",
+            "pages": pages,
+            "content": text,
+        }
+
+    try:
+        size = int(target.stat().st_size)
+        with target.open("rb") as fh:
+            raw = fh.read(max_bytes)
+    except OSError as e:
+        return {"error": f"read failed: {e}"}
+
+    # Reject obvious binaries (NUL byte heuristic) before paying the decode cost.
+    if b"\x00" in raw[:4096]:
+        return {
+            "error": (
+                f"file appears to be binary ({size} bytes); read_file "
+                "only supports text files, pdf (extracted), and xlsx/xls "
+                "(extracted)"
+            ),
+            "path": rel,
+            "size_bytes": size,
+        }
+
+    encoding = "utf-8"
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        try:
+            text = raw.decode("latin-1")
+            encoding = "latin-1"
+        except Exception:
+            return {
+                "error": f"file is not decodable as utf-8 or latin-1 ({size} bytes)",
+                "path": rel,
+                "size_bytes": size,
+            }
+
+    return {
+        "path": rel,
+        "size_bytes": size,
+        "bytes_read": len(raw),
+        "truncated": size > len(raw),
+        "encoding": encoding,
+        "content": text,
+    }
+
+
 TOOLS_SPEC: list[dict] = [
     {
         "type": "function",
@@ -303,23 +697,122 @@ TOOLS_SPEC: list[dict] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_files",
+            "description": (
+                "List files in the Alchemist data directory (sandboxed; "
+                "cannot escape it). Use to discover raw files the user has "
+                "dropped in, then call read_file on the interesting ones. "
+                "Tabular files (.csv/.tsv/.parquet/.json/.ndjson) are also "
+                "auto-imported as DuckDB tables — prefer query_data for those."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subpath": {
+                        "type": "string",
+                        "description": "Optional subdirectory under the data dir. Empty = whole data dir.",
+                    },
+                    "pattern": {
+                        "type": "string",
+                        "description": "Optional glob pattern (default '*'). E.g. '*.md', '**/*.txt'.",
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": f"Cap on files returned (default and max {_RAW_FILE_LIST_LIMIT}).",
+                    },
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": (
+                "Read a file from the Alchemist data directory. The path "
+                "must be relative to that directory (no '..' escapes, no "
+                "absolute paths). Behavior by type:\n"
+                "  - Text files (.md/.txt/.log/source/etc.) are returned "
+                f"verbatim (up to {_RAW_FILE_MAX_BYTES} bytes).\n"
+                "  - PDFs are text-extracted via pypdf; response includes "
+                "a 'pages' field and content is delimited by "
+                "'--- page N/M ---' markers.\n"
+                "  - xlsx/xls workbooks are opened with pandas/openpyxl "
+                "and returned as structured sheet metadata (no DuckDB "
+                "import). With no 'sheet' arg you get every sheet's "
+                "columns + a small preview; pass sheet=<name> (and "
+                f"optionally max_rows up to {_XLSX_MAX_ROWS}) to drill "
+                "into one sheet for more rows.\n"
+                "  - Other binary files are refused."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "File path relative to ALCHEMIST_DATA_DIR.",
+                    },
+                    "max_bytes": {
+                        "type": "integer",
+                        "description": (
+                            f"Text/PDF only: byte (or char) cap "
+                            f"(default and max {_RAW_FILE_MAX_BYTES})."
+                        ),
+                    },
+                    "sheet": {
+                        "type": "string",
+                        "description": (
+                            "xlsx only: name of a specific sheet to read. "
+                            "Omit to get a summary of every sheet."
+                        ),
+                    },
+                    "max_rows": {
+                        "type": "integer",
+                        "description": (
+                            "xlsx only: row preview cap "
+                            f"(default {_XLSX_DEFAULT_PREVIEW} per sheet in summary mode, "
+                            f"{_XLSX_SHEET_DEFAULT_ROWS} when 'sheet' is set; "
+                            f"hard max {_XLSX_MAX_ROWS})."
+                        ),
+                    },
+                },
+                "required": ["path"],
+            },
+        },
+    },
 ]
 
 
 # Fallback prompt template, used when message_catalogs/en/alchemist_system_prompt.md
 # is missing. Keep in sync with the catalog file.
 _FALLBACK_SYSTEM_PROMPT = """You are Alchemist (Generative AI Assistant), a knowledgeable data analyst.
-You have access to a local DuckDB database. Use the tools to answer questions with data.
+You have access to a local DuckDB database AND the raw files the user dropped
+into the data directory. Use the tools to answer questions with real data.
+
+Tools:
+- query_data: SELECT against tabular data (CSV/TSV/Parquet/JSON imported as
+  DuckDB tables). Prefer this for any structured-data question.
+- generate_plot: only when the user explicitly asks for a chart/plot.
+- list_files: enumerate raw files under the data directory (with optional
+  subpath / glob). Use this to see what files exist.
+- read_file: read a single file by path relative to the data directory.
+  Text returned verbatim. PDFs are text-extracted via pypdf. xlsx/xls
+  workbooks are opened with pandas/openpyxl: with no 'sheet' arg you get
+  every sheet's columns + a row preview; pass sheet=<name> (and optional
+  max_rows up to 200) to drill into one sheet.
 
 Rules:
-- ALWAYS use query_data for any question that requires looking at the data.
-- Use generate_plot ONLY when the user explicitly asks for a chart, plot or visualization.
-- Prefer concise answers that cite the actual numbers from your queries.
+- NEVER claim data is absent without checking first (query_data + list_files).
+- Prefer concise answers that cite actual numbers / quoted snippets.
+- Never fabricate tables, columns, or file contents; only use what the tools return.
 - Maximum plot size is 7x6 inches; always close figures when done.
-- Never fabricate tables or columns; use only what the schema below describes.
 - If the user supplies an active data slice, treat it as a default WHERE filter.
 
-DATABASE SCHEMA:
+DATABASE SCHEMA AND RAW FILES:
 {schema}
 """
 
@@ -504,6 +997,10 @@ def ask(
                         }
                     else:
                         result = raw
+                elif name == "list_files":
+                    result = _tool_list_files(db_path, args)
+                elif name == "read_file":
+                    result = _tool_read_file(db_path, args)
                 else:
                     result = {"error": f"Unknown tool: {name}"}
             except Exception as e:

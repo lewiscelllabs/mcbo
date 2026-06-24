@@ -1,0 +1,13 @@
+Statistics for: .data/graph.ttl
+============================================================
+
+Cell Culture Process Instances: 723
+  Breakdown by type:
+    Batch culture process: 518
+    Fed-batch culture process: 135
+    Perfusion culture process: 48
+    Unknown culture process: not identifiable from source data: 22
+
+Bioprocess Sample Instances: 325
+
+============================================================

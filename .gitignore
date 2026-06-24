@@ -1,3 +1,5 @@
+.claude/
+
 data/
 .data
 
@@ -8,9 +10,14 @@ data/
 .robot/
 .dev/
 
+# OBO ontology imports (downloaded by ROBOT / mcbo-build-graph;
+# go.owl alone is >100MB and blocks GitHub pushes).
+ontology/imports/
+
 # Makefile stamp files
 .install.stamp
 .docs-install.stamp
+.validation-install.stamp
 
 # Trash
 trash/

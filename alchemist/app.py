@@ -149,6 +149,17 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/img/{filename}")
+async def serve_img(filename: str):
+    path = HERE / "img" / filename
+    if not path.exists() or not path.is_file():
+        raise HTTPException(404, "Not found")
+    suffix = path.suffix.lower()
+    media_types = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                   ".gif": "image/gif", ".svg": "image/svg+xml", ".webp": "image/webp"}
+    return FileResponse(str(path), media_type=media_types.get(suffix, "application/octet-stream"))
+
+
 # ---------------------------------------------------------------------------
 # Chat
 # ---------------------------------------------------------------------------

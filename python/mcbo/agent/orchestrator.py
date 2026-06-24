@@ -68,6 +68,15 @@ FILTER SYNTAX for filtering by cell line:
 - To filter by process type, use: filter_clause="?processType = mcbo:FedBatchCultureProcess"
 - Leave filter_clause empty or omit to get all data
 
+PROCESSTYPE MAPPING — SQL vs SPARQL use different spellings:
+| User says         | SQL (samples.ProcessType) | SPARQL (mcbo: class)          |
+|-------------------|---------------------------|-------------------------------|
+| fed batch         | FedBatch                  | mcbo:FedBatchCultureProcess   |
+| batch             | Batch                     | mcbo:BatchCultureProcess      |
+| perfusion         | Perfusion                 | mcbo:PerfusionCultureProcess  |
+| chemostat         | Chemostat                 | mcbo:ChemostatCultureProcess  |
+Always use the SQL spelling when calling execute_sql, and the SPARQL class when calling execute_sparql.
+
 SCHEMA HINT for "engineered to produce <product>" questions:
 - The MCBO graph captures genetic engineering via TWO predicates that you
   should treat as together-equivalent for product questions:
@@ -110,6 +119,18 @@ For CORRELATION questions (CQ3, CQ6):
 For VIABILITY questions (CQ7):
 1. execute_sparql with template "gene_expression_by_viability"
 2. differential_expression or compute_fold_change
+
+For PCA / DIMENSIONALITY-REDUCTION / VISUALIZATION questions:
+1. Use execute_sql (NOT SPARQL) to fetch the expression matrix — SQL pivot is fast and reliable.
+   Pattern for a process-type-filtered PCA:
+     SELECT e.sample_id, e.gene_symbol, e.value
+     FROM expression_long e
+     JOIN (SELECT DISTINCT SampleAccession, ProcessType, CellLine, Productivity
+           FROM samples WHERE ProcessType = '<SQLValue>') s
+       ON e.sample_id = s.SampleAccession
+   Then call generate_plot with sklearn PCA code operating on that data.
+2. Never report "no data" after a SPARQL-only attempt for a visualization question —
+   always try execute_sql first (or as a fallback) before concluding data is absent.
 
 PLOTTING (optional):
 - Use generate_plot ONLY when the user explicitly asks for a chart, plot, or visualization.
@@ -189,11 +210,13 @@ clauses on the samples table — NOT as universal facts. Specifically:
   the fact instead of trying to AND the slice into the template body.
 
 CRITICAL RULES:
-- ALWAYS start by fetching data with execute_sparql
-- Only report genes, values, and statistics that appear in the tool results
-- NEVER make up gene names, run IDs, or numerical values
-- Cite specific evidence: run IDs, sample IDs, cell line names
-- If data is missing, explain what's needed
+- Use execute_sparql for ontology reasoning (class hierarchies, subClass, property paths).
+- Use execute_sql for visualization, PCA, matrix operations, and process-type-filtered queries.
+- If SPARQL returns 0 rows, ALWAYS retry with execute_sql before reporting "no data".
+- If SQL returns 0 rows, check ProcessType spelling (see mapping table above) then retry.
+- Only report genes, values, and statistics that appear in the tool results.
+- NEVER make up gene names, run IDs, or numerical values.
+- Cite specific evidence: run IDs, sample IDs, cell line names.
 
 The graph contains MCBO (Mammalian Cell Bioprocessing Ontology) data including:
 - Cell culture processes (Batch, Fed-batch, Perfusion, Chemostat)

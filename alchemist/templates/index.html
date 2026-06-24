@@ -20,6 +20,14 @@
       --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+    :root.light {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface2: #ebebed;
+      --border: #d1d1d6;
+      --text: #1c1c1e;
+      --text-dim: #6e6e73;
+    }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
@@ -27,7 +35,7 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--sans);
-      font-size: 21px;
+      font-size: 26px;
       overflow: hidden;
     }
     button { font-family: inherit; }
@@ -63,13 +71,29 @@
       align-items: center;
       gap: 10px;
     }
-    .brand-mark {
-      width: 24px; height: 24px; border-radius: 6px;
-      background: linear-gradient(135deg, var(--brand), var(--cyan));
-      box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+    .brand-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
     }
-    .brand-name { font-weight: 600; letter-spacing: 0.3px; }
-    .brand-sub { font-size: 17px; color: var(--text-dim); margin-top: 2px; }
+    .brand-mark {
+      height: 60px; width: auto;
+      display: block;
+    }
+    .brand-sub { font-size: 21px; color: var(--text-dim); }
+    .theme-toggle {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px 8px;
+      line-height: 1;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--brand); }
 
     .sidebar-actions {
       padding: 12px;
@@ -82,7 +106,7 @@
       border-radius: 6px;
       padding: 8px 12px;
       cursor: pointer;
-      font-size: 20px;
+      font-size: 25px;
       transition: background 0.15s, border-color 0.15s;
     }
     .btn:hover { background: var(--border); }
@@ -108,7 +132,7 @@
       border-radius: 6px;
       cursor: pointer;
       color: var(--text-dim);
-      font-size: 20px;
+      font-size: 25px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -128,7 +152,7 @@
       color: var(--text-dim);
       cursor: pointer;
       padding: 0 4px;
-      font-size: 24px;
+      font-size: 30px;
     }
     .conv-item:hover .del { visibility: visible; }
     .conv-item .del:hover { color: var(--red); }
@@ -170,12 +194,12 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      font-size: 14px;
+      font-size: 18px;
     }
     .data-section h4 {
       margin: 0 0 6px 0;
       color: var(--text-dim);
-      font-size: 13px;
+      font-size: 20px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       display: flex;
@@ -184,7 +208,7 @@
       flex: 0 0 auto;
     }
     .data-section .reload {
-      background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px;
+      background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 20px;
       padding: 0 4px;
     }
     .data-section .reload:hover { color: var(--brand-light); }
@@ -205,7 +229,7 @@
     .table-row .table-name {
       display: block;
       font-family: var(--mono);
-      font-size: 13px;
+      font-size: 20px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -213,7 +237,7 @@
     .table-row .table-rows {
       display: block;
       color: var(--text-dim);
-      font-size: 11px;
+      font-size: 18px;
       font-variant-numeric: tabular-nums;
       padding-left: 2px;
     }
@@ -224,7 +248,7 @@
       margin-top: 8px;
       padding-top: 6px;
       border-top: 1px dashed var(--border);
-      font-size: 13px;
+      font-size: 20px;
       min-height: 0;
       flex: 0 0 auto;
     }
@@ -257,7 +281,7 @@
       margin-left: 4px;
       padding: 1px 7px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 14px;
       background: var(--surface2);
       color: var(--text);
       vertical-align: middle;
@@ -273,15 +297,15 @@
     }
     .health-body .htable { margin-bottom: 7px; }
     .health-body .htable-name {
-      font-family: var(--mono); font-size: 13px; color: var(--text);
+      font-family: var(--mono); font-size: 20px; color: var(--text);
       margin-bottom: 1px;
     }
-    .health-body .htable-stat { color: var(--text-dim); font-size: 12px; }
+    .health-body .htable-stat { color: var(--text-dim); font-size: 18px; }
     .health-body .empty-cols {
       margin: 2px 0 0 6px;
       color: #ffcc88;
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 18px;
       line-height: 1.4;
       word-break: break-word;
     }
@@ -298,17 +322,18 @@
     .empty-state {
       margin: auto;
       text-align: center;
-      max-width: 540px;
+      width: 100%;
       color: var(--text-dim);
     }
-    .empty-state h2 {
-      color: var(--text);
-      margin: 0 0 4px 0;
-      font-size: 33px;
-      font-weight: 600;
+    .empty-state .hero-logo {
+      width: 360px;
+      height: auto;
+      margin-bottom: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
     .empty-state p { margin: 0 0 18px 0; }
-    .empty-state { max-width: 760px; }
     .pills {
       display: flex;
       flex-wrap: wrap;
@@ -321,7 +346,7 @@
       color: var(--text);
       border-radius: 999px;
       padding: 6px 12px;
-      font-size: 18px;
+      font-size: 23px;
       cursor: pointer;
     }
     .pill:hover { border-color: var(--brand); color: var(--brand-light); }
@@ -332,7 +357,6 @@
       margin-bottom: 18px;
       text-align: left;
     }
-    @media (max-width: 720px) { .demo-cards { grid-template-columns: 1fr; } }
     .demo-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -348,23 +372,23 @@
     .demo-card:active { transform: translateY(1px); }
     .demo-card .kicker {
       display: inline-block;
-      font-size: 12px;
+      font-size: 19px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--brand-light);
       margin-bottom: 6px;
       font-weight: 600;
     }
-    .demo-card .q { font-size: 16px; line-height: 1.35; color: var(--text); }
+    .demo-card .q { font-size: 20px; line-height: 1.35; color: var(--text); }
     .demo-card .hint {
       display: block;
-      font-size: 12px;
+      font-size: 15px;
       color: var(--text-dim);
       margin-top: 6px;
       font-style: italic;
     }
     .pills-label {
-      font-size: 13px;
+      font-size: 16px;
       color: var(--text-dim);
       margin: 4px 0 8px 0;
       text-transform: uppercase;
@@ -396,12 +420,12 @@
       padding: 10px 12px;
       overflow-x: auto;
       font-family: var(--mono);
-      font-size: 18px;
+      font-size: 23px;
       margin: 8px 0;
     }
     .bubble code {
       font-family: var(--mono);
-      font-size: 18px;
+      font-size: 23px;
       background: var(--bg);
       padding: 1px 5px;
       border-radius: 3px;
@@ -451,12 +475,12 @@
       border: 1px solid var(--border);
       border-radius: 999px;
       background: var(--surface2);
-      font-size: 14px;
+      font-size: 22px;
       color: var(--text);
     }
     .status-pill .label {
       color: var(--text-dim);
-      font-size: 11px;
+      font-size: 18px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
     }
@@ -469,7 +493,7 @@
       border-radius: 6px;
       padding: 4px 12px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 18px;
     }
     #undoBtn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-light); }
     #undoBtn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -479,14 +503,14 @@
       align-items: center;
       gap: 6px;
       margin-bottom: 8px;
-      font-size: 17px;
+      font-size: 21px;
       color: var(--cyan);
       font-family: var(--mono);
     }
     .slice-badge.show { display: inline-flex; }
     .slice-badge .x {
       background: none; border: none; color: var(--text-dim);
-      cursor: pointer; font-size: 20px; padding: 0 4px;
+      cursor: pointer; font-size: 25px; padding: 0 4px;
     }
     .slice-badge .x:hover { color: var(--red); }
     .input-row {
@@ -501,7 +525,7 @@
       border-radius: 6px;
       padding: 0 12px;
       cursor: pointer;
-      font-size: 24px;
+      font-size: 30px;
     }
     .input-row .filter-btn:hover { border-color: var(--brand); color: var(--brand-light); }
     .input-row .filter-btn.active { border-color: var(--cyan); color: var(--cyan); }
@@ -512,14 +536,14 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 10px 14px;
-      font-size: 21px;
+      font-size: 26px;
       outline: none;
     }
     .input-row input[type="text"]:focus { border-color: var(--brand); }
     .input-row .send-btn {
       background: var(--brand); color: white; border: none; border-radius: 6px;
       padding: 0 18px; cursor: pointer; font-weight: 600;
-      font-size: 18px;
+      font-size: 23px;
     }
     .input-row .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -566,7 +590,7 @@
       align-items: center;
       cursor: pointer;
       user-select: none;
-      font-size: 18px;
+      font-size: 23px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       color: var(--text-dim);
@@ -585,7 +609,7 @@
       min-height: 0;
     }
     .canvas-body img { max-width: 100%; height: auto; border-radius: 6px; }
-    .canvas-body .empty { color: var(--text-dim); font-size: 18px; }
+    .canvas-body .empty { color: var(--text-dim); font-size: 23px; }
     .canvas-nav {
       display: flex;
       gap: 6px;
@@ -594,10 +618,10 @@
     .canvas-nav button {
       background: var(--surface2); border: 1px solid var(--border);
       color: var(--text); border-radius: 4px; padding: 2px 8px;
-      cursor: pointer; font-size: 18px;
+      cursor: pointer; font-size: 23px;
     }
     .canvas-nav button:hover { border-color: var(--brand); }
-    .canvas-nav .counter { color: var(--text-dim); font-size: 17px; min-width: 60px; text-align: center; }
+    .canvas-nav .counter { color: var(--text-dim); font-size: 21px; min-width: 60px; text-align: center; }
 
     /* ---------- Slice panel ---------- */
     .slice-panel {
@@ -621,7 +645,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .slice-header h3 { margin: 0; font-size: 21px; font-weight: 600; }
+    .slice-header h3 { margin: 0; font-size: 26px; font-weight: 600; }
     .slice-body {
       flex: 1;
       overflow-y: auto;
@@ -637,7 +661,7 @@
     .slice-table { margin-bottom: 14px; }
     .slice-table h4 {
       margin: 0 0 6px 0;
-      font-size: 18px;
+      font-size: 23px;
       color: var(--brand-light);
       font-family: var(--mono);
     }
@@ -647,7 +671,7 @@
       gap: 6px;
       margin-bottom: 4px;
       align-items: center;
-      font-size: 18px;
+      font-size: 23px;
     }
     .slice-row label {
       color: var(--text-dim);
@@ -662,7 +686,7 @@
       border: 1px solid var(--border);
       border-radius: 4px;
       padding: 4px 6px;
-      font-size: 18px;
+      font-size: 23px;
       font-family: var(--mono);
       width: 100%;
     }
@@ -678,7 +702,7 @@
       color: var(--text);
       padding: 8px 16px;
       border-radius: 6px;
-      font-size: 20px;
+      font-size: 25px;
       z-index: 100;
       opacity: 0;
       transition: opacity 0.2s;
@@ -697,11 +721,11 @@
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-mark"></div>
-        <div>
-          <div class="brand-name">Alchemist</div>
+        <div class="brand-stack">
+          <img class="brand-mark" data-logo src="/img/logo_dark.png" alt="Alchemist" />
           <div class="brand-sub">data analyst desktop</div>
         </div>
+        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark theme">☀️</button>
       </div>
       <div class="sidebar-actions">
         <button class="btn primary block" id="newConvBtn">+ New conversation</button>
@@ -771,7 +795,7 @@
       <button class="btn" id="closeSlice">&times;</button>
     </div>
     <div class="slice-body" id="sliceBody">
-      <div style="color: var(--text-dim); font-size: 18px;">Loading...</div>
+      <div style="color: var(--text-dim); font-size: 23px;">Loading...</div>
     </div>
     <div class="slice-footer">
       <button class="btn primary" id="applySlice">Apply slice</button>
@@ -937,7 +961,7 @@
 
     const tableNames = Object.keys(cov.tables || {});
     if (!tableNames.length) {
-      body.innerHTML = '<div style="color: var(--text-dim); font-size: 14px;">No tables yet.</div>';
+      body.innerHTML = '<div style="color: var(--text-dim); font-size: 18px;">No tables yet.</div>';
       return;
     }
 
@@ -961,7 +985,7 @@
       </div>`;
     }).join("")
       + (empties.length
-          ? `<div style="margin-top: 4px; color: var(--text-dim); font-size: 12px;">
+          ? `<div style="margin-top: 4px; color: var(--text-dim); font-size: 15px;">
               Tip: the agent will (correctly) say "no data" if you ask about a column listed in orange.
              </div>`
           : "");
@@ -980,7 +1004,7 @@
     const c = $("tableList");
     const ts = state.schema.tables || [];
     if (!ts.length) {
-      c.innerHTML = '<div style="color: var(--text-dim); font-size: 17px;">No tables loaded.</div>';
+      c.innerHTML = '<div style="color: var(--text-dim); font-size: 21px;">No tables loaded.</div>';
       return;
     }
     c.innerHTML = ts.map((t) =>
@@ -1004,7 +1028,7 @@
   function renderConvList() {
     const c = $("convList");
     if (!state.conversations.length) {
-      c.innerHTML = '<div style="color: var(--text-dim); font-size: 18px; padding: 8px 12px;">No conversations yet.</div>';
+      c.innerHTML = '<div style="color: var(--text-dim); font-size: 23px; padding: 8px 12px;">No conversations yet.</div>';
       return;
     }
     c.innerHTML = state.conversations.map((cv) => `
@@ -1122,7 +1146,7 @@
       },
       {
         kicker: "SQL aggregate",
-        q: "Across the whole dataset, what's the average culture temperature for each process type, how many samples of each are there, and which process type runs hottest on average?",
+        q: "Comparing specific engineering traits in the database, which cell lines provided  the highest titers?",
       },
       {
         kicker: "Plot (PCA)",
@@ -1145,7 +1169,7 @@
 
     c.innerHTML = `
       <div class="empty-state">
-        <h2>Hello, I'm Alchemist.</h2>
+        <img class="hero-logo" data-logo src="${currentLogoSrc()}" alt="Alchemist" />
         <p>Try one of the demo questions \u2014 or ask anything about your data.</p>
         <div class="demo-cards">
           ${demoCards.map((d, i) => `
@@ -1319,7 +1343,7 @@
     const tables = state.sliceOptions.tables || {};
     const tableNames = Object.keys(tables);
     if (!tableNames.length) {
-      body.innerHTML = '<div style="color: var(--text-dim); font-size: 18px;">No tables to slice.</div>';
+      body.innerHTML = '<div style="color: var(--text-dim); font-size: 23px;">No tables to slice.</div>';
       return;
     }
     body.innerHTML = tableNames.map((tname) => {
@@ -1408,8 +1432,32 @@
     }
   }
 
+  // ===================== Theme toggle =====================
+  function currentLogoSrc() {
+    return document.documentElement.classList.contains("light")
+      ? "/img/logo.png" : "/img/logo_dark.png";
+  }
+  function initTheme() {
+    const stored = localStorage.getItem("alchemist:theme");
+    if (stored === "light") document.documentElement.classList.add("light");
+    updateThemeBtn();
+  }
+  function updateThemeBtn() {
+    const light = document.documentElement.classList.contains("light");
+    $("themeToggle").textContent = light ? "🌙" : "☀️";
+    $("themeToggle").title = light ? "Switch to dark theme" : "Switch to light theme";
+    document.querySelectorAll("img[data-logo]").forEach(el => { el.src = currentLogoSrc(); });
+  }
+
   // ===================== Wire up =====================
   function wireEvents() {
+    $("themeToggle").addEventListener("click", () => {
+      document.documentElement.classList.toggle("light");
+      const light = document.documentElement.classList.contains("light");
+      localStorage.setItem("alchemist:theme", light ? "light" : "dark");
+      updateThemeBtn();
+    });
+
     $("newConvBtn").addEventListener("click", startNewConversation);
     $("reloadBtn").addEventListener("click", async () => {
       showToast("Reloading data...");
@@ -1640,6 +1688,7 @@
 
   // ===================== Boot =====================
   (async function init() {
+    initTheme();
     wireEvents();
     await loadSchema();
     await loadSliceOptions();

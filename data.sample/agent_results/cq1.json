@@ -1,14 +1,14 @@
 {
-  "answer": "The cells in the culture conditions with peak recombinant protein productivity are observed at a temperature of 37.0\u00b0C, pH of 7.1 for HEK293 and pH of 7.0 for CHO-K1 and Clone_A cell lines. For these optimal conditions, the process type is PerfusionCultureProcess, yielding a VeryHigh level of productivity (5.0 units). \n\nThe second instance with peak productivity observed at a temperature of 36.5\u00b0C, pH of 7.0, and dissolved oxygen concentration of 50% was achieved in PerfusionCultureProcess for Clone_X cell line with a Medium level of productivity (3.0 units).\n\nThus, the combination that leads to cells reaching peak recombinant protein productivity involves moderate temperature around 36-37\u00b0C, pH close to 7.0, and high dissolved oxygen levels above 50%. These conditions appear to be optimal for achieving VeryHigh and High levels of productivity under PerfusionCultureProcess. However, for the specific condition with the highest peak productivity (5.0 units), we see it occurring at a slightly lower pH value (7.1) in HEK293 cells. \n\nIn summary, while multiple factors contribute to high productivity, an optimal combination seems to be a temperature range of 36-37\u00b0C, near-neutral pH (around 7.0), and sufficient dissolved oxygen concentration above 50%.",
+  "answer": "The cells reach peak recombinant protein productivity under conditions with a temperature of 37.0\u00b0C, pH of 7.1, and dissolved oxygen level of 60.0%. Specifically, this was observed in a run labeled \"run_DEMO002_RUN_C\" where the cell line used was HEK293. This condition produced a VeryHigh productivity value.\n\nNo other conditions with different pH, temperature, or dissolved oxygen levels showed higher productivity compared to these values. Thus, based on the available data, the peak productivity of 5.0 (VeryHigh) is observed under the given set of conditions for the HEK293 cell line in a PerfusionCultureProcess run.\n\nIf there are additional runs with different conditions that might indicate a peak productivity value, they should be examined to confirm these findings.",
   "tool_calls": [
     {
       "tool": "execute_sparql",
       "arguments": {
         "template_name": "culture_conditions_productivity"
       },
-      "result_summary": "17 rows returned"
+      "result_summary": "18 rows returned"
     }
   ],
   "iterations": 2,
-  "duration": 11.922222375869751
+  "duration": 9.277129888534546
 }

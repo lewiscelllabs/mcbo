@@ -117,6 +117,33 @@ def _normalize_known_typos(con: duckdb.DuckDBPyConnection) -> list[str]:
     return notes
 
 
+def _create_derived_views(con: duckdb.DuckDBPyConnection) -> list[str]:
+    """Create convenience views from well-known table combinations.
+
+    Called after every load so views stay current when tables are reloaded.
+    Each view is silently skipped if the required source tables are absent,
+    so non-MCBO datasets are unaffected.
+    """
+    notes: list[str] = []
+    existing = {r[0] for r in con.execute(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema='main'"
+    ).fetchall()}
+
+    if "expression_matrix" in existing and "sample_metadata" in existing:
+        try:
+            con.execute("""
+                CREATE OR REPLACE VIEW expression_with_metadata AS
+                SELECT m.*, e.* EXCLUDE ("SampleAccession")
+                FROM expression_matrix e
+                JOIN sample_metadata m USING ("SampleAccession")
+            """)
+            notes.append("Created view: expression_with_metadata")
+        except Exception as e:
+            notes.append(f"Could not create expression_with_metadata view: {e}")
+
+    return notes
+
+
 def load_directory(db_path: Path, data_dir: Path) -> dict:
     """Scan ``data_dir`` and import every supported file into ``db_path``.
 
@@ -145,6 +172,7 @@ def load_directory(db_path: Path, data_dir: Path) -> dict:
             except Exception as e:  # pragma: no cover - surface importer errors to UI
                 files_out.append({"table": None, "file": str(f), "error": str(e)})
         normalizations = _normalize_known_typos(con)
+        normalizations += _create_derived_views(con)
     finally:
         con.close()
     return {"files": files_out, "normalizations": normalizations}

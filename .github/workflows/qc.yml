@@ -1,4 +1,4 @@
-name: Ontology QC (ROBOT)
+name: Ontology QC (ROBOT + Validation)
 
 on:
   push:
@@ -6,12 +6,16 @@ on:
       - "ontology/**"
       - "**/*.ttl"
       - "sparql/**"
+      - "python/**"
+      - "data.sample/**"
       - ".github/workflows/qc.yml"
   pull_request:
     paths:
       - "ontology/**"
       - "**/*.ttl"
       - "sparql/**"
+      - "python/**"
+      - "data.sample/**"
       - ".github/workflows/qc.yml"
   workflow_dispatch: {}
 
@@ -127,3 +131,36 @@ jobs:
           name: robot-qc-reports
           path: reports/robot/*.tsv
           if-no-files-found: error
+
+  instance-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install mcbo with validation deps
+        run: |
+          pip install -e python/[validation]
+
+      - name: Build demo graph
+        run: |
+          mcbo-build-graph build --data-dir data.sample
+
+      - name: Validate demo instances
+        run: |
+          echo "Validating demo instances against ontology restrictions..."
+          mcbo-validate --graph data.sample/graph.ttl || {
+            echo "::warning::Instance validation had warnings (see above)"
+            # Don't fail the build for validation warnings - they're informational
+            true
+          }
+
+      - name: Run CQ evaluation to verify graph works
+        run: |
+          mcbo-run-eval --data-dir data.sample --verify
